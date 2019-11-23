@@ -190,7 +190,7 @@ elseif($act == 'run')
     $callback_key = $ps['options']['secret'];   // получаем callback key
     $vk_group_id = $ps['options']['owner_id'];  // id вк группы пользователя
     // если стоит цель не на инициатора активности
-    if(isset($options['target_id'])) { $user_id = $options['target_id']; } 
+    if(isset($target)) { $user_id = $target; } 
     else { $user_id = $ums['from_id']; }
 
     $senler = new Senler($callback_key, $vk_group_id);
