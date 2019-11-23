@@ -24,6 +24,7 @@ if($act == 'options')
                     3 => 'Переменные',
                     4 => 'Метки'
                 ],
+                'default' => ''
             ],
 
             /* Основные типы запроса */ 
@@ -37,7 +38,8 @@ if($act == 'options')
                 ],
                 'show' => [
                     'option' => 1
-                ]          	
+                ],
+                'default' => ''
             ],
             'bot_type' => [
                 'title' => 'Тип запроса',   
@@ -47,7 +49,8 @@ if($act == 'options')
                 ],
                 'show' => [
                     'option' => 2
-                ]           
+                ],
+                'default' => ''   
             ],
             'var_type' => [
                 'title' => 'Тип запроса',   
@@ -58,7 +61,8 @@ if($act == 'options')
                 ],
                 'show' => [
                     'option' => 3
-                ]           
+                ],
+                'default' => ''       
             ],
             'utm_type' => [
                 'title' => 'Тип запроса',   
@@ -71,7 +75,8 @@ if($act == 'options')
                 ],
                 'show' => [
                     'option' => 4
-                ]           
+                ],
+                'default' => ''      
             ],
 
             /* Верхние поля */
