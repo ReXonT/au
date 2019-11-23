@@ -24,9 +24,8 @@ if($act == 'options')
                     3 => 'Переменные',
                     4 => 'Метки'
                 ],
-                'default' => 0
             ],
-            'exec_type' => [
+            'sub_type' => [
                 'title' => 'Тип запроса',   
                 'values' => [
                     1 => 'Подписать в группу',
@@ -34,7 +33,6 @@ if($act == 'options')
                     3 => 'Получить данные подписок по группе рассылки',
                     4 => 'Получить информацию о группе рассылки'
                 ],
-                'default' => 0,
                 'show' => [
                     'option' => 1
                 ]          	
@@ -44,7 +42,7 @@ if($act == 'options')
                 'desc' => 'Из Senler',    	
                 'default' => '',
                 'show' => [
-                    'exec_type' => 1,
+                    'sub_type' => 1,
                 ]       	
             ],
             'senler_utm_id' => [
@@ -52,7 +50,7 @@ if($act == 'options')
                 'desc' => 'Не обязательно',    	
                 'default' => '',
                 'show' => [
-                    'exec_type' => 1
+                    'sub_type' => 1
                 ],
                 'more' => 1           	
             ],
@@ -61,7 +59,7 @@ if($act == 'options')
                 'desc' => 'Формат: 13.05.2019 00:00:00',     
                 'default' => '13.05.2019 00:00:00',
                 'show' => [
-                    'exec_type' => 3,
+                    'sub_type' => 3,
                 ]             
             ],
             'date_to' => [
@@ -69,7 +67,7 @@ if($act == 'options')
                 'desc' => 'Формат: 13.05.2019 00:00:00',     
                 'default' => '15.05.2019 23:59:59',
                 'show' => [
-                    'exec_type' => 3,
+                    'sub_type' => 3,
                 ]            
             ],
         ],
@@ -86,7 +84,7 @@ if($act == 'options')
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 } 
 elseif($act == 'run') 
-{              			// Схема прислала данные, обрабатываем
+{              			                        // Схема прислала данные, обрабатываем
 
     $target = $_REQUEST['target'];  			// Пользователь, от имени которого выполняется блок
     $ums    = $_REQUEST['ums'];     			// Данные об активности пользователя, массив в котором есть:
@@ -96,68 +94,80 @@ elseif($act == 'run')
 											    // text - текст комментария, сообщения и т.д.
     $options = $_REQUEST['options'];
 
-    $ps = $_REQUEST['paysys']['ps'];			// Сюда придут настройки выбранной системы
-
-    $exec_type = $options['exec_type'];			// получаем тип запроса
-    $target_id = $options['target_id'];			// забираем id из цели
-
-    $vk_group_id = $ps['options']['owner_id'];
-
-    // если стоит цель не на инициатора активности
- 	if(isset($target_id)) { $user_id = $target_id; }
- 	else { $user_id = $ums['from_id']; }
-
- 	// настройки сенлер
-	$callback_key = $ps['options']['secret'];	//получаем callback key
     
-    // специфические для подписки
-    $senler_group_id = $options['senler_group_id'];
-    $senler_utm_id = $options['senler_utm_id'];
+    /* Основные настройки */
+    $ps = $_REQUEST['paysys']['ps'];			// Сюда придут настройки выбранной системы
+    // настройки сенлер
+    $callback_key = $ps['options']['secret'];   // получаем callback key
+    $vk_group_id = $ps['options']['owner_id'];  // id вк группы пользователя
+    // если стоит цель не на инициатора активности
+    if(isset($target_id)) { $user_id = $target_id; }
+    else { $user_id = $ums['from_id']; }
+    $user_id = $options['target_id'];           // забираем id из цели. На него будем исполнять действия
 
-    // для проверки подписок/отписок в интервале дат
-    $date_from = $options['date_from'];
-    $date_to = $options['date_to'];
+    $out = 0;                                   // выход в 0 (ошибка)
 
-    $senler = new Senler($callback_key, $vk_group_id);
+    /* Выбираем тип запроса: Подписки/Бот/Переменные/Метки */
+    $option = $options['option'];
 
-    $out = 0;
+    switch ($option) {
+        // работа с подписками
+        case 1:
+            $sub_type = $options['sub_type'];           // получаем тип запроса
 
-    switch ($exec_type) 
-    {
-    	//если нужно подписать человека
-    	case '1':
-			$answer = $senler->addSubscriber($senler_group_id, $user_id, $senler_utm_id);
-			$message = 'Подписан';
-			$out = 1;	// устанавливаем 1 выход
-    		break;
+            $senler_group_id = $options['senler_group_id']; // получаем id группы подписок Senler
+            $senler_utm_id = $options['senler_utm_id']; // получаем id utm метки Senler
 
-    	case '2':	//если нужно отписать человека
-    		$answer = $senler->deleteSubscriber($senler_group_id, $user_id);
-			$message = 'Удалён';
-			$out = 1;	// устанавливаем 1 выход
-    		break;
+            // для проверки подписок/отписок в интервале дат
+            $date_from = $options['date_from']; // дата начала интервала
+            $date_to = $options['date_to']; // дата конца интервала
 
-        case '3':   //если нужно отписать человека
-            $answer = $senler->getStatSubscribe($date_from, $date_to, $senler_group_id);
-            $sub_stat = $answer['count'];
-            $count_sub = $answer['count_subscribe'];
-            $count_unsub = $answer['count_unsubscribe'];
-            $message = 'Получены данные';
-            $out = 1;   // устанавливаем 1 выход
+            $senler = new Senler($callback_key, $vk_group_id);  // экземпляр класса
+
+            switch ($sub_type) 
+            {
+                //если нужно подписать человека
+                case '1':
+                    $answer = $senler->addSubscriber($senler_group_id, $user_id, $senler_utm_id);
+                    $message = 'Подписан';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                case '2':   //если нужно отписать человека
+                    $answer = $senler->deleteSubscriber($senler_group_id, $user_id);
+                    $message = 'Удалён';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                case '3':   //если нужно отписать человека
+                    $answer = $senler->getStatSubscribe($date_from, $date_to, $senler_group_id);
+                    $sub_stat = $answer['count'];
+                    $count_sub = $answer['count_subscribe'];
+                    $count_unsub = $answer['count_unsubscribe'];
+                    $message = 'Получены данные';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                case '4':
+                    $answer = $senler->getSubscribersFromGroup($senler_group_id);
+                    $sub_stat = $answer['count'];
+                    $message = 'Данные получены';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                default:
+                    // code...
+                    break;
+
+            }
             break;
-
-        case '4':
-            $answer = $senler->getSubscribersFromGroup($senler_group_id);
-            $sub_stat = $answer['count'];
-            $message = 'Данные получены';
-            $out = 1;   // устанавливаем 1 выход
+        
+        default:
+            // code...
             break;
-
-    	default:
-    		// code...
-    		break;
-
     }
+
+
     $success = $answer['success'];
     
     if(!$success)
