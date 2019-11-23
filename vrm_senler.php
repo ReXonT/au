@@ -399,7 +399,8 @@ elseif($act == 'run')
             'message' => $message,
             'count' => $sub_stat,
             'count_sub' => $count_sub,
-            'count_unsub' => $count_unsub
+            'count_unsub' => $count_unsub,
+            'found_vars' => $found_vars
         ]
     ];
 
