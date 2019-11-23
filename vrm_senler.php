@@ -87,7 +87,9 @@ if($act == 'options')
                 'desc' => 'Из Senler',    	
                 'default' => '',
                 'show' => [
+                    'option' => [1,4],
                     'sub_type' => [1,2,3,4],
+                    'utm_type' => 5
                 ]       	
             ],
 
@@ -97,6 +99,7 @@ if($act == 'options')
                 'desc' => 'Положительное число',      
                 'default' => '',
                 'show' => [
+                    'option' => 2,
                     'bot_type' => [1,2]
                 ]           
             ],
@@ -107,6 +110,7 @@ if($act == 'options')
                 'desc' => 'Слитно на латинице. Оставьте пустым, если нужно получить все переменные',      
                 'default' => '',
                 'show' => [
+                    'option' => 3,
                     'var_type' => [1,2,3]
                 ]            
             ],
@@ -117,6 +121,7 @@ if($act == 'options')
                 'desc' => '',      
                 'default' => '',
                 'show' => [
+                    'option' => 4,
                     'utm_type' => [2,3,5]
                 ]            
             ],
@@ -125,6 +130,7 @@ if($act == 'options')
                 'desc' => '',      
                 'default' => '',
                 'show' => [
+                    'option' => 4,
                     'utm_type' => [1,2]
                 ]            
             ],
@@ -139,6 +145,7 @@ if($act == 'options')
                 'desc' => 'Число. Не обязательно при получении и удалении',     
                 'default' => '',
                 'show' => [
+                    'option' => 3,
                     'var_type' => 1
                 ]              
             ],
@@ -152,6 +159,7 @@ if($act == 'options')
                     5 => 'Только имена через запятую'
                 ],
                 'show' => [
+                    'option' => 3,
                     'var_type' => 2
                 ]                
             ],
@@ -163,6 +171,7 @@ if($act == 'options')
                 'desc' => '1 - да, 0 - нет',      
                 'default' => '',
                 'show' => [
+                    'option' => 4,
                     'utm_type' => 5
                 ]            
             ],
@@ -173,6 +182,7 @@ if($act == 'options')
                 'desc' => 'Формат: 13.05.2019 00:00:00',     
                 'default' => '13.05.2019 00:00:00',
                 'show' => [
+                    'option' => 1,
                     'sub_type' => 3,
                 ]             
             ],
@@ -181,6 +191,7 @@ if($act == 'options')
                 'desc' => 'Формат: 13.05.2019 00:00:00',     
                 'default' => '15.05.2019 23:59:59',
                 'show' => [
+                    'option' => 1,
                     'sub_type' => 3,
                 ]            
             ],
@@ -192,6 +203,7 @@ if($act == 'options')
                 'desc' => 'Не обязательно',     
                 'default' => '',
                 'show' => [
+                    'option' => 1,
                     'sub_type' => 1
                 ],
                 'more' => 1             
