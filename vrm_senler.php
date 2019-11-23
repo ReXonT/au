@@ -120,14 +120,6 @@ if($act == 'options')
                     'utm_type' => [1,2]
                 ]            
             ],
-            'utm_name' => [
-                'title' => 'Название UTM метки',   
-                'desc' => '',      
-                'default' => '',
-                'show' => [
-                    'utm_type' => [1,2]
-                ]            
-            ],
             'utm_id' => [
                 'title' => 'ID UTM метки',   
                 'desc' => '',      
@@ -136,6 +128,15 @@ if($act == 'options')
                     'utm_type' => [2,3,5]
                 ]            
             ],
+            'utm_name' => [
+                'title' => 'Название UTM метки',   
+                'desc' => '',      
+                'default' => '',
+                'show' => [
+                    'utm_type' => [1,2]
+                ]            
+            ],
+            
 
             /* Второстепенные поля */
 
