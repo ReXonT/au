@@ -112,14 +112,6 @@ if($act == 'options')
             ],
 
             // utm
-            'utm_name' => [
-                'title' => 'Название UTM метки',   
-                'desc' => '',      
-                'default' => '',
-                'show' => [
-                    'utm_type' => [1,2]
-                ]            
-            ],
             'utm_id' => [
                 'title' => 'ID UTM метки',   
                 'desc' => '',      
