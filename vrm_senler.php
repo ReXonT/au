@@ -461,6 +461,7 @@ elseif($act == 'run')
 
                 case '5':   // получить ссылку для метки
                     $answer = $senler->getUtmLink($utm_id, $senler_group_id, $force);
+                    $utm_link = $answer['link'];
                     $message = 'Ссылка для метки получена';
                     $out = 1;   // устанавливаем 1 выход
                     break;
@@ -499,7 +500,8 @@ elseif($act == 'run')
             'count' => $sub_stat,
             'count_sub' => $count_sub,
             'count_unsub' => $count_unsub,
-            'found_vars' => $found_vars
+            'found_vars' => $found_vars,
+            'utm_link' => $utm_link
         ]
     ];
 
