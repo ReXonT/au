@@ -494,6 +494,7 @@ elseif($act == 'run')
             'count_sub' => $count_sub,
             'count_unsub' => $count_unsub,
             'found_vars' => $found_vars,
+            'found_utm' => $found_utm,
             'utm_link' => $utm_link
         ]
     ];
