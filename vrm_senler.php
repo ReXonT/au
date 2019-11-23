@@ -424,8 +424,8 @@ elseif($act == 'run')
             $utm_type = $options['utm_type'];   // получаем тип запроса
 
             // utm
-            $utm_id = $options['senler_utm_id'];
-            $utm_name = $options['senler_utm_name'];
+            $utm_id = $options['utm_id'];
+            $utm_name = $options['utm_name'];
 
             $senler_group_id = $options['senler_group_id']; // получаем id группы подписок Senler
 
