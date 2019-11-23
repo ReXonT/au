@@ -38,7 +38,7 @@ if($act == 'options')
                 ]          	
             ],
             'senler_group_id' => [
-                'title' => 'ID группы Senler',   
+                'title' => 'ID группы рассылки',   
                 'desc' => 'Из Senler',    	
                 'default' => '',
                 'show' => [
