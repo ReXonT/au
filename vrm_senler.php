@@ -181,25 +181,31 @@ elseif($act == 'run')
     $options = $_REQUEST['options'];
 
     
-    /* Основные настройки */
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * Основные настройки для Senler:                            *
+     * получаем данные callback, vk group id и user id           *
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     $ps = $_REQUEST['paysys']['ps'];			// Сюда придут настройки выбранной системы
     // настройки сенлер
     $callback_key = $ps['options']['secret'];   // получаем callback key
     $vk_group_id = $ps['options']['owner_id'];  // id вк группы пользователя
     // если стоит цель не на инициатора активности
-    if(isset($target_id)) { $user_id = $target_id; }
+    if(isset($options['target_id'])) { $user_id = $options['target_id']; } 
     else { $user_id = $ums['from_id']; }
-    $user_id = $options['target_id'];           // забираем id из цели. На него будем исполнять действия
-
+               
     $out = 0;                                   // выход в 0 (ошибка)
 
-    /* Выбираем тип запроса: Подписки/Бот/Переменные/Метки */
-    $option = $options['option'];
+
+
+     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * Выбираем тип запроса: Подписки/Бот/Переменные/Метки       *
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    $option = $options['option'];               // номер выбранного раздела
 
     switch ($option) {
         // работа с подписками
         case 1:
-            $sub_type = $options['sub_type'];           // получаем тип запроса
+            $sub_type = $options['sub_type'];   // получаем тип запроса
 
             $senler_group_id = $options['senler_group_id']; // получаем id группы подписок Senler
             $senler_utm_id = $options['senler_utm_id']; // получаем id utm метки Senler
@@ -248,8 +254,23 @@ elseif($act == 'run')
             }
             break;
         
+        // работа с ботом
+        case 2:
+
+            break;
+
+        // работа с переменными
+        case 3:
+
+            break;
+
+        // работа с метками
+        case 4:
+
+            break;
+
         default:
-            // code...
+            
             break;
     }
 
