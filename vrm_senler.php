@@ -80,6 +80,8 @@ if($act == 'options')
             ],
 
             /* Верхние поля */
+
+            // subs
             'senler_group_id' => [
                 'title' => 'ID группы рассылки',   
                 'desc' => 'Из Senler',    	
@@ -88,6 +90,8 @@ if($act == 'options')
                     'sub_type' => [1,2,3,4],
                 ]       	
             ],
+
+            // bot
             'senler_bot_id' => [
                 'title' => 'ID бота Senler',   
                 'desc' => 'Положительное число',      
@@ -96,6 +100,8 @@ if($act == 'options')
                     'bot_type' => [1,2]
                 ]           
             ],
+
+            // var
             'senler_var_name' => [
                 'title' => 'Имя переменной',   
                 'desc' => 'Слитно на латинице. Оставьте пустым, если нужно получить все переменные',      
@@ -105,7 +111,36 @@ if($act == 'options')
                 ]            
             ],
 
+            // utm
+            'utm_name' => [
+                'title' => 'Название UTM метки',   
+                'desc' => '',      
+                'default' => '',
+                'show' => [
+                    'utm_type' => [1,2]
+                ]            
+            ],
+            'utm_name' => [
+                'title' => 'Название UTM метки',   
+                'desc' => '',      
+                'default' => '',
+                'show' => [
+                    'utm_type' => [1,2]
+                ]            
+            ],
+            'utm_id' => [
+                'title' => 'ID UTM метки',   
+                'desc' => '',      
+                'default' => '',
+                'show' => [
+                    'utm_type' => [2,3,5]
+                ]            
+            ],
+
             /* Второстепенные поля */
+
+
+            // var
             'senler_var_value' => [
                 'title' => 'Значение переменной',   
                 'desc' => 'Число. Не обязательно при получении и удалении',     
@@ -127,6 +162,19 @@ if($act == 'options')
                     'var_type' => 2
                 ]                
             ],
+
+            // utm
+
+            'utm_id' => [
+                'title' => 'Автоматическая подписка при переходе',   
+                'desc' => '1 - да, 0 - нет',      
+                'default' => '',
+                'show' => [
+                    'utm_type' => 5
+                ]            
+            ],
+
+            // для разных полей
             'date_from' => [
                 'title' => 'Дата начала проверки',   
                 'desc' => 'Формат: 13.05.2019 00:00:00',     
@@ -373,7 +421,55 @@ elseif($act == 'run')
 
         // работа с метками
         case 4:
+            $utm_type = $options['utm_type'];   // получаем тип запроса
 
+            // utm
+            $utm_id = $options['senler_utm_id'];
+            $utm_name = $options['senler_utm_name'];
+
+            $senler_group_id = $options['senler_group_id']; // получаем id группы подписок Senler
+
+            $force = $options['force']; // для ссылки: автоподписка true/false
+
+            switch ($utm_type) 
+            {
+                case '1':   // добавить метку
+                    $answer = $senler->addUtm($utm_name);
+                    $message = 'Добавлена метка';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                case '2':   // редактировать метку
+                    $answer = $senler->editUtm($utm_id, $utm_name);
+                    $message = 'Метка отредактирована';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                case '3':   // удалить метку
+                    $answer = $senler->delUtm($utm_id);
+                    $message = 'Метка удалена';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                case '4':   // получить метки
+                    $answer = $senler->getUtm();
+                    $count = $answer['count'];
+                    $found_utm = $answer['items'];
+                    $message = 'Метки получены';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                case '5':   // получить ссылку для метки
+                    $answer = $senler->getUtmLink($utm_id, $senler_group_id, $force);
+                    $message = 'Ссылка для метки получена';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                default:
+                    
+                    break;
+
+            }
             break;
 
         default:
@@ -389,6 +485,8 @@ elseif($act == 'run')
     	$error_name = $answer['error_message'];
     }
 
+    $error_message = $senler->getErrorMessage($answer['error_code']);
+
 
 /* Сформировать массив данных на отдачу */
     $responce = [
@@ -396,6 +494,7 @@ elseif($act == 'run')
         'value' => [           					// Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через 
         										// $bN_value.ваши_ключи_массива
             'error_name' => $error_name,
+            'error_message' => $error_message,
             'message' => $message,
             'count' => $sub_stat,
             'count_sub' => $count_sub,
