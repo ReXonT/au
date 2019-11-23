@@ -192,6 +192,8 @@ elseif($act == 'run')
     // если стоит цель не на инициатора активности
     if(isset($options['target_id'])) { $user_id = $options['target_id']; } 
     else { $user_id = $ums['from_id']; }
+
+    $senler = new Senler($callback_key, $vk_group_id);
                
     $out = 0;                                   // выход в 0 (ошибка)
 
@@ -213,8 +215,6 @@ elseif($act == 'run')
             // для проверки подписок/отписок в интервале дат
             $date_from = $options['date_from']; // дата начала интервала
             $date_to = $options['date_to']; // дата конца интервала
-
-            $senler = new Senler($callback_key, $vk_group_id);  // экземпляр класса
 
             switch ($sub_type) 
             {
@@ -256,12 +256,119 @@ elseif($act == 'run')
         
         // работа с ботом
         case 2:
+            $bot_type = $options['bot_type'];   // получаем тип запроса
 
+            // бот id
+            $senler_bot_id = $options['senler_bot_id'];
+
+            switch ($bot_type) 
+            {
+                case '1':   // добавить в бота
+                    $answer = $senler->addToBot($user_id, $senler_bot_id);
+                    $message = 'Добавлен в бота';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                case '2':   // удалить из бота
+                    $answer = $senler->delFromBot($user_id, $senler_bot_id);
+                    $message = 'Удалён из бота';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                default:
+                    // code...
+                    break;
+
+            }
             break;
 
         // работа с переменными
         case 3:
+            $var_type = $options['var_type'];   // получаем тип запроса
 
+            $senler_var_name = $options['senler_var_name'];
+            $senler_var_value = $options['senler_var_value'];
+            $get_type = $options['get_type'];
+
+            switch ($var_type) 
+            {
+                
+                case '1':   // установить переменную
+                    $answer = $senler->setVar($user_id, $senler_var_name, $senler_var_value);
+                    $message = 'Установлена переменная';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                case '2':   // получить переменную
+                    $answer = $senler->getVar($user_id, $senler_var_name);
+                    
+                    $found_vars = "";
+
+                    switch ($get_type) 
+                    {
+                        // *переменная* равна *значение*
+                        case 1:             
+                            foreach ($answer['items'] as $value) 
+                            {
+                                $found_vars .= $value['name']." равна ".$value['value'].'\n';
+                            }
+                            break;
+
+                        // значения построчно
+                        case 2:
+                            foreach ($answer['items'] as $value) 
+                            {
+                                $found_vars .= $value['value'].'\n';
+                            }
+                            break;
+
+                        // значения через запятую
+                        case 3:
+                            foreach ($answer['items'] as $value) 
+                            {
+                                $found_vars .= $value['value'].', ';
+                            }
+                            $found_vars = rtrim($found_vars, ', ');
+                            break;
+
+                        // названия построчно
+                        case 4:
+                            foreach ($answer['items'] as $value) 
+                            {
+                                $found_vars .= $value['name'].'\n';
+                            }
+                            break;
+
+                        // названия через запятую
+                        case 5:
+                            foreach ($answer['items'] as $value) 
+                            {
+                                $found_vars .= $value['name'].', ';
+                            }
+                            $found_vars = rtrim($found_vars, ', ');
+                            break;
+
+                        default:
+                            // code...
+                            break;
+                    }
+                    
+
+                    $message = 'Получены переменные';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                case '3':   // удалить переменную
+                    $answer = $senler->delVar($user_id, $senler_var_name);
+                    $message = 'Удалена переменная';
+                    $out = 1;   // устанавливаем 1 выход
+                    break;
+
+                default:
+                    // code...
+                    break;
+
+            }
             break;
 
         // работа с метками
