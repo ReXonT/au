@@ -161,7 +161,7 @@ class Senler
 	}
 
 	// редактировать метку
-	public function editUtm($utm_name, $utm_id)
+	public function editUtm($utm_id, $utm_name)
 	{
 		$params = [ 
 			    'vk_group_id' => $this->vk_group_id,
