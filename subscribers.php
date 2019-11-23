@@ -42,7 +42,7 @@ if($act == 'options')
                 'desc' => 'Из Senler',    	
                 'default' => '',
                 'show' => [
-                    'sub_type' => 1,
+                    'sub_type' => [1,2,3],
                 ]       	
             ],
             'senler_utm_id' => [
