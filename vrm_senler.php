@@ -175,9 +175,9 @@ if($act == 'options')
             // utm
 
             'force' => [
-                'title' => 'Автоматическая подписка при переходе',   
-                'desc' => '1 - да, 0 - нет',      
-                'default' => '',
+                'title' => 'Подписка при переходе',   
+                'desc' => 'Автоматически подписывать при нажатии на ссылку',
+                'format' => 'checkbox',      
                 'show' => [
                     'option' => 4,
                     'utm_type' => 5
@@ -187,8 +187,8 @@ if($act == 'options')
             // для разных полей
             'date_from' => [
                 'title' => 'Дата начала проверки',   
-                'desc' => 'Формат: 13.05.2019 00:00:00',     
-                'default' => '13.05.2019 00:00:00',
+                'desc' => 'С какого времени проверяем',     
+                'format' => 'datetime',
                 'show' => [
                     'option' => 1,
                     'sub_type' => 3,
@@ -196,8 +196,8 @@ if($act == 'options')
             ],
             'date_to' => [
                 'title' => 'Дата конца проверки',   
-                'desc' => 'Формат: 13.05.2019 00:00:00',     
-                'default' => '15.05.2019 23:59:59',
+                'desc' => 'До какого времени проверяем',     
+                'format' => 'datetime',
                 'show' => [
                     'option' => 1,
                     'sub_type' => 3,
@@ -267,14 +267,16 @@ elseif($act == 'run')
     switch ($option) {
         // работа с подписками
         case 1:
-            $sub_type = $options['sub_type'];   // получаем тип запроса
+            $sub_type = $options['sub_type'];               // получаем тип запроса
 
             $senler_group_id = $options['senler_group_id']; // получаем id группы подписок Senler
-            $senler_utm_id = $options['senler_utm_id']; // получаем id utm метки Senler
+            $senler_utm_id = $options['senler_utm_id'];     // получаем id utm метки Senler
 
             // для проверки подписок/отписок в интервале дат
-            $date_from = $options['date_from']; // дата начала интервала
-            $date_to = $options['date_to']; // дата конца интервала
+            $date_from = $options['date_from'];             // дата начала интервала
+            $date_from = date('d.m.Y H:i:s',$date_from);    // перевод из unixtime в нужный формат
+            $date_to = $options['date_to'];                 // дата конца интервала
+            $date_to = date('d.m.Y H:i:s',$date_to);        // перевод из unixtime в нужный формат
 
             switch ($sub_type) 
             {
