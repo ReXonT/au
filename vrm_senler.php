@@ -147,7 +147,7 @@ if($act == 'options')
             // var
             'senler_var_value' => [
                 'title' => 'Значение переменной',   
-                'desc' => 'Число. Не обязательно при получении и удалении',     
+                'desc' => 'Текст',     
                 'default' => '',
                 'show' => [
                     'option' => 3,
