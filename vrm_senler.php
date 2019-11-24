@@ -87,9 +87,8 @@ if($act == 'options')
                 'desc' => 'Из Senler',    	
                 'default' => '',
                 'show' => [
-                    'option' => [1,4],
-                    'sub_type' => [1,2,3,4],
-                    'utm_type' => 5
+                    'option' => 1,
+                    'sub_type' => [1,2,3,4]
                 ]       	
             ],
 
@@ -116,6 +115,15 @@ if($act == 'options')
             ],
 
             // utm
+            'utm_group_id' => [
+                'title' => 'ID группы рассылки',   
+                'desc' => 'Из Senler',      
+                'default' => '',
+                'show' => [
+                    'option' => 4,
+                    'sub_type' => 5
+                ]           
+            ],
             'utm_id' => [
                 'title' => 'ID UTM метки',   
                 'desc' => '',      
@@ -205,8 +213,7 @@ if($act == 'options')
                 'show' => [
                     'option' => 1,
                     'sub_type' => 1
-                ],
-                'more' => 1             
+                ],            
             ],
 
         ],
@@ -432,7 +439,7 @@ elseif($act == 'run')
             $utm_id = $options['utm_id'];
             $utm_name = $options['utm_name'];
 
-            $senler_group_id = $options['senler_group_id']; // получаем id группы подписок Senler
+            $utm_group_id = $options['utm_group_id']; // получаем id группы подписок Senler
 
             $force = $options['force']; // для ссылки: автоподписка true/false
 
@@ -465,7 +472,7 @@ elseif($act == 'run')
                     break;
 
                 case '5':   // получить ссылку для метки
-                    $answer = $senler->getUtmLink($utm_id, $senler_group_id, $force);
+                    $answer = $senler->getUtmLink($utm_id, $utm_group_id, $force);
                     $utm_link = $answer['link'];
                     $message = 'Ссылка для метки получена';
                     $out = 1;   // устанавливаем 1 выход
