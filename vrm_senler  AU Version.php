@@ -1,5 +1,4 @@
 <?php
-
 class Senler
 {
     
@@ -293,14 +292,15 @@ $act = $_REQUEST['act'];
 if($act == 'options') 
 {
     $responce = [
-        'title' => 'ВРМ Senler',      		// Это заголовок блока, который будет виден на схеме
+        'title' => 'ВРМ Senler',        // Это заголовок блока, который будет виден на схеме
         'paysys' => [                   // Группа полей, отвечающая за интеграцию с платёжными системами и внешними сервисами.
             'ps' => [                   // ВРМ получит доступ к ID аккаунта, секретному ключу и другим атрибутам выбранной системы
                 'title' => 'Senler',
                 'type' => 6
             ]
         ],
-        'vars' => [                     	// переменные, которые можно будет настроить в блоке
+        'vars' => [                         // переменные, которые можно будет настроить в блоке
+            
             'option' => [
                 'title' => 'Раздел',
                 'values' => [
@@ -369,12 +369,12 @@ if($act == 'options')
             // subs
             'senler_group_id' => [
                 'title' => 'ID группы рассылки',   
-                'desc' => 'Из Senler',    	
+                'desc' => 'Из Senler',      
                 'default' => '',
                 'show' => [
                     'option' => 1,
                     'sub_type' => [1,2,3,4]
-                ]       	
+                ]           
             ],
 
             // bot
@@ -428,9 +428,7 @@ if($act == 'options')
                 ]            
             ],
             
-
             /* Второстепенные поля */
-
 
             // var
             'senler_var_value' => [
@@ -458,7 +456,6 @@ if($act == 'options')
             ],
 
             // utm
-
             'force' => [
                 'title' => 'Подписка при переходе',   
                 'desc' => 'Автоматически подписывать при нажатии на ссылку',
@@ -490,7 +487,6 @@ if($act == 'options')
             ],
 
             /* Доп. настройки */
-
             'senler_utm_id' => [
                 'title' => 'ID UTM метки Senler',   
                 'desc' => 'Не обязательно',     
@@ -500,69 +496,61 @@ if($act == 'options')
                     'sub_type' => 1
                 ],            
             ],
-
         ],
-        'out' => [                      	// Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
-            1 => [                      	// Номер 0 означает красный выход блока ВРМ, зарезервированный для случаев сбоя
-                'title' => 'Результат',    	// название выхода 1
+        'out' => [                          // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
+            1 => [                          // Номер 0 означает красный выход блока ВРМ, зарезервированный для случаев сбоя
+                'title' => 'Результат',     // название выхода 1
             ]
         ]
     ];
-
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Режим RUN - в котором ВРМ получает, обрабатывает и возвращает  *
      * полученные от схемы данные                                   *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 } 
 elseif($act == 'run') 
-{              			                        // Схема прислала данные, обрабатываем
-
-    $target = $_REQUEST['target'];  			// Пользователь, от имени которого выполняется блок
-    $ums    = $_REQUEST['ums'];     			// Данные об активности пользователя, массив в котором есть:
-											    // id - номер элемента (комментария, поста, смотря о чём речь в активности)
-											    // from_id - UID пользователя
-											    // date - дата в формате timestamp
-											    // text - текст комментария, сообщения и т.д.
+{                                               // Схема прислала данные, обрабатываем
+    $target = $_REQUEST['target'];              // Пользователь, от имени которого выполняется блок
+    $ums    = $_REQUEST['ums'];                 // Данные об активности пользователя, массив в котором есть:
+                                                // id - номер элемента (комментария, поста, смотря о чём речь в активности)
+                                                // from_id - UID пользователя
+                                                // date - дата в формате timestamp
+                                                // text - текст комментария, сообщения и т.д.
     $options = $_REQUEST['options'];
-
     
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Основные настройки для Senler:                            *
      * получаем данные callback, vk group id и user id           *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    $ps = $_REQUEST['paysys']['ps'];			// Сюда придут настройки выбранной системы
+    $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
     // настройки сенлер
     $callback_key = $ps['options']['secret'];   // получаем callback key
     $vk_group_id = $ps['options']['owner_id'];  // id вк группы пользователя
     // если стоит цель не на инициатора активности
     if(isset($target)) { $user_id = $target; } 
     else { $user_id = $ums['from_id']; }
-
     $senler = new Senler($callback_key, $vk_group_id);
                
     $out = 0;                                   // выход в 0 (ошибка)
-
-
 
      /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Выбираем тип запроса: Подписки/Бот/Переменные/Метки       *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     $option = $options['option'];               // номер выбранного раздела
-
     switch ($option) {
+
         // работа с подписками
         case 1:
             $sub_type = $options['sub_type'];               // получаем тип запроса
-
             $senler_group_id = $options['senler_group_id']; // получаем id группы подписок Senler
             $senler_utm_id = $options['senler_utm_id'];     // получаем id utm метки Senler
-
+            
             // для проверки подписок/отписок в интервале дат
             $date_from = $options['date_from'];             // дата начала интервала
             $date_from = date('d.m.Y H:i:s',$date_from);    // перевод из unixtime в нужный формат
             $date_to = $options['date_to'];                 // дата конца интервала
             $date_to = date('d.m.Y H:i:s',$date_to);        // перевод из unixtime в нужный формат
-
+            
             switch ($sub_type) 
             {
                 //если нужно подписать человека
@@ -571,13 +559,11 @@ elseif($act == 'run')
                     $message = 'Подписан';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 case '2':   //если нужно отписать человека
                     $answer = $senler->deleteSubscriber($senler_group_id, $user_id);
                     $message = 'Удалён';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 case '3':   //если нужно отписать человека
                     $answer = $senler->getStatSubscribe($date_from, $date_to, $senler_group_id);
                     $sub_stat = $answer['count'];
@@ -586,28 +572,24 @@ elseif($act == 'run')
                     $message = 'Получены данные';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 case '4':
                     $answer = $senler->getSubscribersFromGroup($senler_group_id);
                     $sub_stat = $answer['count'];
                     $message = 'Данные получены';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 default:
                     // code...
                     break;
-
             }
             break;
         
         // работа с ботом
         case 2:
             $bot_type = $options['bot_type'];   // получаем тип запроса
-
+            
             // бот id
             $senler_bot_id = $options['senler_bot_id'];
-
             switch ($bot_type) 
             {
                 case '1':   // добавить в бота
@@ -615,28 +597,23 @@ elseif($act == 'run')
                     $message = 'Добавлен в бота';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 case '2':   // удалить из бота
                     $answer = $senler->delFromBot($user_id, $senler_bot_id);
                     $message = 'Удалён из бота';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 default:
                     // code...
                     break;
-
             }
             break;
-
+        
         // работа с переменными
         case 3:
             $var_type = $options['var_type'];   // получаем тип запроса
-
             $senler_var_name = $options['senler_var_name'];
             $senler_var_value = $options['senler_var_value'];
             $get_type = $options['get_type'];
-
             switch ($var_type) 
             {
                 
@@ -645,12 +622,10 @@ elseif($act == 'run')
                     $message = 'Установлена переменная';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 case '2':   // получить переменную
                     $answer = $senler->getVar($user_id, $senler_var_name);
                     
                     $found_vars = "";
-
                     switch ($get_type) 
                     {
                         // *переменная* равна *значение*
@@ -660,7 +635,6 @@ elseif($act == 'run')
                                 $found_vars .= $value['name']." равна ".$value['value'].'\n';
                             }
                             break;
-
                         // значения построчно
                         case 2:
                             foreach ($answer['items'] as $value) 
@@ -668,7 +642,6 @@ elseif($act == 'run')
                                 $found_vars .= $value['value'].'\n';
                             }
                             break;
-
                         // значения через запятую
                         case 3:
                             foreach ($answer['items'] as $value) 
@@ -677,7 +650,6 @@ elseif($act == 'run')
                             }
                             $found_vars = rtrim($found_vars, ', ');
                             break;
-
                         // названия построчно
                         case 4:
                             foreach ($answer['items'] as $value) 
@@ -685,7 +657,6 @@ elseif($act == 'run')
                                 $found_vars .= $value['name'].'\n';
                             }
                             break;
-
                         // названия через запятую
                         case 5:
                             foreach ($answer['items'] as $value) 
@@ -694,42 +665,33 @@ elseif($act == 'run')
                             }
                             $found_vars = rtrim($found_vars, ', ');
                             break;
-
                         default:
                             // code...
                             break;
                     }
                     
-
                     $message = 'Получены переменные';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 case '3':   // удалить переменную
                     $answer = $senler->delVar($user_id, $senler_var_name);
                     $message = 'Удалена переменная';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 default:
                     // code...
                     break;
-
             }
             break;
-
+        
         // работа с метками
         case 4:
             $utm_type = $options['utm_type'];   // получаем тип запроса
-
             // utm
             $utm_id = $options['utm_id'];
             $utm_name = $options['utm_name'];
-
             $utm_group_id = $options['utm_group_id']; // получаем id группы подписок Senler
-
             $force = $options['force']; // для ссылки: автоподписка true/false
-
             switch ($utm_type) 
             {
                 case '1':   // добавить метку
@@ -737,19 +699,16 @@ elseif($act == 'run')
                     $message = 'Добавлена метка';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 case '2':   // редактировать метку
                     $answer = $senler->editUtm($utm_id, $utm_name);
                     $message = 'Метка отредактирована';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 case '3':   // удалить метку
                     $answer = $senler->delUtm($utm_id);
                     $message = 'Метка удалена';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 case '4':   // получить метки
                     $answer = $senler->getUtm();
                     $count = $answer['count'];
@@ -757,42 +716,33 @@ elseif($act == 'run')
                     $message = 'Метки получены';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 case '5':   // получить ссылку для метки
                     $answer = $senler->getUtmLink($utm_id, $utm_group_id, $force);
                     $utm_link = $answer['link'];
                     $message = 'Ссылка для метки получена';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-
                 default:
                     
                     break;
-
             }
             break;
-
         default:
             
             break;
     }
-
-
     $success = $answer['success'];
     
     if(!$success)
     {
-    	$error_name = $answer['error_message'];
+        $error_name = $answer['error_message'];
     }
-
     $error_message = $senler->getErrorMessage($answer['error_code']);
-
-
 /* Сформировать массив данных на отдачу */
     $responce = [
-        'out' => $out,         					// Обязательно должен быть номер выхода out, отличный от нуля!
-        'value' => [           					// Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через 
-        										// $bN_value.ваши_ключи_массива
+        'out' => $out,                          // Обязательно должен быть номер выхода out, отличный от нуля!
+        'value' => [                            // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через 
+                                                // $bN_value.ваши_ключи_массива
             'error_name' => $error_name,
             'error_message' => $error_message,
             'message' => $message,
@@ -802,13 +752,11 @@ elseif($act == 'run')
             'found_vars' => $found_vars,
             'found_utm' => $found_utm,
             'utm_link' => $utm_link
+        ]
     ];
-
 } 
 elseif($act == '') {
     /* Действие не задано, и что же нам сделать? Станцевать вальс, попрыгать, пойти в гости к Кролику? */
-
 }
-
 /* Отдать JSON, не кодируя кириллические символы в кракозябры */
 echo json_encode($responce, JSON_UNESCAPED_UNICODE);
