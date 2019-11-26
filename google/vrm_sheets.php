@@ -1,6 +1,8 @@
 <?php
 require_once ('vendor/autoload.php');
 
+/* Настройки Google Sheets API V4 */
+
 // Путь к файлу ключа сервисного аккаунта
 $googleAccountKeyFilePath = 'my_key.json';
 putenv('GOOGLE_APPLICATION_CREDENTIALS='.$googleAccountKeyFilePath);
@@ -13,6 +15,8 @@ $client->useApplicationDefaultCredentials();
 $client->addScope('https://www.googleapis.com/auth/spreadsheets');
  
 $service = new Google_Service_Sheets($client);
+
+/* =============================== */
 
 $act = $_REQUEST['act'];
 
@@ -34,10 +38,10 @@ if($act == 'options')
             'option' => [
                 'title' => 'Что делаем',
                 'values' => [
-                    1 => 'Добавить запись',
+                    1 => 'Добавить строку в конец таблицы',
                     2 => 'Удалить запись',
-                    3 => 'Что-то ещё',
-                    4 => 'Четвертое'
+                    3 => 'Добавить столбец',
+                    4 => 'Удалить столбец'
                 ],
                 'default' => ''
             ],
@@ -79,8 +83,10 @@ elseif($act == 'run')
                                                 // text - текст комментария, сообщения и т.д.
     $options = $_REQUEST['options'];
 
+    // диапазон ячеек таблицы
     $range = $options['range'];
 
+    // выбранный метод выполнения
     $option = $options['option'];
 
     // поля
@@ -94,9 +100,9 @@ elseif($act == 'run')
 	// если вставлена ссылка
 	if(strpos($sheet_id,'/d/') !== FALSE)
 	{
-		$start = strpos($sheet_id,'/d/');
+		$start = strpos($sheet_id,'/d/') + 3;	// запишет стартовую позицию. 3 - количество символов в /d/
 		$end = strpos($sheet_id,'/edit');
-		$spreadsheetId = substr($sheet_id, $start + 3 , $end - $start - 3);	// получаем id таблицы из ссылки
+		$spreadsheetId = substr($sheet_id, $start, $end - $start);	// получаем id таблицы из ссылки
 	}
 	else
 	{
@@ -104,31 +110,32 @@ elseif($act == 'run')
 	}
 	
 
-    $out = 1;
+    $out = 0;
 
 
-		switch ($option) {
-			case 1:
-				$values = [					// значения именно так
-				    [
-				        $value1,
-				      	$value2,
-				      	$value3
-				    ],    
-				];
-				$body = new Google_Service_Sheets_ValueRange([		// какая-то шляпа для правильного формирования добавления
-				    'values' => $values
-				]);
-				$conf = ["valueInputOption" => "USER_ENTERED"];  	// а без этой штуки не работает
-				$result = $service->spreadsheets_values->append($spreadsheetId, $range, $body, $conf);	// добавить в конец
-				$out = 1;
-				break;
-			
-			default:
-				// code...
-				break;
-		}
-    
+	switch ($option) {
+		// добавить строчку в конец
+		case 1:
+			$values = [					// значения для именно так
+			    [
+			        $value1,
+			      	$value2,
+			      	$value3
+			    ],    
+			];
+			$body = new Google_Service_Sheets_ValueRange([		// какая-то шляпа для правильного формирования добавления
+			    'values' => $values
+			]);
+			$conf = ["valueInputOption" => "USER_ENTERED"];  	// а без этой штуки не работает
+			$result = $service->spreadsheets_values->append($spreadsheetId, $range, $body, $conf);	// добавить в конец
+			$out = 1;
+			break;
+		
+		default:
+			// code...
+			break;
+	}
+
 
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
