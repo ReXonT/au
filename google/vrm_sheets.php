@@ -54,7 +54,10 @@ if($act == 'options')
                     9 => '9',
                     10 => '10'
                 ],
-                'default' => ''
+                'default' => '',
+                'show' => [
+                	'option' => [1],
+                ]
             ],
             'range' => [
             	'title' => 'Диапазон ячеек',
@@ -69,6 +72,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
+            		'option' => [1],
             		'field_count' => [1,2,3,4,5,6,7,8,9,10]	
             	]
             ],
@@ -77,6 +81,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
+            		'option' => [1],
             		'field_count' => [2,3,4,5,6,7,8,9,10]	
             	]
             ],
@@ -85,6 +90,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
+            		'option' => [1],
             		'field_count' => [3,4,5,6,7,8,9,10]	
             	]
             ],
@@ -93,6 +99,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
+            		'option' => [1],
             		'field_count' => [4,5,6,7,8,9,10]	
             	]
             ],
@@ -101,6 +108,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
+            		'option' => [1],
             		'field_count' => [5,6,7,8,9,10]	
             	]
             ],
@@ -109,6 +117,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
+            		'option' => [1],
             		'field_count' => [6,7,8,9,10]	
             	]
             ],
@@ -117,6 +126,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
+            		'option' => [1],
             		'field_count' => [7,8,9,10]	
             	]
             ],
@@ -125,6 +135,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
+            		'option' => [1],
             		'field_count' => [8,9,10]	
             	]
             ],
@@ -133,6 +144,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
+            		'option' => [1],
             		'field_count' => [9,10]	
             	]
             ],
@@ -141,6 +153,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
+            		'option' => [1],
             		'field_count' => [10]	
             	]
             ],
@@ -222,7 +235,7 @@ elseif($act == 'run')
 	// https://developers.google.com/sheets/api/reference/rest/v4/ValueRenderOption
 	// FORMATTED_VALUE | UNFORMATTED_VALUE | FORMULA
 	$render = [
-		'ValueRenderOption' => 'FORMATTED_VALUE';
+		'ValueRenderOption' => 'FORMATTED_VALUE'
 	];
 
 
@@ -245,7 +258,7 @@ elseif($act == 'run')
 	}
 
     $out = 0;						// выход в ноль
-
+    $message = "";
 
 	switch ($option) {
 		// добавить строчку в конец
@@ -277,7 +290,7 @@ elseif($act == 'run')
 					$params,
 					$insert
 				);	// добавить в конец
-			$message = 'Данные добавлены в конец таблицы'
+			$message = 'Данные добавлены в конец таблицы';
 			$out = 1;
 			break;
 		
