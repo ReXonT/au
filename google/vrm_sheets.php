@@ -91,7 +91,11 @@ elseif($act == 'run')
     // ID таблицы
     $sheet_id = $options['sheet_id'];
 
-    $spreadsheetId = preg_match('[a-zA-Z0-9-_]+', $sheet_id);
+
+	$start = strpos($sheet_id,'/d/');
+	$end = strpos($sheet_id,'/edit');
+	
+	$spreadsheetId = substr($sheet_id, $start+3, $end - $start);
 
 
     $out = 0;
