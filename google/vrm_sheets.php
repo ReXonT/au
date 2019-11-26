@@ -195,6 +195,8 @@ elseif($act == 'run')
 		$spreadsheetId = $sheet_id;
 	}
 	
+	$conf = ["valueInputOption" => "RAW"];  	// Определяет как введенные данные будут интерпретированы:
+												// RAW - Данные от юзера не будут парситься и будут записыны как есть
 
     $out = 0;
 
@@ -219,7 +221,6 @@ elseif($act == 'run')
 			$body = new Google_Service_Sheets_ValueRange([		// какая-то шляпа для правильного формирования добавления
 			    'values' => $values
 			]);
-			$conf = ["valueInputOption" => "USER_ENTERED"];  	// а без этой штуки не работает
 			$result = $service->spreadsheets_values->append($spreadsheetId, $range, $body, $conf);	// добавить в конец
 			$out = 1;
 			break;
