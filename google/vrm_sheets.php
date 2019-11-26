@@ -239,24 +239,6 @@ elseif($act == 'run')
 	];
 
 
-	/* Получить всю информацию по данной таблице */
-	$response = $service->spreadsheets->get($spreadsheetId);
-	 
-	// Свойства таблицы
-	$spreadsheetProperties = $response->getProperties();
-	$spreadsheetProperties->title; // Название таблицы
-	 
-	foreach ($response->getSheets() as $sheet)
-	{
-		// Свойства листа
-		$sheetProperties = $sheet->getProperties();
-		$sheetProperties->title; // Название листа
-	 
-		$gridProperties = $sheetProperties->getGridProperties();
-		$gridProperties->columnCount; // Количество колонок
-		$gridProperties->rowCount; // Количество строк
-	}
-
     $out = 0;						// выход в ноль
     $message = "";
 
@@ -293,7 +275,22 @@ elseif($act == 'run')
 			$message = 'Данные добавлены в конец таблицы';
 			$out = 1;
 			break;
-		
+		// удалить строку
+		case 2:
+			// создаем json строку запроса по api документации
+			$json_request = '
+				{
+					"ranges": ["'.$range.'"]
+				}
+			';
+
+			$php_request = json_decode($json_request, true);	// переводим json в php
+
+			$batchUpdateRequest = new Google_Service_Sheets_BatchClearValuesRequest($php_request);	// создаем batch clear request
+			$response = $service->spreadsheets_values->batchClear($spreadsheetId, $batchUpdateRequest);	// вызываем batch clear
+
+			$message = 'Данные удалены';
+			$out = 1;
 		default:
 			// code...
 			break;
@@ -309,6 +306,8 @@ elseif($act == 'run')
         'value' => [                            // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через 
                                                 // $bN_value.ваши_ключи_массива
             'out' => $message,
+            'range' => $range,
+            'php_request' => $php_request
         ]
     ];
 } 
