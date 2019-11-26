@@ -30,11 +30,6 @@ if($act == 'options')
             	'desc' => 'Можно вставить ссылку на таблицу',
             	'default' => ''
             ],
-            'range' => [
-            	'title' => 'Диапазон ячеек',
-            	'desc' => "Например A1:C1",
-            	'default' => ''
-            ],
             'option' => [
                 'title' => 'Что делаем',
                 'values' => [
@@ -45,20 +40,109 @@ if($act == 'options')
                 ],
                 'default' => ''
             ],
+            'field_count' => [
+            	'title' => 'Количество ячеек для записи',
+            	'values' => [
+                    1 => '1',
+                    2 => '2',
+                    3 => '3',
+                    4 => '4',
+                    5 => '5',
+                    6 => '6',
+                    7 => '7',
+                    8 => '8',
+                    9 => '9',
+                    10 => '10'
+                ],
+                'default' => ''
+            ],
+            'range' => [
+            	'title' => 'Диапазон ячеек',
+            	'desc' => "Например A1:C1",
+            	'default' => '',
+            	'show' => [
+            		'option' => [2,3,4]
+            	]
+            ],
             'value1' => [
             	'title' => 'Значение 1',
             	'desc' => "",
-            	'default' => ''
+            	'default' => '',
+            	'show' => [
+            		'field_count' => [1,2,3,4,5,6,7,8,9,10]	
+            	]
             ],
             'value2' => [
             	'title' => 'Значение 2',
             	'desc' => "",
-            	'default' => ''
+            	'default' => '',
+            	'show' => [
+            		'field_count' => [2,3,4,5,6,7,8,9,10]	
+            	]
             ],
             'value3' => [
             	'title' => 'Значение 3',
             	'desc' => "",
-            	'default' => ''
+            	'default' => '',
+            	'show' => [
+            		'field_count' => [3,4,5,6,7,8,9,10]	
+            	]
+            ],
+            'value4' => [
+            	'title' => 'Значение 4',
+            	'desc' => "",
+            	'default' => '',
+            	'show' => [
+            		'field_count' => [4,5,6,7,8,9,10]	
+            	]
+            ],
+            'value5' => [
+            	'title' => 'Значение 5',
+            	'desc' => "",
+            	'default' => '',
+            	'show' => [
+            		'field_count' => [5,6,7,8,9,10]	
+            	]
+            ],
+            'value6' => [
+            	'title' => 'Значение 6',
+            	'desc' => "",
+            	'default' => '',
+            	'show' => [
+            		'field_count' => [6,7,8,9,10]	
+            	]
+            ],
+            'value7' => [
+            	'title' => 'Значение 7',
+            	'desc' => "",
+            	'default' => '',
+            	'show' => [
+            		'field_count' => [7,8,9,10]	
+            	]
+            ],
+            'value8' => [
+            	'title' => 'Значение 8',
+            	'desc' => "",
+            	'default' => '',
+            	'show' => [
+            		'field_count' => [8,9,10]	
+            	]
+            ],
+            'value9' => [
+            	'title' => 'Значение 9',
+            	'desc' => "",
+            	'default' => '',
+            	'show' => [
+            		'field_count' => [9,10]	
+            	]
+            ],
+            'value10' => [
+            	'title' => 'Значение 10',
+            	'desc' => "",
+            	'default' => '',
+            	'show' => [
+            		'field_count' => [10]	
+            	]
             ],
             
         ],
@@ -90,9 +174,11 @@ elseif($act == 'run')
     $option = $options['option'];
 
     // поля
-    $value1 = $options['value1'];
-    $value2 = $options['value2'];
-    $value3 = $options['value3'];
+    $field_count = $options['field_count'];
+    for($i = 1; $i <= $field_count; $i++) {
+    	${'value'.$i} = $options['value'.$i];
+    }
+
 
     // ID таблицы
     $sheet_id = $options['sheet_id'];
@@ -120,7 +206,14 @@ elseif($act == 'run')
 			    [
 			        $value1,
 			      	$value2,
-			      	$value3
+			      	$value3,
+			      	$value4,
+			      	$value5,
+			      	$value6,
+			      	$value7,
+			      	$value8,
+			      	$value9,
+			      	$value10
 			    ],    
 			];
 			$body = new Google_Service_Sheets_ValueRange([		// какая-то шляпа для правильного формирования добавления
@@ -145,8 +238,7 @@ elseif($act == 'run')
         'out' => $out,                          // Обязательно должен быть номер выхода out, отличный от нуля!
         'value' => [                            // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через 
                                                 // $bN_value.ваши_ключи_массива
-            'out' => $sheet_id,
-            'spread' => $spreadsheetId
+            'out' => $out,
         ]
     ];
 } 
