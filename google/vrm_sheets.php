@@ -166,6 +166,9 @@ elseif($act == 'run')
                                                 // date - дата в формате timestamp
                                                 // text - текст комментария, сообщения и т.д.
     $options = $_REQUEST['options'];
+    // если стоит цель не на инициатора активности
+    if(isset($target)) { $user_id = $target; } 
+    else { $user_id = $ums['from_id']; }
 
     // диапазон ячеек таблицы
     $range = $options['range'];
