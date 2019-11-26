@@ -217,6 +217,32 @@ elseif($act == 'run')
 		"InsertDataOption" => 'INSERT_ROWS'	
 	];
 
+	
+	// Варианты отображения возвращаемых данных ValueRenderOption
+	// https://developers.google.com/sheets/api/reference/rest/v4/ValueRenderOption
+	// FORMATTED_VALUE | UNFORMATTED_VALUE | FORMULA
+	$render = [
+		'ValueRenderOption' => 'FORMATTED_VALUE';
+	];
+
+
+	/* Получить всю информацию по данной таблице */
+	$response = $service->spreadsheets->get($spreadsheetId);
+	 
+	// Свойства таблицы
+	$spreadsheetProperties = $response->getProperties();
+	$spreadsheetProperties->title; // Название таблицы
+	 
+	foreach ($response->getSheets() as $sheet)
+	{
+		// Свойства листа
+		$sheetProperties = $sheet->getProperties();
+		$sheetProperties->title; // Название листа
+	 
+		$gridProperties = $sheetProperties->getGridProperties();
+		$gridProperties->columnCount; // Количество колонок
+		$gridProperties->rowCount; // Количество строк
+	}
 
     $out = 0;						// выход в ноль
 
