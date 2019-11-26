@@ -22,8 +22,8 @@ if($act == 'options')
         'title' => 'ВРМ Google',        // Это заголовок блока, который будет виден на схеме
         'vars' => [                         // переменные, которые можно будет настроить в блоке
             'sheet_id' => [
-            	'title' => 'Ссылка на таблицу',
-            	'desc' => 'Из google doc',
+            	'title' => 'ID таблицы',
+            	'desc' => 'Можно вставить ссылку на таблицу',
             	'default' => ''
             ],
             'range' => [
@@ -91,14 +91,20 @@ elseif($act == 'run')
     // ID таблицы
     $sheet_id = $options['sheet_id'];
 
-
-	$start = strpos($sheet_id,'/d/');
-	$end = strpos($sheet_id,'/edit');
+	// если вставлена ссылка
+	if(strpos($sheet_id,'/d/') !== FALSE)
+	{
+		$start = strpos($sheet_id,'/d/');
+		$end = strpos($sheet_id,'/edit');
+		$spreadsheetId = substr($sheet_id, $start + 3 , $end - $start - 3);	// получаем id таблицы из ссылки
+	}
+	else
+	{
+		$spreadsheetId = $sheet_id;
+	}
 	
-	$spreadsheetId = substr($sheet_id, $start+3, $end - $start);
 
-
-    $out = 0;
+    $out = 1;
 
 
 		switch ($option) {
@@ -132,7 +138,8 @@ elseif($act == 'run')
         'out' => $out,                          // Обязательно должен быть номер выхода out, отличный от нуля!
         'value' => [                            // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через 
                                                 // $bN_value.ваши_ключи_массива
-            'out' => $out
+            'out' => $sheet_id,
+            'spread' => $spreadsheetId
         ]
     ];
 } 
