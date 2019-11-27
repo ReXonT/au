@@ -282,8 +282,7 @@ elseif($act == 'run')
 		$spreadsheetId = $work_spreadsheet_id;
 	}
 
-	// пробиваем id листа
-	
+	// получаем инфо по таблице
 	$response = $service->spreadsheets->get($spreadsheetId);
 	 
 	// Свойства таблицы
@@ -297,6 +296,9 @@ elseif($act == 'run')
 		if($sheetProperties->title == $work_sheet_title) // Название листа
 		{
 			$range = $work_sheet_title."!".$range;	// A1 notation для диапазона
+			$gridProperties = $sheetProperties->getGridProperties();
+			$sheetColumnCount = $gridProperties->columnCount; // Количество колонок
+			$sheetRowCount = $gridProperties->rowCount; // Количество строк
 		}
 	}
 
@@ -452,8 +454,8 @@ elseif($act == 'run')
                                                 // $bN_value.ваши_ключи_массива
             'message' => $message,
             'range' => $range,
-            'json_text' => $json_text,
-            'php_text' => $php_text,
+            'cc' => $sheetColumnCount,
+            'rc' => $sheetRowCount,
             'find_row' => $find_row,
             'find_col' => $find_col
         ]
