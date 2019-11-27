@@ -211,6 +211,10 @@ elseif($act == 'run')
     	${'value'.$i} = $options['value'.$i];
     }
 
+    // поля для найти и заменить
+    $value_to_find = $options['value_to_find'];
+    $replacement = $options['replacement'];
+
     // ID таблицы
     $sheet_id = $options['sheet_id'];
 
