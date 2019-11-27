@@ -422,12 +422,15 @@ elseif($act == 'run')
 				$php_text = $json_text->getValues();	// функция получения значений. Чтобы её узнать потратил 2 дня. 
 														// json_decode не работает
 
-			  	for($i = 0;$i <= $sheetColumnCount;$i++)
+			  	for($j = 0;$j <= $sheetRowCount;$j++)
 			    {
-			      	if($php_text[0][$i] == $find_col)
-			      	{
-			      		$found_col = $i;				// найденный индекс колонки
-			      	}
+			      for($i = 0;$i <= $sheetColumnCount;$i++)
+			      {
+			          if($php_text[$j][$i] == $find_col)
+			          {
+			              $found_col = $i+1;				// найденный индекс колонки
+			          }
+			      }
 			    }
 
 			    for($i = 0;$i <= $sheetRowCount; $i++)
