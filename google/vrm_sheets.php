@@ -34,9 +34,9 @@ if($act == 'options')
                 'title' => 'Что делаем',
                 'values' => [
                     1 => 'Добавить строку в конец таблицы',
-                    2 => 'Удалить запись',
-                    3 => 'Добавить столбец',
-                    4 => 'Удалить столбец'
+                    2 => 'Удалить ячейки',
+                    3 => 'Добавить ячейку',
+                    4 => 'Найти и заменить'
                 ],
                 'default' => ''
             ],
@@ -64,7 +64,23 @@ if($act == 'options')
             	'desc' => "Например A1:C1",
             	'default' => '',
             	'show' => [
-            		'option' => [2,3,4]
+            		'option' => [2,3]
+            	]
+            ],
+            'value_to_find' => [
+            	'title' => 'Значение для поиска',
+            	'desc' => "",
+            	'default' => '',
+            	'show' => [
+            		'option' => [4]	
+            	]
+            ],
+            'replacement' => [
+            	'title' => 'Значение на замену',
+            	'desc' => "",
+            	'default' => '',
+            	'show' => [
+            		'option' => [4]	
             	]
             ],
             'value1' => [
@@ -72,7 +88,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
-            		'option' => [1],
+            		'option' => [1,3],
             		'field_count' => [1,2,3,4,5,6,7,8,9,10]	
             	]
             ],
@@ -209,7 +225,7 @@ elseif($act == 'run')
 	{
 		$spreadsheetId = $sheet_id;
 	}
-	
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Определяет как введенные данные будут интерпретированы:						*
      * RAW - Данные от юзера не будут парситься и будут записаны как есть  			*
@@ -275,7 +291,8 @@ elseif($act == 'run')
 			$message = 'Данные добавлены в конец таблицы';
 			$out = 1;
 			break;
-		// удалить строку
+
+		// удалить диапазон значений
 		case 2:
 			// создаем json строку запроса по api документации
 			$json_request = '
@@ -291,6 +308,54 @@ elseif($act == 'run')
 
 			$message = 'Данные удалены';
 			$out = 1;
+
+		// добавить ячейку
+		case 3:
+			$json_request = '
+				{
+				    "data": [
+				        {
+				            "range": "'.$range.'",
+				            "values": [
+				                [
+				                    "'.$value1.'"
+				                ]
+				            ]
+				        }
+				    ],
+				    "valueInputOption": "RAW"
+				}
+			';
+
+			$php_request = json_decode($json_request,true);		// json to php
+
+			$batchUpdateRequest = new Google_Service_Sheets_BatchUpdateValuesRequest($php_request);	// создаем batch clear request
+			$response = $service->spreadsheets_values->batchUpdate($spreadsheetId, $batchUpdateRequest);	// вызываем batch clear
+
+			$message = 'Данные добавлены';
+			$out = 1;
+
+		// найти и заменить
+		case 4:
+			$requests = [
+			    new Google_Service_Sheets_Request([
+			        'findReplace' => [
+			            "find" => $value_to_find,
+			    		"replacement" => $replacement,
+			    		"allSheets"=> true
+			        ]
+			    ])
+			];
+
+			$batchUpdateRequest = new Google_Service_Sheets_BatchUpdateSpreadsheetRequest([
+				'requests' => $requests
+			]);
+
+			$response = $service->spreadsheets->batchUpdate($spreadsheetId, $batchUpdateRequest);
+
+			$message = 'Заменено значение';
+			$out = 1;
+
 		default:
 			// code...
 			break;
