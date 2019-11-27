@@ -1,6 +1,7 @@
 <?php
 require_once ('vendor/autoload.php');
 
+
 /* Настройки Google Sheets API V4 */
 
 // Путь к файлу ключа сервисного аккаунта
@@ -149,7 +150,7 @@ if($act == 'options')
             	'default' => '',
             	'show' => [
             		'option' => 2,
-            		'add_type' => 1
+            		'add_type' => [1,2]
             	]
             ],
 
@@ -411,11 +412,34 @@ elseif($act == 'run')
 				$find_col = $options['find_col'];	// колонка для поиска
 				$find_row = $options['find_row'];	// строка для поиска
 
-				$add_range = $work_sheet_title.'!F6';
-				$value0 = 'Test';
-				$json_text = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
-				$php_text = json_decode($json_text, true);
+				$found_col = 0;		// индекс колонки найденной
+				$found_row = 0;		// индекс строки найденной
 
+				$json_text = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
+
+				$php_text = $json_text->getValues();
+
+			  	for($i = 0;$i <= $sheetColumnCount;$i++)
+			    {
+			      	if($php_text[0][$i] == $find_col)
+			      	{
+			      		$found_col = $i;
+			      	}
+			    }
+
+			    for($i = 0;$i <= $sheetRowCount; $i++)
+				{
+					for($j = 0;$j <= $sheetColumnCount; $j++)
+					{
+						if($php_text[$i][$j] == $find_row)
+						{
+							$found_row = $i+1;
+						}
+					}
+				}
+
+				$add_range = $col_array[$found_col].$found_row;
+				
 			}
 			
 
@@ -504,7 +528,7 @@ elseif($act == 'run')
             'rc' => $sheetRowCount,
             'find_row' => $json_text,
             'find_col' => $php_text,
-            'range1' => $add_range
+            'range1' => $json_msg
         ]
     ];
 } 
