@@ -36,7 +36,7 @@ if($act == 'options')
                     1 => 'Добавить строку в конец таблицы',
                     2 => 'Вставить значение в ячейку',
                     3 => 'Найти и заменить',
-                    4 => 'Удалить ячейку'
+                    4 => 'Удалить ячейку',
                 ],
                 'default' => ''
             ],
@@ -70,6 +70,24 @@ if($act == 'options')
             	]
             ],
 
+            // найти по строке/таблице
+            'find_col' => [
+            	'title' => 'Название столбца',
+            	'desc' => 'Например: Город',
+            	'default' => '',
+            	'show' => [
+            		'option' => 2
+            	]
+            ],
+            'find_row' => [
+            	'title' => 'Строка по уникальному ключу',
+            	'desc' => 'Например id пользователя',
+            	'default' => '',
+            	'show' => [
+            		'option' => 2
+            	]
+            ],
+
             // найти и заменить
             'value_to_find' => [
             	'title' => 'Значение для поиска',
@@ -97,6 +115,8 @@ if($act == 'options')
             		'option' => 2
             	]
             ],
+
+            // поля
             'value1' => [
             	'title' => 'Значение 1',
             	'desc' => "",
@@ -234,6 +254,12 @@ elseif($act == 'run')
     // ID таблицы
     $sheet_id = $options['sheet_id'];
 
+    // пробиваем id листа
+    $response = $service->spreadsheets->get($spreadsheetId);
+    $php = json_decode($response, true);
+
+    $spreadsheet_list_title = $php['sheets'][0]['properties']['title'];
+
 	// если вставлена ссылка
 	if(strpos($sheet_id,'/d/') !== FALSE)
 	{
@@ -331,6 +357,19 @@ elseif($act == 'run')
 			break;
 		// добавить ячейку
 		case 3:
+			$find_col = $options['find_col'];	// колонка для поиска
+			$find_row = $options['find_row'];	// строка для поиска
+
+			$response = $service->spreadsheets_values->batchGet($spreadsheetId);	// получить информацию по листу
+
+			// ищем диапазон
+			$found_row = 0;		// найденный индекс строки
+			$found_col = 0;		// найденный индекс колонки
+
+			foreach ($collection as $value) {
+				
+			}
+
 			$json_request = '
 				{
 				    "data": [
