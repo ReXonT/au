@@ -25,9 +25,14 @@ if($act == 'options')
     $responce = [
         'title' => 'ВРМ Google',        // Это заголовок блока, который будет виден на схеме
         'vars' => [                         // переменные, которые можно будет настроить в блоке
-            'sheet_id' => [
+            'spreadsheet_id' => [
             	'title' => 'ID таблицы',
             	'desc' => 'Можно вставить ссылку на таблицу',
+            	'default' => ''
+            ],
+            'work_sheet_title' => [
+            	'title' => 'Название листа',
+            	'desc' => 'Название листа для работы',
             	'default' => ''
             ],
             'option' => [
@@ -260,25 +265,41 @@ elseif($act == 'run')
     $replacement = $options['replacement'];
 
     // ID таблицы
-    $sheet_id = $options['sheet_id'];
+    $work_spreadsheet_id = $options['spreadsheet_id'];
+
+    // название рабочего листа
+    $work_sheet_title = $options['work_sheet_title'];
 
 	// если вставлена ссылка
-	if(strpos($sheet_id,'/d/') !== FALSE)
+	if(strpos($work_spreadsheet_id,'/d/') !== FALSE)
 	{
-		$start = strpos($sheet_id,'/d/') + 3;	// запишет стартовую позицию. 3 - количество символов в /d/
-		$end = strpos($sheet_id,'/edit');
-		$spreadsheetId = substr($sheet_id, $start, $end - $start);	// получаем id таблицы из ссылки
+		$start = strpos($work_spreadsheet_id,'/d/') + 3;	// запишет стартовую позицию. 3 - количество символов в /d/
+		$end = strpos($work_spreadsheet_id,'/edit');
+		$spreadsheetId = substr($work_spreadsheet_id, $start, $end - $start);	// получаем id таблицы из ссылки
 	}
 	else
 	{
-		$spreadsheetId = $sheet_id;
+		$spreadsheetId = $work_spreadsheet_id;
 	}
 
-	    // пробиваем id листа
-    $response = $service->spreadsheets->get($spreadsheetId);
-    $php = json_decode($response, true);
+	// пробиваем id листа
+	
+	$response = $service->spreadsheets->get($spreadsheetId);
+	 
+	// Свойства таблицы
+	$spreadsheetProperties = $response->getProperties();
+	$spreadsheetProperties->title; // Название таблицы
+	
+	foreach ($response->getSheets() as $sheet) {
+	 
+		// Свойства листа
+		$sheetProperties = $sheet->getProperties();
+		if($sheetProperties->title == $work_sheet_title) // Название листа
+		{
+			$range = $work_sheet_title."!".$range;	// A1 notation для диапазона
+		}
+	}
 
-    $spreadsheet_list_title = $php['sheets'][0]['properties']['title'];
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Определяет как введенные данные будут интерпретированы:						*
@@ -350,13 +371,13 @@ elseif($act == 'run')
 			$find_col = $options['find_col'];	// колонка для поиска
 			$find_row = $options['find_row'];	// строка для поиска
 
-			/*if(isset($find_col)&&isset($find_row))
+			if(isset($find_col)&&isset($find_row))
 			{
 				$json = '{
 				  "spreadsheetId": '.$spreadsheetId.',
 				  "valueRanges": [
 				    {
-				      "range": '.$spreadsheet_list_title.'
+				      "range": ['.$work_sheet_title.']
 				    }
 				  ]
 				}';
@@ -392,7 +413,7 @@ elseif($act == 'run')
 				}
 
 				$range = $col_array[$found_col].$found_row;
-			}*/
+			}
 
 			$json_request = '
 				{
@@ -439,7 +460,7 @@ elseif($act == 'run')
 			$message = 'Заменено значение';
 			$out = 1;
 			break;
-			
+
 		// удалить диапазон значений
 		case 4:
 			// создаем json строку запроса по api документации
@@ -463,6 +484,7 @@ elseif($act == 'run')
 			break;
 	}
 
+	$out = 1;
 
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
