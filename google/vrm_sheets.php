@@ -415,15 +415,18 @@ elseif($act == 'run')
 				$found_col = 0;		// индекс колонки найденной
 				$found_row = 0;		// индекс строки найденной
 
+
+				// достать данные из листа рабочего
 				$json_text = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
 
-				$php_text = $json_text->getValues();
+				$php_text = $json_text->getValues();	// функция получения значений. Чтобы её узнать потратил 2 дня. 
+														// json_decode не работает
 
 			  	for($i = 0;$i <= $sheetColumnCount;$i++)
 			    {
 			      	if($php_text[0][$i] == $find_col)
 			      	{
-			      		$found_col = $i;
+			      		$found_col = $i;				// найденный индекс колонки
 			      	}
 			    }
 
@@ -433,12 +436,12 @@ elseif($act == 'run')
 					{
 						if($php_text[$i][$j] == $find_row)
 						{
-							$found_row = $i+1;
+							$found_row = $i+1;			// найденный индекс строки
 						}
 					}
 				}
 
-				$add_range = $col_array[$found_col].$found_row;
+				$add_range = $work_sheet_title."!".$col_array[$found_col].$found_row;	// найденная ячейка под замену
 				
 			}
 			
