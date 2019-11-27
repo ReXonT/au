@@ -83,12 +83,20 @@ if($act == 'options')
             		'option' => [4]	
             	]
             ],
+          	'value0' => [
+            	'title' => 'Значение',
+            	'desc' => "",
+            	'default' => '',
+            	'show' => [
+            		'option' => 3
+            	]
+            ],
             'value1' => [
             	'title' => 'Значение 1',
             	'desc' => "",
             	'default' => '',
             	'show' => [
-            		'option' => [1,3],
+            		'option' => 1,
             		'field_count' => [1,2,3,4,5,6,7,8,9,10]	
             	]
             ],
@@ -205,7 +213,9 @@ elseif($act == 'run')
     // выбранный метод выполнения
     $option = $options['option'];
 
+
     // поля
+    $value0 = $options['value0']; // значение для добавления
     $field_count = $options['field_count'];
     for($i = 1; $i <= $field_count; $i++) {
     	${'value'.$i} = $options['value'.$i];
@@ -282,12 +292,12 @@ elseif($act == 'run')
 			$body = new Google_Service_Sheets_ValueRange([		// какая-то шляпа для правильного формирования добавления
 			    'values' => $values
 			]);
-
+			// A1 здесь только потому что range обязателен
 			$result = $service
 				->spreadsheets_values
 				->append(
 					$spreadsheetId, 
-					$range, 
+					'A1', 
 					$body, 
 					$params,
 					$insert
@@ -312,7 +322,7 @@ elseif($act == 'run')
 
 			$message = 'Данные удалены';
 			$out = 1;
-
+			break;
 		// добавить ячейку
 		case 3:
 			$json_request = '
@@ -322,7 +332,7 @@ elseif($act == 'run')
 				            "range": "'.$range.'",
 				            "values": [
 				                [
-				                    "'.$value1.'"
+				                    "'.$value0.'"
 				                ]
 				            ]
 				        }
@@ -338,7 +348,7 @@ elseif($act == 'run')
 
 			$message = 'Данные добавлены';
 			$out = 1;
-
+			break;
 		// найти и заменить
 		case 4:
 			$requests = [
@@ -359,7 +369,7 @@ elseif($act == 'run')
 
 			$message = 'Заменено значение';
 			$out = 1;
-
+			break;
 		default:
 			// code...
 			break;
@@ -374,9 +384,8 @@ elseif($act == 'run')
         'out' => $out,                          // Обязательно должен быть номер выхода out, отличный от нуля!
         'value' => [                            // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через 
                                                 // $bN_value.ваши_ключи_массива
-            'out' => $message,
-            'range' => $range,
-            'php_request' => $php_request
+            'message' => $message,
+            'range' => $range
         ]
     ];
 } 

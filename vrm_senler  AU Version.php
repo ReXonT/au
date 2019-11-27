@@ -366,17 +366,6 @@ if($act == 'options')
 
             /* Верхние поля */
 
-            // subs
-            'senler_group_id' => [
-                'title' => 'ID группы рассылки',   
-                'desc' => 'Из Senler',      
-                'default' => '',
-                'show' => [
-                    'option' => 1,
-                    'sub_type' => [1,2,3,4]
-                ]           
-            ],
-
             // bot
             'senler_bot_id' => [
                 'title' => 'ID бота Senler',   
@@ -429,6 +418,20 @@ if($act == 'options')
             ],
             
             /* Второстепенные поля */
+
+            // sub
+
+            'sub_format' => [
+                'title' => 'Формат вывода подписчиков группы',   
+                'values' => [
+                    1 => 'Через запятую id',
+                    2 => 'Построчно id'
+                ],
+                'show' => [
+                    'option' => 1,
+                    'sub_type' => 4
+                ]                
+            ],
 
             // var
             'senler_var_value' => [
@@ -553,18 +556,17 @@ elseif($act == 'run')
             
             switch ($sub_type) 
             {
-                //если нужно подписать человека
-                case '1':
+                case '1':   // если нужно подписать человека
                     $answer = $senler->addSubscriber($senler_group_id, $user_id, $senler_utm_id);
                     $message = 'Подписан';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-                case '2':   //если нужно отписать человека
+                case '2':   // если нужно отписать человека
                     $answer = $senler->deleteSubscriber($senler_group_id, $user_id);
                     $message = 'Удалён';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-                case '3':   //если нужно отписать человека
+                case '3':   // статистика подписок/отписок
                     $answer = $senler->getStatSubscribe($date_from, $date_to, $senler_group_id);
                     $sub_stat = $answer['count'];
                     $count_sub = $answer['count_subscribe'];
@@ -572,9 +574,20 @@ elseif($act == 'run')
                     $message = 'Получены данные';
                     $out = 1;   // устанавливаем 1 выход
                     break;
-                case '4':
+                
+                case '4': // инфо о группе
+                    $sub_format = $options['sub_format']; // формат вывода подписок
+
                     $answer = $senler->getSubscribersFromGroup($senler_group_id);
                     $sub_stat = $answer['count'];
+                    $sub_items = $answer['items'];
+
+                    $sub_ids = "";
+                    foreach ($answer['items'] as $value) 
+                    {
+                        $sub_ids .= $value['vk_user_id'].', ';
+                    }
+                    $sub_ids = rtrim($sub_ids, ', ');
                     $message = 'Данные получены';
                     $out = 1;   // устанавливаем 1 выход
                     break;
