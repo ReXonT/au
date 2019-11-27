@@ -412,9 +412,6 @@ elseif($act == 'run')
 				$find_col = $options['find_col'];	// колонка для поиска
 				$find_row = $options['find_row'];	// строка для поиска
 
-				$found_col = 0;		// индекс колонки найденной
-				$found_row = 0;		// индекс строки найденной
-
 
 				// достать данные из листа рабочего
 				$json_text = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
@@ -432,19 +429,19 @@ elseif($act == 'run')
 			          }
 			      }
 			    }
+			  
+			  	for($j = 0;$j <= $sheetRowCount;$j++)
+			    {
+			      for($i = 0;$i <= $sheetColumnCount;$i++)
+			      {
+			          if($php_text[$i][$j] == $find_row)
+			          {
+			              $found_row = $i+1;				// найденный индекс строки
+			          }
+			      }
+			    }
 
-			    for($i = 0;$i <= $sheetRowCount; $i++)
-				{
-					for($j = 0;$j <= $sheetColumnCount; $j++)
-					{
-						if($php_text[$i][$j] == $find_row)
-						{
-							$found_row = $i+1;			// найденный индекс строки
-						}
-					}
-				}
-
-				$add_range = $work_sheet_title."!".$col_array[$found_col].$found_row;	// найденная ячейка под замену
+				$add_range = $work_sheet_title."!".$col_array[$found_col-1].$found_row;	// найденная ячейка под замену
 				
 			}
 			
@@ -530,11 +527,8 @@ elseif($act == 'run')
                                                 // $bN_value.ваши_ключи_массива
             'message' => $message,
             'range' => $range,
-            'cc' => $sheetColumnCount,
-            'rc' => $sheetRowCount,
-            'find_row' => $json_text,
-            'find_col' => $php_text,
-            'range1' => $json_msg
+            'find_row' => $found_row,
+            'find_col' => $found_col
         ]
     ];
 } 
