@@ -4,6 +4,9 @@
 
 /* Range D:D - это слобец D
 
+
+test-638@activeusers-260121.iam.gserviceaccount.com - сервисный аккаунт
+
 /* 
 Requests с созданием new Google_Service_Sheets_Request нужен для создания запроса из таблицы https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request. Тут пример на findReplaceRequest.
 
