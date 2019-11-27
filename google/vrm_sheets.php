@@ -322,6 +322,7 @@ elseif($act == 'run')
 	$spreadsheetProperties = $response->getProperties();
 	$spreadsheetProperties->title; // Название таблицы
 	
+	$count_sheet_id = 0;
 	foreach ($response->getSheets() as $sheet) {
 	 
 		// Свойства листа
@@ -332,7 +333,9 @@ elseif($act == 'run')
 			$gridProperties = $sheetProperties->getGridProperties();
 			$sheetColumnCount = $gridProperties->columnCount; // Количество колонок
 			$sheetRowCount = $gridProperties->rowCount; // Количество строк
+			$work_sheet_id = $count_sheet_id;
 		}
+		$count_sheet_id++;
 	}
 
 
@@ -393,7 +396,7 @@ elseif($act == 'run')
 				->spreadsheets_values
 				->append(
 					$spreadsheetId, 
-					'A1', 
+					$work_sheet_title, 
 					$body, 
 					$params,
 					$insert
@@ -477,7 +480,7 @@ elseif($act == 'run')
 			        'findReplace' => [
 			            "find" => $value_to_find,
 			    		"replacement" => $replacement,
-			    		"allSheets"=> true
+			    		"sheetId"=> $work_sheet_id
 			        ]
 			    ])
 			];
@@ -528,7 +531,8 @@ elseif($act == 'run')
             'message' => $message,
             'range' => $range,
             'find_row' => $found_row,
-            'find_col' => $found_col
+            'find_col' => $found_col,
+            'sheet_id' => $work_sheet_id
         ]
     ];
 } 
