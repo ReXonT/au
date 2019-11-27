@@ -25,6 +25,8 @@ if($act == 'options')
     $responce = [
         'title' => 'ВРМ Google',        // Это заголовок блока, который будет виден на схеме
         'vars' => [                         // переменные, которые можно будет настроить в блоке
+            
+        	// основные поля для таблиц
             'spreadsheet_id' => [
             	'title' => 'ID таблицы',
             	'desc' => 'Можно вставить ссылку на таблицу',
@@ -45,6 +47,21 @@ if($act == 'options')
                 ],
                 'default' => ''
             ],
+
+            // тип добавления
+            'add_type' => [
+            	'title' => 'Как добавляем',
+            	'values' => [
+            		1 => 'По координате ячейки',
+            		2 => 'По заданным строке и столбцу'
+            	],
+            	'default' => '',
+            	'show' => [
+            		'option' => 2
+            	]
+            ],
+
+
             'field_count' => [
             	'title' => 'Количество ячеек для записи',
             	'values' => [
@@ -71,7 +88,19 @@ if($act == 'options')
             	'desc' => "Например A1:C1",
             	'default' => '',
             	'show' => [
-            		'option' => [2,4]
+            		'option' => 4
+            	]
+            ],
+
+            // поле для добавления
+
+            'add_range' => [
+            	'title' => 'Диапазон ячеек',
+            	'desc' => "Например A1:C1",
+            	'default' => '',
+            	'show' => [
+            		'option' => 2,
+            		'add_type' => 1
             	]
             ],
 
@@ -81,7 +110,8 @@ if($act == 'options')
             	'desc' => 'Например: Город',
             	'default' => '',
             	'show' => [
-            		'option' => 2
+            		'option' => 2,
+            		'add_type' => 2
             	]
             ],
             'find_row' => [
@@ -89,7 +119,8 @@ if($act == 'options')
             	'desc' => 'Например id пользователя',
             	'default' => '',
             	'show' => [
-            		'option' => 2
+            		'option' => 2,
+            		'add_type' => 2
             	]
             ],
 
@@ -117,7 +148,8 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
-            		'option' => 2
+            		'option' => 2,
+            		'add_type' => 1
             	]
             ],
 
@@ -370,14 +402,28 @@ elseif($act == 'run')
 			break;
 		// добавить ячейку
 		case 2:
-			$find_col = $options['find_col'];	// колонка для поиска
-			$find_row = $options['find_row'];	// строка для поиска
+			$add_type = $options['add_type'];	// тип добавления
+
+			$add_range = $work_sheet_title."!".$options['add_range'];
+
+			if($add_type == 2)
+			{
+				$find_col = $options['find_col'];	// колонка для поиска
+				$find_row = $options['find_row'];	// строка для поиска
+
+				$add_range = $work_sheet_title.'!F6';
+				$value0 = 'Test';
+				$json_text = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
+				$php_text = json_decode($json_text, true);
+
+			}
+			
 
 			$json_request = '
 				{
 				    "data": [
 				        {
-				            "range": "'.$range.'",
+				            "range": "'.$add_range.'",
 				            "values": [
 				                [
 				                    "'.$value0.'"
@@ -456,8 +502,9 @@ elseif($act == 'run')
             'range' => $range,
             'cc' => $sheetColumnCount,
             'rc' => $sheetRowCount,
-            'find_row' => $find_row,
-            'find_col' => $find_col
+            'find_row' => $json_text,
+            'find_col' => $php_text,
+            'range1' => $add_range
         ]
     ];
 } 
