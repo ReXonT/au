@@ -371,50 +371,6 @@ elseif($act == 'run')
 			$find_col = $options['find_col'];	// колонка для поиска
 			$find_row = $options['find_row'];	// строка для поиска
 
-			if(isset($find_col)&&isset($find_row))
-			{
-				$json = '{
-				  "spreadsheetId": '.$spreadsheetId.',
-				  "valueRanges": [
-				    {
-				      "range": ['.$work_sheet_title.']
-				    }
-				  ]
-				}';
-
-				$batch_request = json_decode($json, true);
-
-				$response = $service->spreadsheets_values->batchGet($batch_request);	// получить информацию по листу
-
-				$php = json_decode($response, true);
-				// ищем диапазон
-				$value_range = $php['valueRanges'][0]['values'];
-
-				$count_col = count($value_range[0]);	// количество колонок в листе
-				$count_row = count($value_range);		// количество строк в листе
-
-				for($i = 0;$i <= $count_col; $i++)
-				{	
-					if($value_range[0][$i] == $find_col)
-					{
-						$found_col = $i;				// индекс заголовка найденного
-					}
-				}
-
-				for($i = 0;$i <= $count_row; $i++)
-				{
-					for($j = 0;$j <= $count_col; $j++)
-					{
-						if($value_range[$i][$j] == $find_row)
-						{
-							$found_row = $i+1;			// индес строки найденной
-						}
-					}
-				}
-
-				$range = $col_array[$found_col].$found_row;
-			}
-
 			$json_request = '
 				{
 				    "data": [
@@ -495,7 +451,11 @@ elseif($act == 'run')
         'value' => [                            // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через 
                                                 // $bN_value.ваши_ключи_массива
             'message' => $message,
-            'range' => $range
+            'range' => $range,
+            'json_text' => $json_text,
+            'php_text' => $php_text,
+            'find_row' => $find_row,
+            'find_col' => $find_col
         ]
     ];
 } 
