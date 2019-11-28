@@ -45,7 +45,8 @@ if($act == 'options')
                     2 => 'Вставить значение в ячейку',
                     3 => 'Найти и заменить',
                     4 => 'Удалить ячейку',
-                    5 => 'Получить строчку'
+                    5 => 'Получить строчку',
+                    6 => 'Полностью удалить строку/столбец'
                 ],
                 'default' => ''
             ],
@@ -132,7 +133,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
-            		'option' => [3,5]
+            		'option' => [3,5,6]
             	]
             ],
             'replacement' => [
@@ -141,6 +142,20 @@ if($act == 'options')
             	'default' => '',
             	'show' => [
             		'option' => [3]	
+            	]
+            ],
+
+            // выбрать строку или столбец удалить
+
+            'shift_dimension' => [
+            	'title' => 'Что удалить',
+            	'values' => [
+            		1 => 'Строку',
+            		2 => 'Столбец'
+            	],
+            	'default' => '',
+            	'show' => [
+            		'option' => 6
             	]
             ],
 
@@ -529,13 +544,85 @@ elseif($act == 'run')
 		    $message = 'Строка найдена и возвращена';
 		    $out = 1;
 			break;
+
+		case 6:
+			$shift_dimension = $options['shift_dimension']; // что удалить
+
+			// достать данные из листа рабочего
+			$json_text = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
+
+			$php_text = $json_text->getValues();	// функция получения значений. Чтобы её узнать потратил 2 дня. 
+													// json_decode не работает
+
+			// если удаляем строку
+			if($shift_dimension == 1)
+			{
+				$find_row = $options['value_to_find'];	// строка для поиска
+
+				for($j = 0;$j <= $sheetRowCount;$j++)
+			    {
+			      for($i = 0;$i <= $sheetColumnCount;$i++)
+			      {
+			          if($php_text[$i][$j] == $find_row)
+			          {
+			              $found_row = $i+1;				// найденный индекс строки
+			          }
+			      }
+			    }
+				$requests = [
+				    new Google_Service_Sheets_Request([
+				        'deleteRange' => [
+				            "shiftDimension" => "ROWS",
+				    		"range" => [
+				    			"startRowIndex" => $found_row-1,
+	                        	"endRowIndex" => $found_row,
+	                            "sheetId" => $work_sheet_id 
+	                        ]
+				        ]
+				    ])
+				];
+			}
+			else
+			{
+				$find_col = $options['value_to_find'];	// столбец для поиска
+
+				for($j = 0;$j <= $sheetRowCount;$j++)
+			    {
+			      for($i = 0;$i <= $sheetColumnCount;$i++)
+			      {
+			          if($php_text[$j][$i] == $find_col)
+			          {
+			              $found_col = $i+1;				// найденный индекс колонки
+			          }
+			      }
+			    }
+			    $requests = [
+				    new Google_Service_Sheets_Request([
+				        'deleteRange' => [
+				            "shiftDimension" => "COLUMNS",
+				    		"range" => [
+				    			"startColumnIndex" => $found_col-1,
+	                        	"endColumnIndex" => $found_col,
+	                            "sheetId" => $work_sheet_id 
+	                        ]
+				        ]
+				    ])
+				];
+			}
+
+			$batchUpdateRequest = new Google_Service_Sheets_BatchUpdateSpreadsheetRequest([
+				'requests' => $requests
+			]);
+
+			$response = $service->spreadsheets->batchUpdate($spreadsheetId, $batchUpdateRequest);
+			$message = 'Удалена строка';
+			$out = 1;
+			break;
 		
 		default:
 			// code...
 			break;
 	}
-
-	$out = 1;
 
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
