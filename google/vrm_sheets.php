@@ -320,9 +320,8 @@ elseif($act == 'run')
 	 
 	// Свойства таблицы
 	$spreadsheetProperties = $response->getProperties();
-	$spreadsheetProperties->title; // Название таблицы
+	$work_spreadsheet_name = $spreadsheetProperties->title; // Название таблицы
 	
-	$count_sheet_id = 0;
 	foreach ($response->getSheets() as $sheet) {
 	 
 		// Свойства листа
@@ -333,9 +332,8 @@ elseif($act == 'run')
 			$gridProperties = $sheetProperties->getGridProperties();
 			$sheetColumnCount = $gridProperties->columnCount; // Количество колонок
 			$sheetRowCount = $gridProperties->rowCount; // Количество строк
-			$work_sheet_id = $count_sheet_id;
+			$work_sheet_id = $sheetProperties->sheetId;
 		}
-		$count_sheet_id++;
 	}
 
 
