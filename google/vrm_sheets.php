@@ -44,8 +44,8 @@ if($act == 'options')
                     1 => 'Добавить строку в конец таблицы',
                     2 => 'Вставить значение в ячейку',
                     3 => 'Найти и заменить',
-                    4 => 'Удалить ячейку',
-                    5 => 'Получить строчку',
+                    4 => 'Получить строчку',
+                    5 => 'Удалить ячейку',
                     6 => 'Полностью удалить строку/столбец'
                 ],
                 'default' => ''
@@ -91,7 +91,7 @@ if($act == 'options')
             	'desc' => "Например A1:C1",
             	'default' => '',
             	'show' => [
-            		'option' => 4
+            		'option' => 5
             	]
             ],
 
@@ -133,7 +133,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
-            		'option' => [3,5,6]
+            		'option' => [3,4,6]
             	]
             ],
             'replacement' => [
@@ -505,26 +505,8 @@ elseif($act == 'run')
 			$out = 1;
 			break;
 
-		// удалить диапазон значений
-		case 4:
-			// создаем json строку запроса по api документации
-			$json_request = '
-				{
-					"ranges": ["'.$range.'"]
-				}
-			';
-
-			$php_request = json_decode($json_request, true);	// переводим json в php
-
-			$batchUpdateRequest = new Google_Service_Sheets_BatchClearValuesRequest($php_request);	// создаем batch clear request
-			$response = $service->spreadsheets_values->batchClear($spreadsheetId, $batchUpdateRequest);	// вызываем batch clear
-
-			$message = 'Данные удалены';
-			$out = 1;
-			break;
-
 		// получить строку
-		case 5:
+		case 4:
 			$value_to_find = $options['value_to_find'];
 			// запросить данные по странице
 			$response = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
@@ -543,6 +525,24 @@ elseif($act == 'run')
 		    }
 		    $message = 'Строка найдена и возвращена';
 		    $out = 1;
+			break;
+
+		// удалить диапазон значений
+		case 5:
+			// создаем json строку запроса по api документации
+			$json_request = '
+				{
+					"ranges": ["'.$range.'"]
+				}
+			';
+
+			$php_request = json_decode($json_request, true);	// переводим json в php
+
+			$batchUpdateRequest = new Google_Service_Sheets_BatchClearValuesRequest($php_request);	// создаем batch clear request
+			$response = $service->spreadsheets_values->batchClear($spreadsheetId, $batchUpdateRequest);	// вызываем batch clear
+
+			$message = 'Данные удалены';
+			$out = 1;
 			break;
 
 		case 6:
