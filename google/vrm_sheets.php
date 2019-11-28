@@ -45,6 +45,7 @@ if($act == 'options')
                     2 => 'Вставить значение в ячейку',
                     3 => 'Найти и заменить',
                     4 => 'Удалить ячейку',
+                    5 => 'Получить строчку'
                 ],
                 'default' => ''
             ],
@@ -131,7 +132,7 @@ if($act == 'options')
             	'desc' => "",
             	'default' => '',
             	'show' => [
-            		'option' => [3]	
+            		'option' => [3,5]
             	]
             ],
             'replacement' => [
@@ -372,6 +373,7 @@ elseif($act == 'run')
 	switch ($option) {
 		// добавить строчку в конец
 		case 1:
+			// формируем массив из values1,values2 ... values[[сюда]] по google api
 			$v = "";
 			for($i = 1;$i<=$field_count;$i++)
 			{
@@ -505,6 +507,28 @@ elseif($act == 'run')
 			$message = 'Данные удалены';
 			$out = 1;
 			break;
+
+		// получить строку
+		case 5:
+			$value_to_find = $options['value_to_find'];
+			// запросить данные по странице
+			$response = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
+			$php_text = $response->getValues();
+			foreach($php_text as $key => $value)
+		    {
+		      	$return_row = $value;
+			    foreach($value as $key => $val)
+			    {
+			    	if($val == $value_to_find)
+			        {
+			          $s = 1;
+			        }
+			    }
+			    if($s) break;
+		    }
+		    $message = 'Строка найдена и возвращена';
+		    $out = 1;
+			break;
 		
 		default:
 			// code...
@@ -523,9 +547,7 @@ elseif($act == 'run')
                                                 // $bN_value.ваши_ключи_массива
             'message' => $message,
             'range' => $range,
-            'find_row' => $found_row,
-            'find_col' => $found_col,
-            'sheet_id' => $work_sheet_id
+            'return_row' => $return_row
         ]
     ];
 } 
