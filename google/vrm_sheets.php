@@ -401,7 +401,7 @@ elseif($act == 'run')
 			$body = new Google_Service_Sheets_ValueRange([		// какая-то шляпа для правильного формирования добавления
 			    'values' => $values
 			]);
-			// A1 здесь только потому что range обязателен
+			// range обязателен
 			$result = $service
 				->spreadsheets_values
 				->append(
