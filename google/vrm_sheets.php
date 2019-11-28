@@ -372,20 +372,15 @@ elseif($act == 'run')
 	switch ($option) {
 		// добавить строчку в конец
 		case 1:
-			$values = [					// значения для именно так
-			    [
-			        $value1,
-			      	$value2,
-			      	$value3,
-			      	$value4,
-			      	$value5,
-			      	$value6,
-			      	$value7,
-			      	$value8,
-			      	$value9,
-			      	$value10
-			    ],    
-			];
+			$v = "";
+			for($i = 1;$i<=$field_count;$i++)
+			{
+				$v .= ${'value'.$i}.',';
+			}
+			$v = rtrim($v,',');
+
+			$values[] = explode(',',$v);	// массив values
+
 			$body = new Google_Service_Sheets_ValueRange([		// какая-то шляпа для правильного формирования добавления
 			    'values' => $values
 			]);
