@@ -7,6 +7,14 @@ if($act == 'options')
 {
     $responce = [
         'title' => 'ВРМ Google',        // Это заголовок блока, который будет виден на схеме
+        
+        'paysys' => [                   // Группа полей, отвечающая за интеграцию с платёжными системами и внешними сервисами.
+            'ps' => [                   // ВРМ получит доступ к ID аккаунта, секретному ключу и другим атрибутам выбранной системы
+                'title' => 'Google',
+                'type' => 7
+            ]
+        ],
+
         'vars' => [                         // переменные, которые можно будет настроить в блоке
             
         	// основные поля для таблиц
@@ -271,13 +279,20 @@ elseif($act == 'run')
 
     /* Настройки Google Sheets API V4 */
 
+    $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
+
+    $token = $ps['options']['credentials'];
+
+	$php_token = json_decode($token,true);
+
 	// Путь к файлу ключа сервисного аккаунта
-	$googleAccountKeyFilePath = 'my_key.json';
-	putenv('GOOGLE_APPLICATION_CREDENTIALS='.$googleAccountKeyFilePath);
+	/*$googleAccountKeyFilePath = 'my_key.json';
+	putenv('GOOGLE_APPLICATION_CREDENTIALS='.$googleAccountKeyFilePath);*/
 	 
 	// Документация https://developers.google.com/sheets/api/
 	$client = new Google_Client();
-	$client->useApplicationDefaultCredentials();
+	$client->setAuthConfig($php_token);
+	//$client->useApplicationDefaultCredentials();
 	 
 	// Области, к которым будет доступ
 	$client->addScope('https://www.googleapis.com/auth/spreadsheets');
