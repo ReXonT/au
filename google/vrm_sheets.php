@@ -348,7 +348,7 @@ elseif($act == 'run')
 			$gridProperties = $sheetProperties->getGridProperties();
 			$sheetColumnCount = $gridProperties->columnCount; // Количество колонок
 			$sheetRowCount = $gridProperties->rowCount; // Количество строк
-			$work_sheet_id = $sheetProperties->sheetId;
+			$work_sheet_id = $sheetProperties->sheetId;	// id рабочего листа
 		}
 	}
 
@@ -383,7 +383,7 @@ elseif($act == 'run')
 
 
     $out = 0;						// выход в ноль
-    $message = "";
+    $message = "";					// сообщение о результате
 
 	switch ($option) {
 		// добавить строчку в конец
@@ -398,7 +398,7 @@ elseif($act == 'run')
 
 			$values[] = explode(',',$v);	// массив values
 
-			$body = new Google_Service_Sheets_ValueRange([		// какая-то шляпа для правильного формирования добавления
+			$body = new Google_Service_Sheets_ValueRange([		// по api google
 			    'values' => $values
 			]);
 			// range обязателен
@@ -418,7 +418,7 @@ elseif($act == 'run')
 		case 2:
 			$add_type = $options['add_type'];	// тип добавления
 
-			$add_range = $work_sheet_title."!".$options['add_range'];
+			$add_range = $work_sheet_title."!".$options['add_range'];	// формируем диапазон для добавления
 
 			if($add_type == 2)
 			{
@@ -431,7 +431,8 @@ elseif($act == 'run')
 
 				$php_text = $json_text->getValues();	// функция получения значений. Чтобы её узнать потратил 2 дня. 
 														// json_decode не работает
-
+				
+				// поиск нужного столбца
 			  	for($j = 0;$j <= $sheetRowCount;$j++)
 			    {
 			      for($i = 0;$i <= $sheetColumnCount;$i++)
@@ -442,7 +443,8 @@ elseif($act == 'run')
 			          }
 			      }
 			    }
-			  
+			  	
+			  	// поиск нужной строки
 			  	for($j = 0;$j <= $sheetRowCount;$j++)
 			    {
 			      for($i = 0;$i <= $sheetColumnCount;$i++)
@@ -485,6 +487,7 @@ elseif($act == 'run')
 			break;
 		// найти и заменить
 		case 3:
+			// вызываем findReplace по google api
 			$requests = [
 			    new Google_Service_Sheets_Request([
 			        'findReplace' => [
@@ -508,15 +511,17 @@ elseif($act == 'run')
 		// получить строку
 		case 4:
 			$value_to_find = $options['value_to_find'];
-			// запросить данные по странице
+			
+			// запросить данные по листу
 			$response = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
-			$php_text = $response->getValues();
+			$php_text = $response->getValues();	// получить значения листа
+			
 			foreach($php_text as $key => $value)
 		    {
-		      	$return_row = $value;
+		      	$return_row = $value;	// задаем полную строку на возращение
 			    foreach($value as $key => $val)
 			    {
-			    	if($val == $value_to_find)
+			    	if($val == $value_to_find)	// если нашли внутри строки нужное сообщение, то выходим из цикла полностью
 			        {
 			          $s = 1;
 			        }
@@ -551,7 +556,7 @@ elseif($act == 'run')
 			// достать данные из листа рабочего
 			$json_text = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
 
-			$php_text = $json_text->getValues();	// функция получения значений. Чтобы её узнать потратил 2 дня. 
+			$php_text = $json_text->getValues();	// функция получения значений 
 													// json_decode не работает
 
 			// если удаляем строку
@@ -569,6 +574,8 @@ elseif($act == 'run')
 			          }
 			      }
 			    }
+
+			    // запрос по удалению строки
 				$requests = [
 				    new Google_Service_Sheets_Request([
 				        'deleteRange' => [
@@ -581,6 +588,7 @@ elseif($act == 'run')
 				        ]
 				    ])
 				];
+
 			}
 			else
 			{
@@ -596,6 +604,8 @@ elseif($act == 'run')
 			          }
 			      }
 			    }
+
+			    // запрос по удалению столбца
 			    $requests = [
 				    new Google_Service_Sheets_Request([
 				        'deleteRange' => [
@@ -608,6 +618,7 @@ elseif($act == 'run')
 				        ]
 				    ])
 				];
+
 			}
 
 			$batchUpdateRequest = new Google_Service_Sheets_BatchUpdateSpreadsheetRequest([
@@ -615,7 +626,7 @@ elseif($act == 'run')
 			]);
 
 			$response = $service->spreadsheets->batchUpdate($spreadsheetId, $batchUpdateRequest);
-			$message = 'Удалена строка';
+			$message = 'Удалено';
 			$out = 1;
 			break;
 		
