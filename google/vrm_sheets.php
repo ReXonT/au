@@ -1,24 +1,6 @@
 <?php
 require_once ('vendor/autoload.php');
 
-
-/* Настройки Google Sheets API V4 */
-
-// Путь к файлу ключа сервисного аккаунта
-$googleAccountKeyFilePath = 'my_key.json';
-putenv('GOOGLE_APPLICATION_CREDENTIALS='.$googleAccountKeyFilePath);
- 
-// Документация https://developers.google.com/sheets/api/
-$client = new Google_Client();
-$client->useApplicationDefaultCredentials();
- 
-// Области, к которым будет доступ
-$client->addScope('https://www.googleapis.com/auth/spreadsheets');
- 
-$service = new Google_Service_Sheets($client);
-
-/* =============================== */
-
 $act = $_REQUEST['act'];
 
 if($act == 'options') 
@@ -286,6 +268,23 @@ elseif($act == 'run')
     // если стоит цель не на инициатора активности
     if(isset($target)) { $user_id = $target; } 
     else { $user_id = $ums['from_id']; }
+
+    /* Настройки Google Sheets API V4 */
+
+	// Путь к файлу ключа сервисного аккаунта
+	$googleAccountKeyFilePath = 'my_key.json';
+	putenv('GOOGLE_APPLICATION_CREDENTIALS='.$googleAccountKeyFilePath);
+	 
+	// Документация https://developers.google.com/sheets/api/
+	$client = new Google_Client();
+	$client->useApplicationDefaultCredentials();
+	 
+	// Области, к которым будет доступ
+	$client->addScope('https://www.googleapis.com/auth/spreadsheets');
+	 
+	$service = new Google_Service_Sheets($client);
+
+	/* =============================== */
 
     // массив букв для колонок
     $col_array = [
