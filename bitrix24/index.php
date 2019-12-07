@@ -157,14 +157,35 @@ if(isset($act))
 
         define('C_REST_CLIENT_SECRET', $clientSecret); // устанавливаем значения
         define('C_REST_CLIENT_ID', $clientId); // устанавливаем значения
+
+        $nameVar = 'lead';  // часть названия переменной, ответственная за лиды
+
+        $arrFieldNames = [
+            'Title',
+            'Name',
+            'LastName',
+            'Address',
+            'Comments',
+            'Phone',
+            'Email',
+            'Opportunity',
+            'Currency',
+            'Status', 
+            'Address'
+        ];
         
         // тип запроса
         $type = $options['execType'];
 
         $inputId = $options['inputId']; // id лида
 
-        /* Поля */        
-        $leadTitle = $options['leadTitle']; // title лида
+        /* Поля */
+
+        foreach ($arrFieldNames as $value) {
+            ${$nameVar.$value} = $options[$nameVar.$value];
+        }
+
+        /*$leadTitle = $options['leadTitle']; // title лида
         $leadName = $options['leadName']; // имя лида
         $leadLastName = $options['leadLastName']; // фамилия лида
         $leadComments = $options['leadComments']; // комментарии для лида
@@ -173,7 +194,7 @@ if(isset($act))
         $leadOpportunity = $options['leadOpportunity']; // сумма заказа лида
         $leadCurrency = $options['leadCurrency']; // валюта заказа лида
         $leadStatus = $options['leadStatus']; // валюта заказа лида
-        $leadAddress = $options['leadAddress']; // адрес лида
+        $leadAddress = $options['leadAddress']; // адрес лида */
 
 
         switch ($leadCurrency) {
