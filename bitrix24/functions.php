@@ -47,9 +47,9 @@ function changeValueToRussian($name)
 		'UTM_MEDIUM' => "Тип трафика",
 		'UTM_SOURCE' => "Рекламная система",
 		'UTM_TERM' => "Условие поиска кампании",
-		'WEB' => "URL ресурсов лида",
+		'WEB' => "Веб-сайт",
 		'LAST_NAME' => "Фамилия",
-		'OPPORTUNITY' => "Сумма заказа",
+		'OPPORTUNITY' => "Предполагаемая сумма",
 		'CURRENCY_ID' => "Валюта",
 		'STATUS_ID' => 'Статус лида'
 	);

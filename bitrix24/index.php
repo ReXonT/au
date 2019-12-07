@@ -94,6 +94,19 @@ if(isset($act))
                     ],
                     'default' => 0
                 ],
+                'leadStatus' => [
+                    'title' => 'Статус заказа',
+                    'desc' => '',
+                    'values' => [
+                        1 => 'Не обработан',
+                        2 => 'В работе',
+                        3 => 'Обработан'
+                    ],
+                    'show' => [
+                        'execType' => 1
+                    ],
+                    'default' => 1
+                ],
 
                 // id лида для разных запросов
                 'inputId' => [
@@ -151,6 +164,7 @@ if(isset($act))
         $leadEmail = $options['leadEmail']; // email лида
         $leadOpportunity = $options['leadOpportunity']; // сумма заказа лида
         $leadCurrency = $options['leadCurrency']; // валюта заказа лида
+        $leadStatus = $options['leadStatus']; // валюта заказа лида
 
         switch ($leadCurrency) {
             case 0:
@@ -161,6 +175,21 @@ if(isset($act))
                 break;
             default:
                 $leadCurrency = "RUB";
+                break;
+        }
+
+        switch ($leadStatus) {
+            case 1:
+                $leadStatus = "NEW";
+                break;
+            case 2:
+                $leadStatus = "IN_PROCESS";
+                break;
+            case 3:
+                $leadStatus = "PROCESSED";
+                break;
+            default:
+                $leadStatus = "NEW";
                 break;
         }
 
@@ -176,7 +205,7 @@ if(isset($act))
                         "NAME" => $leadName,
                         "LAST_NAME" => $leadLastName,
                         "COMMENTS" => $leadComments,
-                        "STATUS_ID" => "NEW", 
+                        "STATUS_ID" => $leadStatus, 
                         "OPENED" => "Y",
                         "ASSIGNED_BY_ID" => 1, 
                         "CURRENCY_ID" => $leadCurrency, 
