@@ -25,8 +25,9 @@ if(isset($act))
                     'title' => 'Выбор действия',   // заголовок поля
                     'values' => [
                         1 => 'Добавить лид',
-                        2 => 'Удалить лид',
-                        3 => 'Получить лид'
+                        2 => 'Изменить лид',
+                        3 => 'Получить лид',
+                        4 => 'Удалить лид'
                     ],
                     'desc' => '',    // описание поля, можно пару строк
                 ],
@@ -48,6 +49,13 @@ if(isset($act))
                 ],
                 'leadLastName' => [
                     'title' => 'Фамилия',
+                    'desc' => '',
+                    'show' => [
+                        'execType' => 1
+                    ]
+                ],
+                'leadAddress' => [
+                    'title' => 'Адрес',
                     'desc' => '',
                     'show' => [
                         'execType' => 1
@@ -84,7 +92,6 @@ if(isset($act))
                 'leadCurrency' => [
                     'title' => 'Валюта',
                     'desc' => '',
-                    'format' => 'checkbox',
                     'values' => [
                         0 => "RUB",
                         1 => "USD",
@@ -113,9 +120,9 @@ if(isset($act))
                     'title' => 'ID лида',
                     'desc' => 'Положительное число',
                     'show' => [
-                        'execType' => [2,3]
+                        'execType' => [2,3,4]
                     ]
-                ]
+                ],
             ],
             'out' => [                      // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
                 1 => [                      // Номер 0 означает красный выход блока ВРМ, зарезервированный для случаев сбоя
@@ -154,8 +161,9 @@ if(isset($act))
         // тип запроса
         $type = $options['execType'];
 
-        /* Поля для добавления */        
         $inputId = $options['inputId']; // id лида
+
+        /* Поля */        
         $leadTitle = $options['leadTitle']; // title лида
         $leadName = $options['leadName']; // имя лида
         $leadLastName = $options['leadLastName']; // фамилия лида
@@ -165,6 +173,8 @@ if(isset($act))
         $leadOpportunity = $options['leadOpportunity']; // сумма заказа лида
         $leadCurrency = $options['leadCurrency']; // валюта заказа лида
         $leadStatus = $options['leadStatus']; // валюта заказа лида
+        $leadAddress = $options['leadAddress']; // адрес лида
+
 
         switch ($leadCurrency) {
             case 0:
@@ -192,7 +202,7 @@ if(isset($act))
                 $leadStatus = "NEW";
                 break;
         }
-
+  
 
         switch ($type) {
             // добавить лид
@@ -205,6 +215,7 @@ if(isset($act))
                         "NAME" => $leadName,
                         "LAST_NAME" => $leadLastName,
                         "COMMENTS" => $leadComments,
+                        "ADDRESS" => $leadAddress,
                         "STATUS_ID" => $leadStatus, 
                         "OPENED" => "Y",
                         "ASSIGNED_BY_ID" => 1, 
@@ -228,13 +239,21 @@ if(isset($act))
                 $out = 1;
                 break;
 
-            // удалить лид
+            // изменить лид
             case 2:
+                $fieldsToChange = array();
+
+                if($leadTitle != "") $fieldsToChange = array_merge($fieldsToChange, array("TITLE"=>$leadTitle));
+                if($leadName != "") $fieldsToChange = array_merge($fieldsToChange, array("NAME"=>$leadName));
+                if($leadLastName != "") $fieldsToChange = array_merge($fieldsToChange, array("LAST_NAME"=>$leadLastName));
+                if($leadLastName != "") $fieldsToChange = array_merge($fieldsToChange, array("LAST_NAME"=>$leadLastName));
+
                 $response = CRest::call(
-                   'crm.lead.delete',
+                   'crm.lead.update',
                    [
-                      'id' => $inputId
-                ]);
+                      'id' => $inputId,
+                      'fields' => $fieldsToChange
+                    ]);
                 $result = $response['result'];
                 $out = 1;
                 break;
@@ -285,6 +304,18 @@ if(isset($act))
                 }
                 $out = 1;
                 break;
+
+            // удалить лид
+            case 4:
+                $response = CRest::call(
+                   'crm.lead.delete',
+                   [
+                      'id' => $inputId
+                ]);
+                $result = $response['result'];
+                $out = 1;
+                break;
+
             default:
                 // code...
                 break;
