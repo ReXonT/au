@@ -47,7 +47,7 @@ if(isset($act))
                         'execType' => [1,2]
                     ]
                 ],
-                'leadLastName' => [
+                'leadLast_Name' => [
                     'title' => 'Фамилия',
                     'desc' => '',
                     'show' => [
@@ -101,7 +101,7 @@ if(isset($act))
                     ],
                     'default' => 0
                 ],
-                'leadStatus' => [
+                'leadStatus_Id' => [
                     'title' => 'Статус заказа',
                     'desc' => '',
                     'values' => [
@@ -163,14 +163,14 @@ if(isset($act))
         $arrFieldNames = [
             'Title',
             'Name',
-            'LastName',
+            'Last_Name',
             'Address',
             'Comments',
             'Phone',
             'Email',
             'Opportunity',
             'Currency',
-            'Status', 
+            'Status_id', 
             'Address'
         ];
         
@@ -185,16 +185,22 @@ if(isset($act))
             ${$nameVar.$value} = $options[$nameVar.$value];
         }
 
-        /*$leadTitle = $options['leadTitle']; // title лида
+        /*
+        
+        Составятся такие переменные:
+
+        $leadTitle = $options['leadTitle']; // title лида
         $leadName = $options['leadName']; // имя лида
-        $leadLastName = $options['leadLastName']; // фамилия лида
+        $leadLast_Name = $options['leadLast_Name']; // фамилия лида
         $leadComments = $options['leadComments']; // комментарии для лида
         $leadPhone = $options['leadPhone']; // номер телефона лида
         $leadEmail = $options['leadEmail']; // email лида
         $leadOpportunity = $options['leadOpportunity']; // сумма заказа лида
         $leadCurrency = $options['leadCurrency']; // валюта заказа лида
-        $leadStatus = $options['leadStatus']; // валюта заказа лида
-        $leadAddress = $options['leadAddress']; // адрес лида */
+        $leadStatus = $options['leadStatus_id']; // валюта заказа лида
+        $leadAddress = $options['leadAddress']; // адрес лида 
+
+        */
 
 
         switch ($leadCurrency) {
@@ -226,36 +232,84 @@ if(isset($act))
   
 
         switch ($type) {
+            
             // добавить лид
             case 1:
-                $response = CRest::call(
-                   'crm.lead.add',
-                   [
-                      'fields' => [
-                        "TITLE" => $leadTitle, 
-                        "NAME" => $leadName,
-                        "LAST_NAME" => $leadLastName,
-                        "COMMENTS" => $leadComments,
-                        "ADDRESS" => $leadAddress,
-                        "STATUS_ID" => $leadStatus, 
-                        "OPENED" => "Y",
-                        "ASSIGNED_BY_ID" => 1, 
-                        "CURRENCY_ID" => $leadCurrency, 
-                        "OPPORTUNITY" => $leadOpportunity,
-                        "PHONE" => [
-                            "VALUE" => [                            // телефон создается именно так!
-                                "VALUE" => $leadPhone,
-                                "VALUE_TYPE" => "MOBILE"
-                            ]
-                        ],
-                        "EMAIL" => [
-                            "VALUE" => [                            // телефон создается именно так!
-                                "VALUE" => $leadEmail,
-                                "VALUE_TYPE" => "HOME"
-                            ]
+
+                $fieldsToAdd = array();
+
+                /*
+                Цикл ниже составит такой fieldsToAdd:
+
+                'fields' => [
+                    "TITLE" => $leadTitle, 
+                    "NAME" => $leadName,
+                    "LAST_NAME" => $leadLast_Name,
+                    "COMMENTS" => $leadComments,
+                    "ADDRESS" => $leadAddress,
+                    "STATUS_ID" => $leadStatus_Id,  
+                    "CURRENCY_ID" => $leadCurrency, 
+                    "OPPORTUNITY" => $leadOpportunity,
+                    "PHONE" => [
+                        "VALUE" => [                            // телефон создается именно так!
+                            "VALUE" => $leadPhone,
+                            "VALUE_TYPE" => "MOBILE"
+                        ]
+                    ],
+                    "EMAIL" => [
+                        "VALUE" => [                            // телефон создается именно так!
+                            "VALUE" => $leadEmail,
+                            "VALUE_TYPE" => "HOME"
                         ]
                     ]
-                ]);
+                ]
+                */
+
+                foreach ($arrFieldNames as $value) {
+                    if(${$nameVar.$value} != "")
+                    {
+                        $fieldName = mb_strtoupper($value);
+                        if($fieldName == 'PHONE')
+                        {
+                            $fieldsToAdd = 
+                            array_merge(
+                                $fieldsToAdd, 
+                                array(
+                                    "PHONE" => [
+                                        "VALUE" => [                            // добавляем телефон
+                                            "VALUE" => $leadPhone,
+                                            "VALUE_TYPE" => "MOBILE"
+                                        ]
+                                    ]
+                                )
+                            );
+                            continue;   
+                        }
+                        if($fieldName == 'EMAIL')
+                        {
+                            $fieldsToAdd = 
+                            array_merge(
+                                $fieldsToAdd, 
+                                array(
+                                    "EMAIL" => [
+                                        "VALUE" => [                            // изменение почты
+                                            "VALUE" => $leadEmail,
+                                            "VALUE_TYPE" => "HOME"
+                                        ]
+                                    ]
+                                )
+                            );
+                            continue;   
+                        }
+                        $fieldsToAdd = array_merge($fieldsToAdd, array($fieldName => ${$nameVar.$value}));
+                    }
+                }
+
+                $response = CRest::call(
+                   'crm.lead.add',
+                    [
+                      'fields' => $fieldsToAdd
+                    ]);
                 $result = $response['result'];
                 $out = 1;
                 break;
@@ -264,10 +318,47 @@ if(isset($act))
             case 2:
                 $fieldsToChange = array();
 
-                if($leadTitle != "") $fieldsToChange = array_merge($fieldsToChange, array("TITLE"=>$leadTitle));
-                if($leadName != "") $fieldsToChange = array_merge($fieldsToChange, array("NAME"=>$leadName));
-                if($leadLastName != "") $fieldsToChange = array_merge($fieldsToChange, array("LAST_NAME"=>$leadLastName));
-                if($leadLastName != "") $fieldsToChange = array_merge($fieldsToChange, array("LAST_NAME"=>$leadLastName));
+                // процесс добавления описан в первом кейсе
+
+                foreach ($arrFieldNames as $value) {
+                    if(${$nameVar.$value} != "")
+                    {
+                        $fieldName = mb_strtoupper($value);
+                        if($fieldName == 'PHONE')
+                        {
+                            $fieldsToChange = 
+                            array_merge(
+                                $fieldsToChange, 
+                                array(
+                                    "PHONE" => [
+                                        "VALUE" => [                            // добавляем телефон
+                                            "VALUE" => $leadPhone,
+                                            "VALUE_TYPE" => "MOBILE"
+                                        ]
+                                    ]
+                                )
+                            );
+                            continue;   
+                        }
+                        if($fieldName == 'EMAIL')
+                        {
+                            $fieldsToChange = 
+                            array_merge(
+                                $fieldsToChange, 
+                                array(
+                                    "EMAIL" => [
+                                        "VALUE" => [                            // почта как и телефон
+                                            "VALUE" => $leadEmail,
+                                            "VALUE_TYPE" => "HOME"
+                                        ]
+                                    ]
+                                )
+                            );
+                            continue;   
+                        }
+                        $fieldsToChange = array_merge($fieldsToChange, array($fieldName => ${$nameVar.$value}));
+                    }
+                }
 
                 $response = CRest::call(
                    'crm.lead.update',
