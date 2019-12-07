@@ -1,5 +1,6 @@
 <?php
 require_once('crest.php');
+require_once('functions.php');
 
 $act = $_REQUEST['act'];
 
@@ -61,6 +62,13 @@ if(isset($act))
                 ],
                 'leadPhone' => [
                     'title' => 'Телефон',
+                    'desc' => '',
+                    'show' => [
+                        'execType' => 1
+                    ]
+                ],
+                'leadEmail' => [
+                    'title' => 'Email',
                     'desc' => '',
                     'show' => [
                         'execType' => 1
@@ -140,6 +148,7 @@ if(isset($act))
         $leadLastName = $options['leadLastName']; // фамилия лида
         $leadComments = $options['leadComments']; // комментарии для лида
         $leadPhone = $options['leadPhone']; // номер телефона лида
+        $leadEmail = $options['leadEmail']; // email лида
         $leadOpportunity = $options['leadOpportunity']; // сумма заказа лида
         $leadCurrency = $options['leadCurrency']; // валюта заказа лида
 
@@ -168,14 +177,20 @@ if(isset($act))
                         "LAST_NAME" => $leadLastName,
                         "COMMENTS" => $leadComments,
                         "STATUS_ID" => "NEW", 
-                        "OPENED" => "Y", 
+                        "OPENED" => "Y",
                         "ASSIGNED_BY_ID" => 1, 
                         "CURRENCY_ID" => $leadCurrency, 
                         "OPPORTUNITY" => $leadOpportunity,
                         "PHONE" => [
                             "VALUE" => [                            // телефон создается именно так!
                                 "VALUE" => $leadPhone,
-                                "VALUE_TYPE" => "WORK"
+                                "VALUE_TYPE" => "MOBILE"
+                            ]
+                        ],
+                        "EMAIL" => [
+                            "VALUE" => [                            // телефон создается именно так!
+                                "VALUE" => $leadEmail,
+                                "VALUE_TYPE" => "HOME"
                             ]
                         ]
                     ]
@@ -203,6 +218,42 @@ if(isset($act))
                       'id' => $inputId
                 ]);
                 $result = $response['result'];
+
+                $foundLead = "";
+                foreach ($result as $key => $value) {
+                    if($value != "")
+                    {
+                        // меняем значение ключа на русское для вывода
+                        $russianKey = changeValueToRussian($key);
+
+                        // если не нашли русского значения, то пишем англ
+                        if(!($russianKey != ""))
+                        {
+                            $russianKey = $key;
+                        }
+
+                        if($key == 'PHONE')
+                        {
+                            $foundLead .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'];
+                        }
+                        // пропускаем значение этого ключа
+                        elseif ($key == 'STATUS_SEMANTIC_ID') continue;
+                        else
+                        {
+                            // меняем значение, если Y или N на адекватные русские названия
+                            switch ($value) {
+                                case 'Y':
+                                    $value = "Да";
+                                    break;
+                                case 'N':
+                                    $value = "Нет";
+                                    break;
+                            }
+
+                            $foundLead .= $russianKey.": ".$value.'<br>';
+                        }
+                    }
+                }
                 $out = 1;
                 break;
             default:
@@ -215,7 +266,8 @@ if(isset($act))
             'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля!
             
             'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
-                'result' => $result,     // где N - порядковый номер блока в схеме
+                'result' => $result,
+                'foundLead' => $foundLead
             ]
         ];
 
@@ -229,5 +281,5 @@ if(isset($act))
 }
 else
 {
-    echo '<p> Привет Битрикс! Это приложение для АЮ. Управляй им там :)</p>';
+    echo '<p> Привет, Битрикс! Это приложение для АЮ. Управляй им там :)</p>';
 }
