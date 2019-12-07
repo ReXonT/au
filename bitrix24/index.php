@@ -13,23 +13,86 @@ if(isset($act))
     if($act == 'options') {
         $responce = [
             'title' => 'ВРМ Bitrix24',      // Это заголовок блока, который будет виден на схеме
+            'paysys' => [                   // Группа полей, отвечающая за интеграцию с платёжными системами и внешними сервисами.
+                'ps' => [                   // ВРМ получит доступ к ID аккаунта, секретному ключу и другим атрибутам выбранной системы
+                    'title' => 'Bitrix24',
+                    'type' => 1
+                ]
+            ],
             'vars' => [                     // переменные, которые можно будет настроить в блоке
                 'execType' => [
                     'title' => 'Выбор действия',   // заголовок поля
                     'values' => [
                         1 => 'Добавить лид',
-                        2 => 'Удалить лид'
+                        2 => 'Удалить лид',
+                        3 => 'Получить лид'
                     ],
                     'desc' => '',    // описание поля, можно пару строк
                 ],
 
+                // добавление лида
+                'leadTitle' => [
+                    'title' => 'Заголовок карточки',
+                    'desc' => '',
+                    'show' => [
+                        'execType' => 1
+                    ]
+                ],
+                'leadName' => [
+                    'title' => 'Имя',
+                    'desc' => '',
+                    'show' => [
+                        'execType' => 1
+                    ]
+                ],
+                'leadLastName' => [
+                    'title' => 'Фамилия',
+                    'desc' => '',
+                    'show' => [
+                        'execType' => 1
+                    ]
+                ],
+                'leadComments' => [
+                    'title' => 'Комментарий',
+                    'desc' => '',
+                    'show' => [
+                        'execType' => 1
+                    ]
+                ],
+                'leadPhone' => [
+                    'title' => 'Телефон',
+                    'desc' => '',
+                    'show' => [
+                        'execType' => 1
+                    ]
+                ],
+                'leadOpportunity' => [
+                    'title' => 'Сумма заказа',
+                    'desc' => '',
+                    'show' => [
+                        'execType' => 1
+                    ]
+                ],
+                'leadCurrency' => [
+                    'title' => 'Валюта',
+                    'desc' => '',
+                    'format' => 'checkbox',
+                    'values' => [
+                        0 => "RUB",
+                        1 => "USD",
+                    ],
+                    'show' => [
+                        'execType' => 1
+                    ],
+                    'default' => 0
+                ],
 
-                // для удаления лида
+                // id лида для разных запросов
                 'inputId' => [
                     'title' => 'ID лида',
                     'desc' => 'Положительное число',
                     'show' => [
-                        'execType' => 2
+                        'execType' => [2,3]
                     ]
                 ]
             ],
@@ -55,6 +118,18 @@ if(isset($act))
         $out    = 0;                    // Номер выхода по умолчанию. Если дальнейший код не назначит другой выход - значит что-то не так
         $options = $_REQUEST['options'];
 
+        /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+         * Основные настройки для Bitrix24:                          *
+         * получаем данные ссылки, client_id и client_secret         *
+         * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+        $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
+
+        $clientSecret = $ps['options']['target']; // client_secret
+        $clientId = $ps['options']['secret']; // client_id
+
+        define('C_REST_CLIENT_SECRET', $clientSecret); // устанавливаем значения
+        define('C_REST_CLIENT_ID', $clientId); // устанавливаем значения
+        
         // тип запроса
         $type = $options['execType'];
 
@@ -64,10 +139,25 @@ if(isset($act))
         $leadName = $options['leadName']; // имя лида
         $leadLastName = $options['leadLastName']; // фамилия лида
         $leadComments = $options['leadComments']; // комментарии для лида
-        $leadOpportunity = $options['leadOpportunity']; // сумма заказа лида
         $leadPhone = $options['leadPhone']; // номер телефона лида
+        $leadOpportunity = $options['leadOpportunity']; // сумма заказа лида
+        $leadCurrency = $options['leadCurrency']; // валюта заказа лида
+
+        switch ($leadCurrency) {
+            case 0:
+                $leadCurrency = "RUB";
+                break;
+            case 1:
+                $leadCurrency = "USD";
+                break;
+            default:
+                $leadCurrency = "RUB";
+                break;
+        }
+
 
         switch ($type) {
+            // добавить лид
             case 1:
                 $response = CRest::call(
                    'crm.lead.add',
@@ -76,11 +166,11 @@ if(isset($act))
                         "TITLE" => $leadTitle, 
                         "NAME" => $leadName,
                         "LAST_NAME" => $leadLastName,
-                        "MESSAGE" => $leadComments,
+                        "COMMENTS" => $leadComments,
                         "STATUS_ID" => "NEW", 
                         "OPENED" => "Y", 
                         "ASSIGNED_BY_ID" => 1, 
-                        "CURRENCY_ID" => "RUB", 
+                        "CURRENCY_ID" => $leadCurrency, 
                         "OPPORTUNITY" => $leadOpportunity,
                         "PHONE" => [
                             "VALUE" => [                            // телефон создается именно так!
@@ -94,6 +184,7 @@ if(isset($act))
                 $out = 1;
                 break;
 
+            // удалить лид
             case 2:
                 $response = CRest::call(
                    'crm.lead.delete',
@@ -102,6 +193,18 @@ if(isset($act))
                 ]);
                 $result = $response['result'];
                 $out = 1;
+                break;
+
+            // получить лид
+            case 3:
+                $response = CRest::call(
+                   'crm.lead.get',
+                   [
+                      'id' => $inputId
+                ]);
+                $result = $response['result'];
+                $out = 1;
+                break;
             default:
                 // code...
                 break;

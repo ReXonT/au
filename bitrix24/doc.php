@@ -9,7 +9,7 @@ array(
         "NAME" => "Илья", 
         "SECOND_NAME" => "Вячеславович", 
         "LAST_NAME" => "Соколов",
-        "MESSAGE" => "Комментарий",
+        "COMMENTS" => "Комментарий",
         "STATUS_ID" => "NEW", 
         "OPENED" => "Y", 
         "ASSIGNED_BY_ID" => 1, 
