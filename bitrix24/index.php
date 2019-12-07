@@ -32,61 +32,61 @@ if(isset($act))
                     'desc' => '',    // описание поля, можно пару строк
                 ],
 
-                // добавление лида
+                // поля лида
                 'leadTitle' => [
                     'title' => 'Заголовок карточки',
                     'desc' => '',
                     'show' => [
-                        'execType' => 1
+                        'execType' => [1,2]
                     ]
                 ],
                 'leadName' => [
                     'title' => 'Имя',
                     'desc' => '',
                     'show' => [
-                        'execType' => 1
+                        'execType' => [1,2]
                     ]
                 ],
                 'leadLastName' => [
                     'title' => 'Фамилия',
                     'desc' => '',
                     'show' => [
-                        'execType' => 1
+                        'execType' => [1,2]
                     ]
                 ],
                 'leadAddress' => [
                     'title' => 'Адрес',
                     'desc' => '',
                     'show' => [
-                        'execType' => 1
+                        'execType' => [1,2]
                     ]
                 ],
                 'leadComments' => [
                     'title' => 'Комментарий',
                     'desc' => '',
                     'show' => [
-                        'execType' => 1
+                        'execType' => [1,2]
                     ]
                 ],
                 'leadPhone' => [
                     'title' => 'Телефон',
                     'desc' => '',
                     'show' => [
-                        'execType' => 1
+                        'execType' => [1,2]
                     ]
                 ],
                 'leadEmail' => [
                     'title' => 'Email',
                     'desc' => '',
                     'show' => [
-                        'execType' => 1
+                        'execType' => [1,2]
                     ]
                 ],
                 'leadOpportunity' => [
                     'title' => 'Сумма заказа',
                     'desc' => '',
                     'show' => [
-                        'execType' => 1
+                        'execType' => [1,2]
                     ]
                 ],
                 'leadCurrency' => [
@@ -97,7 +97,7 @@ if(isset($act))
                         1 => "USD",
                     ],
                     'show' => [
-                        'execType' => 1
+                        'execType' => [1,2]
                     ],
                     'default' => 0
                 ],
@@ -110,7 +110,7 @@ if(isset($act))
                         3 => 'Обработан'
                     ],
                     'show' => [
-                        'execType' => 1
+                        'execType' => [1,2]
                     ],
                     'default' => 1
                 ],
