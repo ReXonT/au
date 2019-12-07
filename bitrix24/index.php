@@ -22,9 +22,15 @@ if(isset($act))
                     ],
                     'desc' => '',    // описание поля, можно пару строк
                 ],
+
+
+                // для удаления лида
                 'inputId' => [
-                    'title' => 'ID на удаление',
-                    'desc' => 'Положительное число'
+                    'title' => 'ID лида',
+                    'desc' => 'Положительное число',
+                    'show' => [
+                        'execType' => 2
+                    ]
                 ]
             ],
             'out' => [                      // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
@@ -49,19 +55,40 @@ if(isset($act))
         $out    = 0;                    // Номер выхода по умолчанию. Если дальнейший код не назначит другой выход - значит что-то не так
         $options = $_REQUEST['options'];
 
+        // тип запроса
         $type = $options['execType'];
-        $inputId = $options['inputId'];
+
+        /* Поля для добавления */        
+        $inputId = $options['inputId']; // id лида
+        $leadTitle = $options['leadTitle']; // title лида
+        $leadName = $options['leadName']; // имя лида
+        $leadLastName = $options['leadLastName']; // фамилия лида
+        $leadComments = $options['leadComments']; // комментарии для лида
+        $leadOpportunity = $options['leadOpportunity']; // сумма заказа лида
+        $leadPhone = $options['leadPhone']; // номер телефона лида
 
         switch ($type) {
             case 1:
                 $response = CRest::call(
                    'crm.lead.add',
                    [
-                      'fields' =>[
-                      'TITLE' => 'Лид из АЮ',   // Заголовок* [string]
-                      'NAME' => 'Имя',  // Имя [string]
-                      'LAST_NAME' => 'Фамилия', // Фамилия [string]
-                      ]
+                      'fields' => [
+                        "TITLE" => $leadTitle, 
+                        "NAME" => $leadName,
+                        "LAST_NAME" => $leadLastName,
+                        "MESSAGE" => $leadComments,
+                        "STATUS_ID" => "NEW", 
+                        "OPENED" => "Y", 
+                        "ASSIGNED_BY_ID" => 1, 
+                        "CURRENCY_ID" => "RUB", 
+                        "OPPORTUNITY" => $leadOpportunity,
+                        "PHONE" => [
+                            "VALUE" => [                            // телефон создается именно так!
+                                "VALUE" => $leadPhone,
+                                "VALUE_TYPE" => "WORK"
+                            ]
+                        ]
+                    ]
                 ]);
                 $result = $response['result'];
                 $out = 1;
