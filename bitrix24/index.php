@@ -17,7 +17,7 @@ if(isset($act))
             'paysys' => [                   // Группа полей, отвечающая за интеграцию с платёжными системами и внешними сервисами.
                 'ps' => [                   // ВРМ получит доступ к ID аккаунта, секретному ключу и другим атрибутам выбранной системы
                     'title' => 'Bitrix24',
-                    'type' => 1
+                    'type' => 8
                 ]
             ],
             'vars' => [                     // переменные, которые можно будет настроить в блоке
@@ -394,7 +394,11 @@ if(isset($act))
 
                         if($key == 'PHONE')
                         {
-                            $foundLead .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'];
+                            $foundLead .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
+                        }
+                        else if($key == 'EMAIL')
+                        {
+                            $foundLead .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
                         }
                         // пропускаем значение этого ключа
                         elseif ($key == 'STATUS_SEMANTIC_ID') continue;
