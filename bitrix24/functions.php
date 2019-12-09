@@ -73,7 +73,13 @@ function changeValueToRussian($name)
 		'LAST_NAME' => "Фамилия",
 		'OPPORTUNITY' => "Предполагаемая сумма",
 		'CURRENCY_ID' => "Валюта",
-		'STATUS_ID' => 'Статус лида'
+		'STATUS_ID' => 'Статус лида',
+		'BEGINDATE' => 'Дата начала',
+		'CLOSED' => 'Закрыта',
+		'IS_NEW' => 'Новый',
+		'IS_RECURRING' => 'Повторный',
+		'IS_REPEATED_APPROACH' => 'Повторное обращение',
+		'STAGE_ID' => 'Идентификатор шага'
 	);
 
 	return $russianValue[$name];
