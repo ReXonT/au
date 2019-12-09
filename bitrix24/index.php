@@ -21,75 +21,83 @@ if(isset($act))
                 ]
             ],
             'vars' => [                     // переменные, которые можно будет настроить в блоке
+                'methodType' => [
+                    'title' => 'Лиды/Сделки',   // заголовок поля
+                    'values' => [
+                        1 => 'Лиды',
+                        2 => 'Сделки'
+                    ],
+                    'desc' => '',    // описание поля, можно пару строк
+                ],
                 'execType' => [
                     'title' => 'Выбор действия',   // заголовок поля
                     'values' => [
-                        1 => 'Добавить лид',
-                        2 => 'Изменить лид',
-                        3 => 'Получить лид',
-                        4 => 'Удалить лид'
+                        1 => 'Добавить',
+                        2 => 'Изменить',
+                        3 => 'Получить',
+                        4 => 'Удалить'
                     ],
                     'desc' => '',    // описание поля, можно пару строк
                 ],
 
                 // поля лида
-                'leadTitle' => [
+                'Title' => [
                     'title' => 'Заголовок карточки',
                     'desc' => '',
                     'show' => [
                         'execType' => [1,2]
                     ]
                 ],
-                'leadName' => [
+                'Name' => [
                     'title' => 'Имя',
                     'desc' => '',
                     'show' => [
                         'execType' => [1,2]
                     ]
                 ],
-                'leadLast_Name' => [
+                'Last_Name' => [
                     'title' => 'Фамилия',
                     'desc' => '',
                     'show' => [
                         'execType' => [1,2]
                     ]
                 ],
-                'leadAddress' => [
+                'Address' => [
                     'title' => 'Адрес',
                     'desc' => '',
                     'show' => [
                         'execType' => [1,2]
                     ]
                 ],
-                'leadComments' => [
+                'Comments' => [
                     'title' => 'Комментарий',
                     'desc' => '',
                     'show' => [
                         'execType' => [1,2]
                     ]
                 ],
-                'leadPhone' => [
+                'Phone' => [
                     'title' => 'Телефон',
                     'desc' => '',
                     'show' => [
                         'execType' => [1,2]
                     ]
                 ],
-                'leadEmail' => [
+                'Email' => [
                     'title' => 'Email',
                     'desc' => '',
                     'show' => [
                         'execType' => [1,2]
                     ]
                 ],
-                'leadOpportunity' => [
+                'Opportunity' => [
                     'title' => 'Сумма заказа',
                     'desc' => '',
                     'show' => [
                         'execType' => [1,2]
                     ]
                 ],
-                'leadCurrency' => [
+                'Currency' => [
                     'title' => 'Валюта',
                     'desc' => '',
                     'values' => [
@@ -101,7 +109,7 @@ if(isset($act))
                     ],
                     'default' => 0
                 ],
-                'leadStatus_Id' => [
+                'Status_Id' => [
                     'title' => 'Статус заказа',
                     'desc' => '',
                     'values' => [
@@ -110,6 +118,7 @@ if(isset($act))
                         3 => 'Обработан'
                     ],
                     'show' => [
+                        'methodType' => 1,
                         'execType' => [1,2]
                     ],
                     'default' => 1
@@ -164,9 +173,18 @@ if(isset($act))
             $clientUrl = $arUrl['host'];
         }
 
-        $queryUrl = 'https://'.$clientUrl.'/rest/1/'.$clientWebhook.'/';
+        $queryUrl = 'https://'.$clientUrl.'/rest/1/'.$clientWebhook.'/';    // ссылка на webhook
 
-        $nameVar = 'lead';  // часть названия переменной, ответственная за лиды
+
+        $methodType = $options['methodType']; // выбор метода запроса
+        switch ($methodType) {
+            case 1:
+                $nameVar = 'lead';  // часть названия переменной, ответственная за лиды
+                break;
+            case 2:
+                $nameVar = 'deal';  // часть названия переменной, ответственная за сделки
+                break;
+        }
 
         $arrFieldNames = [
             'Title',
@@ -190,7 +208,7 @@ if(isset($act))
         /* Поля */
 
         foreach ($arrFieldNames as $value) {
-            ${$nameVar.$value} = $options[$nameVar.$value];
+            ${$nameVar.$value} = $options[$value];
         }
 
         /*
@@ -211,30 +229,30 @@ if(isset($act))
         */
 
 
-        switch ($leadCurrency) {
+        switch (${$nameVar.'Currency'}) {
             case 0:
-                $leadCurrency = "RUB";
+                ${$nameVar.'Currency'} = "RUB";
                 break;
             case 1:
-                $leadCurrency = "USD";
+                ${$nameVar.'Currency'} = "USD";
                 break;
             default:
-                $leadCurrency = "RUB";
+                ${$nameVar.'Currency'} = "RUB";
                 break;
         }
 
-        switch ($leadStatus) {
+        switch (${$nameVar.'Status'}) {
             case 1:
-                $leadStatus = "NEW";
+                ${$nameVar.'Status'} = "NEW";
                 break;
             case 2:
-                $leadStatus = "IN_PROCESS";
+                ${$nameVar.'Status'} = "IN_PROCESS";
                 break;
             case 3:
-                $leadStatus = "PROCESSED";
+                ${$nameVar.'Status'} = "PROCESSED";
                 break;
             default:
-                $leadStatus = "NEW";
+                ${$nameVar.'Status'} = "NEW";
                 break;
         }
   
@@ -285,7 +303,7 @@ if(isset($act))
                                 array(
                                     "PHONE" => [
                                         "VALUE" => [                            // добавляем телефон
-                                            "VALUE" => $leadPhone,
+                                            "VALUE" => ${$nameVar.'Phone'},
                                             "VALUE_TYPE" => "MOBILE"
                                         ]
                                     ]
@@ -301,7 +319,7 @@ if(isset($act))
                                 array(
                                     "EMAIL" => [
                                         "VALUE" => [                            // изменение почты
-                                            "VALUE" => $leadEmail,
+                                            "VALUE" => ${$nameVar.'Email'},
                                             "VALUE_TYPE" => "HOME"
                                         ]
                                     ]
@@ -315,7 +333,7 @@ if(isset($act))
 
                 $response = call(
                     $queryUrl,
-                   'crm.lead.add',
+                   'crm.'.$nameVar.'.add',
                     [
                       'fields' => $fieldsToAdd
                     ]);
@@ -341,7 +359,7 @@ if(isset($act))
                                 array(
                                     "PHONE" => [
                                         "VALUE" => [                            // добавляем телефон
-                                            "VALUE" => $leadPhone,
+                                            "VALUE" => ${$nameVar.'Phone'},
                                             "VALUE_TYPE" => "MOBILE"
                                         ]
                                     ]
@@ -357,7 +375,7 @@ if(isset($act))
                                 array(
                                     "EMAIL" => [
                                         "VALUE" => [                            // почта как и телефон
-                                            "VALUE" => $leadEmail,
+                                            "VALUE" => ${$nameVar.'Email'},
                                             "VALUE_TYPE" => "HOME"
                                         ]
                                     ]
@@ -371,7 +389,7 @@ if(isset($act))
 
                 $response = call(
                     $queryUrl,
-                   'crm.lead.update',
+                   'crm.'.$nameVar.'.update',
                    [
                       'id' => $inputId,
                       'fields' => $fieldsToChange
@@ -384,7 +402,7 @@ if(isset($act))
             case 3:
                 $response = call(
                     $queryUrl,
-                   'crm.lead.get',
+                   'crm.'.$nameVar.'.get',
                    [
                       'id' => $inputId
                 ]);
@@ -436,7 +454,7 @@ if(isset($act))
             case 4:
                 $response = call(
                     $queryUrl,
-                   'crm.lead.delete',
+                   'crm.'.$nameVar.'.delete',
                    [
                       'id' => $inputId
                 ]);
