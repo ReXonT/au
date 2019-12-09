@@ -1,6 +1,28 @@
 <?php
-require_once('crest.php');
+//require_once('crest.php');
 require_once('functions.php');
+
+function call($queryUrl, $method, array $queryData)
+{
+    $curl = curl_init();
+
+    $arData = http_build_query($queryData);
+    curl_setopt_array($curl, array(
+    CURLOPT_SSL_VERIFYPEER => 0,
+    CURLOPT_POST => 1,
+    CURLOPT_HEADER => 0,
+    CURLOPT_RETURNTRANSFER => 1,
+    CURLOPT_URL => $queryUrl.$method.'.json',
+    CURLOPT_POSTFIELDS => $arData,
+    ));
+
+    $result = curl_exec($curl);
+    curl_close($curl);
+
+    $result = json_decode($result, 1);
+
+    return $result;
+}
 
 $act = $_REQUEST['act'];
 
@@ -152,11 +174,19 @@ if(isset($act))
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
         $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
 
-        $clientSecret = $ps['options']['target']; // client_secret
-        $clientId = $ps['options']['secret']; // client_id
+        $clientWebhook = $ps['options']['secret']; // webhook данные
+        $inputUrl = $ps['options']['account']; // ссылка на битрикс
+        if(!(strpos($inputUrl, '//')))
+        {
+            $clientUrl = $inputUrl;
+        }
+        else 
+        {
+            $arUrl = parse_url($inputUrl);
+            $clientUrl = $arUrl['host'];
+        }
 
-        define('C_REST_CLIENT_SECRET', $clientSecret); // устанавливаем значения
-        define('C_REST_CLIENT_ID', $clientId); // устанавливаем значения
+        $queryUrl = 'https://'.$clientUrl.'/rest/1/'.$clientWebhook.'/';
 
         $nameVar = 'lead';  // часть названия переменной, ответственная за лиды
 
@@ -305,7 +335,8 @@ if(isset($act))
                     }
                 }
 
-                $response = CRest::call(
+                $response = call(
+                    $queryUrl,
                    'crm.lead.add',
                     [
                       'fields' => $fieldsToAdd
@@ -360,7 +391,8 @@ if(isset($act))
                     }
                 }
 
-                $response = CRest::call(
+                $response = call(
+                    $queryUrl,
                    'crm.lead.update',
                    [
                       'id' => $inputId,
@@ -372,7 +404,8 @@ if(isset($act))
 
             // получить лид
             case 3:
-                $response = CRest::call(
+                $response = call(
+                    $queryUrl,
                    'crm.lead.get',
                    [
                       'id' => $inputId
@@ -423,7 +456,8 @@ if(isset($act))
 
             // удалить лид
             case 4:
-                $response = CRest::call(
+                $response = call(
+                    $queryUrl,
                    'crm.lead.delete',
                    [
                       'id' => $inputId
