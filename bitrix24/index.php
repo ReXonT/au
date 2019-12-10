@@ -167,6 +167,9 @@ if(isset($act))
          * получаем данные ссылки, client_id и client_secret         *
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
         $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
+        // если стоит цель не на инициатора активности
+        if(isset($target)) { $user_id = $target; } 
+        else { $user_id = $ums['from_id']; }
 
         $clientWebhook = $ps['options']['secret']; // webhook данные
         $inputUrl = $ps['options']['account']; // ссылка на битрикс
