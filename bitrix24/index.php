@@ -418,7 +418,7 @@ if(isset($act))
                 ]);
                 $result = $response['result'];
 
-                $foundLead = "";
+                $found = "";
                 foreach ($result as $key => $value) {
                     if($value != "")
                     {
@@ -433,11 +433,11 @@ if(isset($act))
 
                         if($key == 'PHONE')
                         {
-                            $foundLead .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
+                            $found .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
                         }
                         else if($key == 'EMAIL')
                         {
-                            $foundLead .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
+                            $found .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
                         }
                         // пропускаем значение этого ключа
                         elseif ($key == 'STATUS_SEMANTIC_ID') continue;
@@ -453,7 +453,7 @@ if(isset($act))
                                     break;
                             }
 
-                            $foundLead .= $russianKey.": ".$value.'<br>';
+                            $found .= $russianKey.": ".$value.'<br>';
                         }
                     }
                 }
@@ -483,7 +483,7 @@ if(isset($act))
             
             'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
                 'result' => $result,
-                'foundLead' => $foundLead
+                'found' => $found
             ]
         ];
 
