@@ -195,9 +195,11 @@ if(isset($act))
                 $nameVar = 'deal';  // часть названия переменной, ответственная за сделки
                 break;
             case 3:
-                $nameVar = 'contact';  // часть названия переменной, ответственная за сделки
+                $nameVar = 'contact';  // часть названия переменной, ответственная за контакты
                 break;
         }
+
+        // массив имен полей для Битрикс24
 
         $arrFieldNames = [
             'Title',
@@ -228,7 +230,7 @@ if(isset($act))
 
         Составятся такие переменные:
 
-        $leadTitle = $options['leadTitle']; // title лида
+        $leadTitle = $options['leadTitle']; // title лида. Если сделка, то dealTitle и тд
         $leadName = $options['leadName']; // имя лида
         $leadLast_Name = $options['leadLast_Name']; // фамилия лида
         $leadComments = $options['leadComments']; // комментарии для лида
@@ -343,6 +345,8 @@ if(isset($act))
                         $fieldsToAdd = array_merge($fieldsToAdd, array($fieldName => ${$nameVar.$value}));
                     }
                 }
+
+                // вызываем call (описан в functions.php) с url, названием метода и полями
 
                 $response = call(
                     $queryUrl,
