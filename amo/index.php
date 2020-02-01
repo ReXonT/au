@@ -21,10 +21,18 @@ if($act == 'options') {
             'extype' => [
                 'title' => 'Выбор действия',   // заголовок поля
                 'values' => [
-                	1 => 'Добавить лид',
-                	2 => 'Удалить лид'
+                	1 => 'Добавить сделку',
+                	2 => 'Удалить сделку'
                 ],
                 'desc' => '',    // описание поля, можно пару строк
+            ],
+            'deal_name' => [
+                'title' => 'Имя сделки',
+                'desc' => 'Обязательно'
+            ],
+            'deal_tags' => [
+                'title' => 'Теги',
+                'desc' => 'Не обязательно'
             ],
         ],
         'out' => [                      // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
@@ -49,6 +57,9 @@ if($act == 'options') {
     $out    = 0;                    // Номер выхода по умолчанию. Если дальнейший код не назначит другой выход - значит что-то не так
     $options = $_REQUEST['options'];
     $session_id = $_REQUEST['uid'];
+
+    $deal_name = $options['deal_name'];
+    $deal_tags = $options['deal_tags'];
 
     $user_login = 'lpwebinar@yandex.ru';
     $user_hash = '630dcb876794a2db5732262dc2240c8b2a2f4d49';
@@ -80,25 +91,29 @@ if($act == 'options') {
 
 
     // массив создания сделки 
-    $data = [
-        'add' => [
-            '0' => [
-                'name' => 'Привет, Илья',
-            ]
-        ],
+    $deal['add'][0] = [
+        'name' => $deal_name
     ];
 
-    
-    $result = $amo->request($data, $session_id);
-    var_dump($result);
+    if(!empty($deal_tags))
+    {
+        $deal['add'][0]['tags'] = $deal_tags;
+    }
 
     
+    $result = $amo->addDeal($deal, $session_id);
+    
+    var_dump($result);
+    
+    $new_deal_id = $result['_embedded']['items'][0]['id'];
+
 
     $responce = [
         'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля!
         
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'result' => $result,     // где N - порядковый номер блока в схеме
+            'id' => $new_deal_id
         ]
     ];
 
