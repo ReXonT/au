@@ -50,9 +50,9 @@
 		    return $out;
 		}
 
-		public function setDeal($data, $session_id)
+		public function request($data, $session_id, $type_name)
 		{
-		    $link = 'https://' . $this->subdomain . '.amocrm.ru/api/v2/leads';
+		    $link = 'https://' . $this->subdomain . '.amocrm.ru/api/v2/'.$type_name;
 
 		    $headers[] = "Accept: application/json";
 

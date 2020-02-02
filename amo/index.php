@@ -13,23 +13,43 @@ if($act == 'options') {
         'title' => 'ВРМ AmoCRM',      // Это заголовок блока, который будет виден на схеме
         'paysys' => [                   // Группа полей, отвечающая за интеграцию с платёжными системами и внешними сервисами.
             'ps' => [                   // ВРМ получит доступ к ID аккаунта, секретному ключу и другим атрибутам выбранной системы
-                'title' => 'Bitrix24',
+                'title' => 'AmoCRM',
                 'type' => 8
             ]
         ],
         'vars' => [                     // переменные, которые можно будет настроить в блоке
-            'exec_type' => [
-                'title' => 'Выбор действия',   // заголовок поля
+            'method_type' => [
+                'title' => 'С чем работаем?',   // заголовок поля
                 'values' => [
-                	1 => 'Добавить сделку',
-                	2 => 'Обновить сделку'
+                    1 => 'Сделки',
+                    2 => 'Контакты'
                 ],
                 'desc' => '',    // описание поля, можно пару строк
             ],
+            'exec_type' => [
+                'title' => 'Выбор действия',   // заголовок поля
+                'values' => [
+                	1 => 'Добавить',
+                	2 => 'Обновить'
+                ],
+                'desc' => '',    // описание поля, можно пару строк
+            ],
+
+            'name' => [
+                'title' => 'Имя',
+                'desc' => '',
+                'show' => [
+                    'method_type' => [1,2],
+                    'exec_type' => [1,2]
+                ]
+            ],
+
+            // сделки
             'id' => [
                 'title' => 'ID сделки',
                 'desc' => 'Обязательно',
                 'show' => [
+                    'method_type' => [1],
                     'exec_type' => [2]
                 ]
             ],
@@ -38,20 +58,16 @@ if($act == 'options') {
                 'desc' => 'Обязательно (1 - новая)',
                 'default' => '1',
                 'show' => [
+                    'method_type' => [1],
                     'exec_type' => [2]
                 ]
             ],
-            'name' => [
-                'title' => 'Имя сделки',
-                'desc' => '',
-                'show' => [
-                    'exec_type' => [1,2]
-                ]
-            ],
+            
             'sale' => [
                 'title' => 'Бюджет',
                 'desc' => '',
                 'show' => [
+                    'method_type' => [1],
                     'exec_type' => [1,2]
                 ]
             ],
@@ -59,6 +75,7 @@ if($act == 'options') {
                 'title' => 'ID ответственного',
                 'desc' => '',
                 'show' => [
+                    'method_type' => [1],
                     'exec_type' => [1,2]
                 ]
             ],
@@ -66,13 +83,34 @@ if($act == 'options') {
                 'title' => 'Теги',
                 'desc' => 'Не обязательно',
                 'show' => [
+                    'method_type' => [1],
                     'exec_type' => [1,2]
                 ]
             ],
+
+
+            // контакты
+            'phone' => [
+                'title' => 'Телефон',
+                'desc' => '',
+                'show' => [
+                    'method_type' => [2],
+                    'exec_type' => [1,2]
+                ]
+            ],
+            'email' => [
+                'title' => 'Email',
+                'desc' => '',
+                'show' => [
+                    'method_type' => [2],
+                    'exec_type' => [1,2]
+                ]
+            ],
+
         ],
         'out' => [                      // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
             1 => [                      // Номер 0 означает красный выход блока ВРМ, зарезервированный для случаев сбоя
-                'title' => 'Найдено',    // название выхода 1
+                'title' => 'Результат',    // название выхода 1
             ]        
         ]
     ];
@@ -96,9 +134,17 @@ if($act == 'options') {
 
     $user_login = 'lpwebinar@yandex.ru';
     $user_hash = '630dcb876794a2db5732262dc2240c8b2a2f4d49';
-    $subdomain = 'lpwebinar'; #Наш аккаунт - поддомен
+    $subdomain = 'lpwebinar'; // Наш аккаунт - поддомен
 
     $amo = new Amo($user_login, $user_hash, $subdomain);
+
+    $link = 'https://'.$subdomain.'.amocrm.ru/api/v2/account?with=custom_fields';
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER,true);
+    curl_setopt($curl, CURLOPT_URL, $link);
+    $res = curl_exec($curl);
+    curl_close($curl);
+    $cus_arr = json_decode($res,true);
     
     // Авторизация
     $response = $amo->auth($session_id);
@@ -113,7 +159,46 @@ if($act == 'options') {
     }else echo 'Авторизация не удалась';
     //
 
-    $type_name = 'deal';
+    $link = 'https://' . $subdomain . '.amocrm.ru/api/v2/account?with=custom_fields';
+
+
+    $curl = curl_init(); 
+
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_USERAGENT, 'amoCRM-API-client/1.0');
+    curl_setopt($curl, CURLOPT_URL, $link);
+    curl_setopt($curl, CURLOPT_HEADER, false);
+    curl_setopt($curl, CURLOPT_COOKIEFILE, $session_id.'cookie.txt'); 
+    curl_setopt($curl, CURLOPT_COOKIEJAR, $session_id.'cookie.txt'); 
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+    $out1 = curl_exec($curl); #Инициируем запрос к API и сохраняем ответ в переменную
+    curl_close($curl);
+
+
+    $res = json_decode($out1,true);
+    foreach ($res['_embedded']['custom_fields']['leads'] as $value) {
+            if($value['name'] == 'vk_uid')
+                $field_leads_vk_uid_id = $value['id'];
+    }
+
+
+    $method_type = $options['method_type']; // с чем работаем (сделки, контакты ...)
+
+    switch ($method_type) {
+        case 1:
+            // Сделки...
+            $type_name = 'leads';
+            break;
+
+        case 2:
+            // Сделки...
+            $type_name = 'contacts';
+            break;
+
+    }
+
+   
 
     $exec_type = $options['exec_type'];
 
@@ -123,7 +208,9 @@ if($act == 'options') {
         'sale',
         'responsible_user_id',
         'id',
-        'status_id'
+        'status_id',
+        'phone',
+        'email'
     ];
 
     foreach ($field_names as $value) {
@@ -158,15 +245,34 @@ if($act == 'options') {
 
     ${$type_name}[$exec_name][0]['updated_at'] = time();
 
-    switch ($exec_type) {
+    ${$type_name}[$exec_name][0]['custom_fields'] = [
+        [
+            'id' => $field_leads_vk_uid_id,
+            'values' => [
+                [
+                'value' => $target,
+                ],
+            ],
+        ],
+    ];
+
+
+    switch ($exec_type) 
+    {
         case 1:
-            // Добавить сделку
-            $result = $amo->setDeal($deal, $session_id);
+            // Добавить
+            if($method_type == 2)   // если контакт
+            {
+
+            }
+
+            $result = $amo->request(${$type_name}, $session_id, $type_name);
+            $new_id = $result['_embedded']['items'][0]['id'];
             break;
 
         case 2:
-            // Удалить сделку
-            $result = $amo->setDeal($deal, $session_id);
+            // Удалить
+            $result = $amo->request(${$type_name}, $session_id, $type_name);
             break;
         
         default:
@@ -176,7 +282,7 @@ if($act == 'options') {
     
     var_dump($result);
     
-    $new_deal_id = $result['_embedded']['items'][0]['id'];
+    
 
 
     $responce = [
@@ -184,7 +290,9 @@ if($act == 'options') {
         
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'result' => $result,     // где N - порядковый номер блока в схеме
-            'id' => $new_deal_id
+            'id' => $new_id,
+            'field' => $field_leads_vk_uid_id,
+            'tar' => $target
         ]
     ];
 
