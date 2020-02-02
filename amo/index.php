@@ -289,22 +289,23 @@ if($act == 'options') {
 
         case 2:
             // изменить
+            ${'arr_'.$type_name} = $amo->get_info($session_id, $type_name);
+            foreach (${'arr_'.$type_name}['_embedded']['items'] as $value) 
+            {
+                foreach ($value['custom_fields'] as $v) {
+                   if($v['name']=='vk_uid')
+                    {
+                        if($v['values'][0]['value'] == 'au'.$target)
+                        {
+                            ${$type_name}['update'][0]['id'] = $value['id']; 
+                            break;
+                        }
+                    }   
+                } 
+            }
             if($method_type == 2)
             {
-                ${'arr_'.$type_name} = $amo->get_info($session_id, $type_name);
-                foreach (${'arr_'.$type_name}['_embedded']['items'] as $value) 
-                {
-                    foreach ($value['custom_fields'] as $v) {
-                       if($v['name']=='vk_uid')
-                        {
-                            if($v['values'][0]['value'] == 'au'.$target)
-                            {
-                                ${$type_name}['update'][0]['id'] = $value['id']; 
-                                break;
-                            }
-                        }   
-                    } 
-                }
+                
                 // Проставляем телефон
                 $a = 
                 [
