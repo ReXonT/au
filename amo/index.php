@@ -45,14 +45,6 @@ if($act == 'options') {
             ],
 
             // сделки
-            'id' => [
-                'title' => 'ID',
-                'desc' => 'Обязательно',
-                'show' => [
-                    'method_type' => [1],
-                    'exec_type' => [2]
-                ]
-            ],
             'status_id' => [
                 'title' => 'ID статуса сделки',
                 'desc' => 'Обязательно (1 - новая)',
@@ -191,7 +183,6 @@ if($act == 'options') {
         'tags',
         'sale',
         'responsible_user_id',
-        'id',
         'status_id',
         'phone',
         'email'
@@ -297,7 +288,49 @@ if($act == 'options') {
             break;
 
         case 2:
-            // Удалить
+            // изменить
+            if($method_type == 2)
+            {
+                $arr_contacts = $amo->get_contacts($session_id);
+                foreach ($arr_contacts['_embedded']['items']['custom_fields'] as $value) {
+                    if($value['name']=='vk_uid')
+                    {
+                        if($value['values']['value'] == 'au'.$target)
+                        {
+                            $contacts['update'][0]['id'] = $value['id']; 
+                            break;
+                        }
+                    }
+                }
+                // Проставляем телефон
+                $a = 
+                [
+                    'id' => ${'field_'.$type_name.'_phone'},
+                    'values' => [
+                        [
+                            'value' => ${$type_name.'_phone'},
+                            'enum' => 'MOB'
+                        ],
+                    ],
+                
+                ];
+
+                array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
+
+                // Проставляем email
+                $a = 
+                [
+                    'id' => ${'field_'.$type_name.'_email'},
+                    'values' => [
+                        [
+                            'value' => ${$type_name.'_email'},
+                            'enum' => 'WORK'
+                        ],
+                    ],
+                ];
+
+                array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
+            }
             $result = $amo->request(${$type_name}, $session_id, $type_name);
             break;
         

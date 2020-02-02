@@ -98,7 +98,7 @@
 		    return $res;
 		}
 
-		public function get_accounts($session_id)
+		public function get_contacts($session_id)
 		{
 			$link = 'https://' .$this->subdomain. '.amocrm.ru/api/v2/contacts';
 
