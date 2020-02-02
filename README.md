@@ -1,10 +1,10 @@
 # au
 Репозиторий для работы с проектом ActiveUsers
 
-Сделаны интеграции:
+<h2>Сделаны интеграции:</h2><br>
 Senler <br>
-Google Sheets
-Bitrix24
-AmoCRM
-SMSC
-AutoWebOffice
+Google Sheets<br>
+Bitrix24<br>
+AmoCRM<br>
+SMSC<br>
+AutoWebOffice<br>
