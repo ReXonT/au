@@ -129,7 +129,7 @@ if($act == 'options') {
                                     // text - текст комментария, сообщения и т.д.
     $out    = 0;                    // Номер выхода по умолчанию. Если дальнейший код не назначит другой выход - значит что-то не так
     $options = $_REQUEST['options'];
-    $session_id = $_REQUEST['uid'];
+    $session_id = $ums['id'];
 
 
     $user_login = 'lpwebinar@yandex.ru';
@@ -137,14 +137,6 @@ if($act == 'options') {
     $subdomain = 'lpwebinar'; // Наш аккаунт - поддомен
 
     $amo = new Amo($user_login, $user_hash, $subdomain);
-
-    $link = 'https://'.$subdomain.'.amocrm.ru/api/v2/account?with=custom_fields';
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER,true);
-    curl_setopt($curl, CURLOPT_URL, $link);
-    $res = curl_exec($curl);
-    curl_close($curl);
-    $cus_arr = json_decode($res,true);
     
     // Авторизация
     $response = $amo->auth($session_id);
