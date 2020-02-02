@@ -29,8 +29,8 @@ if($act == 'options') {
             'exec_type' => [
                 'title' => 'Выбор действия',   // заголовок поля
                 'values' => [
-                	1 => 'Добавить',
-                	2 => 'Обновить'
+                    1 => 'Добавить',
+                    2 => 'Обновить'
                 ],
                 'desc' => '',    // описание поля, можно пару строк
             ],
@@ -159,28 +159,7 @@ if($act == 'options') {
     }else echo 'Авторизация не удалась';
     //
 
-    $link = 'https://' . $subdomain . '.amocrm.ru/api/v2/account?with=custom_fields';
-
-
-    $curl = curl_init(); 
-
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_USERAGENT, 'amoCRM-API-client/1.0');
-    curl_setopt($curl, CURLOPT_URL, $link);
-    curl_setopt($curl, CURLOPT_HEADER, false);
-    curl_setopt($curl, CURLOPT_COOKIEFILE, $session_id.'cookie.txt'); 
-    curl_setopt($curl, CURLOPT_COOKIEJAR, $session_id.'cookie.txt'); 
-    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-    $out1 = curl_exec($curl); #Инициируем запрос к API и сохраняем ответ в переменную
-    curl_close($curl);
-
-
-    $res = json_decode($out1,true);
-    foreach ($res['_embedded']['custom_fields']['leads'] as $value) {
-            if($value['name'] == 'vk_uid')
-                $field_leads_vk_uid_id = $value['id'];
-    }
+    
 
 
     $method_type = $options['method_type']; // с чем работаем (сделки, контакты ...)
@@ -198,7 +177,30 @@ if($act == 'options') {
 
     }
 
-   
+   $link = 'https://' . $subdomain . '.amocrm.ru/api/v2/account?with=custom_fields';
+
+
+    $curl = curl_init(); 
+
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_USERAGENT, 'amoCRM-API-client/1.0');
+    curl_setopt($curl, CURLOPT_URL, $link);
+    curl_setopt($curl, CURLOPT_HEADER, false);
+    curl_setopt($curl, CURLOPT_COOKIEFILE, $session_id.'cookie.txt'); 
+    curl_setopt($curl, CURLOPT_COOKIEJAR, $session_id.'cookie.txt'); 
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+    $out1 = curl_exec($curl); #Инициируем запрос к API и сохраняем ответ в переменную
+    curl_close($curl);
+
+
+    $res = json_decode($out1,true);
+
+    // находим id поля vk_uid
+    foreach ($res['_embedded']['custom_fields'][$type_name] as $value) {
+            if($value['name'] == 'vk_uid')
+                ${'field_'.$type_name.'_vk_uid_id'} = $value['id'];
+    }
 
     $exec_type = $options['exec_type'];
 
@@ -247,7 +249,7 @@ if($act == 'options') {
 
     ${$type_name}[$exec_name][0]['custom_fields'] = [
         [
-            'id' => $field_leads_vk_uid_id,
+            'id' => ${'field_'.$type_name.'_vk_uid_id'},
             'values' => [
                 [
                 'value' => $target,
@@ -291,14 +293,13 @@ if($act == 'options') {
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'result' => $result,     // где N - порядковый номер блока в схеме
             'id' => $new_id,
-            'field' => $field_leads_vk_uid_id,
+            'field' => ${'field_'.$type_name.'_vk_uid_id'},
             'tar' => $target
         ]
     ];
 
 } elseif($act == '') {
     // Действие не задано, и что же нам сделать? Станцевать вальс, попрыгать, пойти в гости к Кролику?
-
 }
 
 // Отдать JSON, не кодируя кириллические символы в кракозябры
