@@ -291,8 +291,8 @@ if($act == 'options') {
             // изменить
             if($method_type == 2)
             {
-                $arr_contacts = $amo->get_info($session_id, $type_name);
-                foreach ($arr_contacts['_embedded']['items'] as $value) 
+                ${'arr_'.$type_name} = $amo->get_info($session_id, $type_name);
+                foreach (${'arr_'.$type_name}['_embedded']['items'] as $value) 
                 {
                     foreach ($value['custom_fields'] as $v) {
                        if($v['name']=='vk_uid')
