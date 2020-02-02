@@ -292,15 +292,18 @@ if($act == 'options') {
             if($method_type == 2)
             {
                 $arr_contacts = $amo->get_contacts($session_id);
-                foreach ($arr_contacts['_embedded']['items']['custom_fields'] as $value) {
-                    if($value['name']=='vk_uid')
-                    {
-                        if($value['values']['value'] == 'au'.$target)
+                foreach ($arr_contacts['_embedded']['items'] as $value) 
+                {
+                    foreach ($value['custom_fields'] as $v) {
+                       if($v['name']=='vk_uid')
                         {
-                            $contacts['update'][0]['id'] = $value['id']; 
-                            break;
-                        }
-                    }
+                            if($v['values'][0]['value'] == 'au'.$target)
+                            {
+                                $contacts['update'][0]['id'] = $value['id']; 
+                                break;
+                            }
+                        }   
+                    } 
                 }
                 // Проставляем телефон
                 $a = 
