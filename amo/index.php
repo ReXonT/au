@@ -299,6 +299,27 @@ if($act == 'options') {
                 ];
 
                 array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
+
+
+                /* Привязываем сделки к контакту */
+                $result = $amo->get_info($session_id, 'leads');
+                $leads_id = "";
+                foreach ($result['_embedded']['items'] as $value) 
+                {
+                    foreach ($value['custom_fields'] as $v) {
+                       if($v['name']=='vk_uid')
+                        {
+                            if($v['values'][0]['value'] == 'au'.$target)
+                            {
+                                $leads_id .= $value['id'];
+                                $leads_id .= ',';
+                            }
+                        }   
+                    }
+                }
+                $leads_id = rtrim($leads_id, ',');
+                $leads_id = explode(',', $leads_id);
+                ${$type_name}[$exec_name][0]['leads_id'] = $leads_id;
             }
 
             $result = $amo->request(${$type_name}, $session_id, $type_name); // запрос на добавление общий
@@ -388,13 +409,13 @@ if($act == 'options') {
                 array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
             }
 
-            $result = $amo->request(${$type_name}, $session_id, $type_name);
+            $result = $amo->request(${$type_name}, $session_id, $type_name);    // общее изменение
 
             foreach ($notes['_embedded']['items'] as $value) 
             {
                 if($value['element_id'] == ${$type_name}['update'][0]['id'])
                 {
-                    $note_id = $value['id'];
+                    $note_id = $value['id'];    // находим id сущности примечания
                 }
             }
 
@@ -420,10 +441,9 @@ if($act == 'options') {
         
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'id' => $new_id,
-            'res' => $result,
-            'note' => ${$type_name."_note"},
-            'el_type' => $notes,
-            'data' => $data
+            'res' => ${$type_name}[$exec_name],
+            'data' => $leads_id,
+            'lead' => ${$type_name}[$exec_name][0]['leads_id']
         ]
     ];
 
