@@ -18,7 +18,7 @@ if($act == 'options') {
             ]
         ],
         'vars' => [                     // переменные, которые можно будет настроить в блоке
-            'extype' => [
+            'exec_type' => [
                 'title' => 'Выбор действия',   // заголовок поля
                 'values' => [
                 	1 => 'Добавить сделку',
@@ -26,11 +26,19 @@ if($act == 'options') {
                 ],
                 'desc' => '',    // описание поля, можно пару строк
             ],
-            'deal_name' => [
+            'name' => [
                 'title' => 'Имя сделки',
                 'desc' => 'Обязательно'
             ],
-            'deal_tags' => [
+            'sale' => [
+                'title' => 'Бюджет',
+                'desc' => ''
+            ],
+            'responsible_user_id' => [
+                'title' => 'ID ответственного',
+                'desc' => ''
+            ],
+            'tags' => [
                 'title' => 'Теги',
                 'desc' => 'Не обязательно'
             ],
@@ -58,8 +66,6 @@ if($act == 'options') {
     $options = $_REQUEST['options'];
     $session_id = $_REQUEST['uid'];
 
-    $deal_name = $options['deal_name'];
-    $deal_tags = $options['deal_tags'];
 
     $user_login = 'lpwebinar@yandex.ru';
     $user_hash = '630dcb876794a2db5732262dc2240c8b2a2f4d49';
@@ -69,39 +75,73 @@ if($act == 'options') {
     
     // Авторизация
     $response = $amo->auth($session_id);
-
-    /*
-    Данные получаем в формате JSON, поэтому, для получения читаемых данных,
-    нам придётся перевести ответ в формат, понятный PHP
-     */
-
     $response = json_decode($response, true);
-
-    $response = $response['response'];
-    
+    $response = $response['response'];  
     if (isset($response['auth'])) // Флаг авторизации доступен в свойстве "auth"
     {
         echo '<pre>';
         print_r($response);
         echo '</pre>';
         echo 'Авторизация прошла успешно';
-    }
+    }else echo 'Авторизация не удалась';
+    //
 
-    else echo 'Авторизация не удалась';
+    $type_name = 'deal';
 
+    $exec_type = $options['exec_type'];
 
-    // массив создания сделки 
-    $deal['add'][0] = [
-        'name' => $deal_name
+    $field_names = [
+        'name',
+        'tags',
+        'sale',
+        'responsible_user_id'
     ];
 
-    if(!empty($deal_tags))
-    {
-        $deal['add'][0]['tags'] = $deal_tags;
+    foreach ($field_names as $value) {
+        ${$type_name.'_'.$value} = $options[$value];
     }
 
-    
-    $result = $amo->addDeal($deal, $session_id);
+    switch ($exec_type) {
+        case 1:
+            // Добавить сделку
+            $exec_name = 'add';
+            break;
+
+        case 2:
+            // Удалить сделку
+            $exec_name = 'del';
+            break;
+        
+        default:
+            // code...
+        $exec_name = 'add';
+            break;
+    }
+
+
+    foreach ($field_names as $field_name) 
+    {
+        if(!empty(${$type_name.'_'.$field_name}))
+        {
+            ${$type_name}[$exec_name][0][$field_name] = ${$type_name.'_'.$field_name};
+        }
+    }
+
+    switch ($exec_type) {
+        case 1:
+            // Добавить сделку
+            $result = $amo->addDeal($deal, $session_id);
+            break;
+
+        case 2:
+            // Удалить сделку
+            $exec_name = 'del';
+            break;
+        
+        default:
+            // code...
+            break;
+    }
     
     var_dump($result);
     
