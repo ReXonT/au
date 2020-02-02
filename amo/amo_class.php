@@ -98,9 +98,9 @@
 		    return $res;
 		}
 
-		public function get_contacts($session_id)
+		public function get_info($session_id, $type_name)
 		{
-			$link = 'https://' .$this->subdomain. '.amocrm.ru/api/v2/contacts';
+			$link = 'https://' .$this->subdomain. '.amocrm.ru/api/v2/'.$type_name;
 
 		    $curl = curl_init(); 
 

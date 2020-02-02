@@ -291,7 +291,7 @@ if($act == 'options') {
             // изменить
             if($method_type == 2)
             {
-                $arr_contacts = $amo->get_contacts($session_id);
+                $arr_contacts = $amo->get_info($session_id, $type_name);
                 foreach ($arr_contacts['_embedded']['items'] as $value) 
                 {
                     foreach ($value['custom_fields'] as $v) {
