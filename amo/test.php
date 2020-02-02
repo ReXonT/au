@@ -1,8 +1,20 @@
 <?php
+
+require_once('amo_class.php');
+
+ $user_login = 'lpwebinar@yandex.ru';
+    $user_hash = '630dcb876794a2db5732262dc2240c8b2a2f4d49';
+    $subdomain = 'lpwebinar'; // Наш аккаунт - поддомен
+
+    $amo = new Amo($user_login, $user_hash, $subdomain);
+    
+    // Авторизация
+    $response = $amo->auth($session_id);
+
 $subdomain = 'lpwebinar'; #Наш аккаунт - поддомен
 
 #Формируем ссылку для запроса
-$link = 'https://' . $subdomain . '.amocrm.ru/api/v2/account?with=custom_fields';
+$link = 'https://' . $subdomain . '.amocrm.ru/api/v2/account?with=custom_fields,note_types';
 
 /*
 Нам необходимо инициировать запрос к серверу. Воспользуемся библиотекой cURL (поставляется в составе PHP).
@@ -23,15 +35,7 @@ $out = curl_exec($curl); #Инициируем запрос к API и сохра
 $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 curl_close($curl);
 
-
-$res = json_decode($out,true);
-foreach ($res['_embedded']['custom_fields']['contacts'] as $value) {
-		if($value['name'] == 'Телефон')
-			echo $value['id'];
-}
+$c = json_decode($out,1);
 echo '<pre>';
-echo $next;
-print_r($res['_embedded']['custom_fields']['contacts']);
+print_r($c);
 echo '</pre>';
-
-?>

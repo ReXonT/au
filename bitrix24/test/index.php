@@ -1,5 +1,5 @@
 <?php
-//require_once('crest.php');
+require_once('crest.php');
 require_once('functions.php');
 
 $act = $_REQUEST['act'];
@@ -13,7 +13,7 @@ if(isset($act))
 {
     if($act == 'options') {
         $responce = [
-            'title' => 'ВРМ Bitrix24 Webhook',      // Это заголовок блока, который будет виден на схеме
+            'title' => 'ВРМ Bitrix24 Лиды',      // Это заголовок блока, который будет виден на схеме
             'paysys' => [                   // Группа полей, отвечающая за интеграцию с платёжными системами и внешними сервисами.
                 'ps' => [                   // ВРМ получит доступ к ID аккаунта, секретному ключу и другим атрибутам выбранной системы
                     'title' => 'Bitrix24',
@@ -21,90 +21,75 @@ if(isset($act))
                 ]
             ],
             'vars' => [                     // переменные, которые можно будет настроить в блоке
-                'methodType' => [
-                    'title' => 'Лиды/Сделки',   // заголовок поля
-                    'values' => [
-                        1 => 'Лиды',
-                        2 => 'Сделки',
-                        3 => 'Контакты'
-                    ],
-                    'desc' => '',    // описание поля, можно пару строк
-                ],
                 'execType' => [
                     'title' => 'Выбор действия',   // заголовок поля
                     'values' => [
-                        1 => 'Добавить',
-                        2 => 'Изменить',
-                        3 => 'Получить',
-                        4 => 'Удалить',
-                        5 => 'Конверсия'
+                        1 => 'Добавить лид',
+                        2 => 'Изменить лид',
+                        3 => 'Получить лид',
+                        4 => 'Удалить лид'
                     ],
                     'desc' => '',    // описание поля, можно пару строк
                 ],
 
                 // поля лида
-                'Title' => [
+                'leadTitle' => [
                     'title' => 'Заголовок карточки',
                     'desc' => '',
                     'show' => [
-                        'methodType' => [1,2],
                         'execType' => [1,2]
                     ]
                 ],
-                'Name' => [
+                'leadName' => [
                     'title' => 'Имя',
                     'desc' => '',
                     'show' => [
                         'execType' => [1,2]
                     ]
                 ],
-                'Last_Name' => [
+                'leadLast_Name' => [
                     'title' => 'Фамилия',
                     'desc' => '',
                     'show' => [
                         'execType' => [1,2]
                     ]
                 ],
-                'Address' => [
+                'leadAddress' => [
                     'title' => 'Адрес',
                     'desc' => '',
                     'show' => [
-                        'methodType' => [1,2],
                         'execType' => [1,2]
                     ]
                 ],
-                'Comments' => [
+                'leadComments' => [
                     'title' => 'Комментарий',
                     'desc' => '',
                     'show' => [
                         'execType' => [1,2]
                     ]
                 ],
-                'Phone' => [
+                'leadPhone' => [
                     'title' => 'Телефон',
                     'desc' => '',
                     'show' => [
-                        'methodType' => [1,3],
                         'execType' => [1,2]
                     ]
                 ],
-                'Email' => [
+                'leadEmail' => [
                     'title' => 'Email',
                     'desc' => '',
                     'show' => [
-                        'methodType' => [1,3],
                         'execType' => [1,2]
                     ]
                 ],
-                'Opportunity' => [
+                'leadOpportunity' => [
                     'title' => 'Сумма заказа',
                     'desc' => '',
                     'show' => [
-                        'methodType' => [1,2],
                         'execType' => [1,2]
                     ]
                 ],
-                'Currency' => [
+                'leadCurrency' => [
                     'title' => 'Валюта',
                     'desc' => '',
                     'values' => [
@@ -112,12 +97,11 @@ if(isset($act))
                         1 => "USD",
                     ],
                     'show' => [
-                        'methodType' => [1,2],
                         'execType' => [1,2]
                     ],
                     'default' => 0
                 ],
-                'Status_Id' => [
+                'leadStatus_Id' => [
                     'title' => 'Статус заказа',
                     'desc' => '',
                     'values' => [
@@ -126,7 +110,6 @@ if(isset($act))
                         3 => 'Обработан'
                     ],
                     'show' => [
-                        'methodType' => 1,
                         'execType' => [1,2]
                     ],
                     'default' => 1
@@ -168,39 +151,14 @@ if(isset($act))
          * получаем данные ссылки, client_id и client_secret         *
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
         $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
-        // если стоит цель не на инициатора активности
-        if(isset($target)) { $user_id = $target; } 
-        else { $user_id = $ums['from_id']; }
 
-        $clientWebhook = $ps['options']['secret']; // webhook данные
-        $inputUrl = $ps['options']['account']; // ссылка на битрикс
-        if(!(strpos($inputUrl, '//')))
-        {
-            $clientUrl = $inputUrl;
-        }
-        else 
-        {
-            $arUrl = parse_url($inputUrl);
-            $clientUrl = $arUrl['host'];
-        }
+        $clientSecret = $ps['options']['secret']; // client_secret
+        $clientId = $ps['options']['account']; // client_id
 
-        $queryUrl = 'https://'.$clientUrl.'/rest/1/'.$clientWebhook.'/';    // ссылка на webhook
+        define('C_REST_CLIENT_SECRET', $clientSecret); // устанавливаем значения
+        define('C_REST_CLIENT_ID', $clientId); // устанавливаем значения
 
-
-        $methodType = $options['methodType']; // выбор метода запроса
-        switch ($methodType) {
-            case 1:
-                $nameVar = 'lead';  // часть названия переменной, ответственная за лиды
-                break;
-            case 2:
-                $nameVar = 'deal';  // часть названия переменной, ответственная за сделки
-                break;
-            case 3:
-                $nameVar = 'contact';  // часть названия переменной, ответственная за контакты
-                break;
-        }
-
-        // массив имен полей для Битрикс24
+        $nameVar = 'lead';  // часть названия переменной, ответственная за лиды
 
         $arrFieldNames = [
             'Title',
@@ -224,14 +182,14 @@ if(isset($act))
         /* Поля */
 
         foreach ($arrFieldNames as $value) {
-            ${$nameVar.$value} = $options[$value];
+            ${$nameVar.$value} = $options[$nameVar.$value];
         }
 
         /*
 
         Составятся такие переменные:
 
-        $leadTitle = $options['leadTitle']; // title лида. Если сделка, то dealTitle и тд
+        $leadTitle = $options['leadTitle']; // title лида
         $leadName = $options['leadName']; // имя лида
         $leadLast_Name = $options['leadLast_Name']; // фамилия лида
         $leadComments = $options['leadComments']; // комментарии для лида
@@ -245,30 +203,30 @@ if(isset($act))
         */
 
 
-        switch (${$nameVar.'Currency'}) {
+        switch ($leadCurrency) {
             case 0:
-                ${$nameVar.'Currency'} = "RUB";
+                $leadCurrency = "RUB";
                 break;
             case 1:
-                ${$nameVar.'Currency'} = "USD";
+                $leadCurrency = "USD";
                 break;
             default:
-                ${$nameVar.'Currency'} = "RUB";
+                $leadCurrency = "RUB";
                 break;
         }
 
-        switch (${$nameVar.'Status'}) {
+        switch ($leadStatus) {
             case 1:
-                ${$nameVar.'Status'} = "NEW";
+                $leadStatus = "NEW";
                 break;
             case 2:
-                ${$nameVar.'Status'} = "IN_PROCESS";
+                $leadStatus = "IN_PROCESS";
                 break;
             case 3:
-                ${$nameVar.'Status'} = "PROCESSED";
+                $leadStatus = "PROCESSED";
                 break;
             default:
-                ${$nameVar.'Status'} = "NEW";
+                $leadStatus = "NEW";
                 break;
         }
   
@@ -319,7 +277,7 @@ if(isset($act))
                                 array(
                                     "PHONE" => [
                                         "VALUE" => [                            // добавляем телефон
-                                            "VALUE" => ${$nameVar.'Phone'},
+                                            "VALUE" => $leadPhone,
                                             "VALUE_TYPE" => "MOBILE"
                                         ]
                                     ]
@@ -335,7 +293,7 @@ if(isset($act))
                                 array(
                                     "EMAIL" => [
                                         "VALUE" => [                            // изменение почты
-                                            "VALUE" => ${$nameVar.'Email'},
+                                            "VALUE" => $leadEmail,
                                             "VALUE_TYPE" => "HOME"
                                         ]
                                     ]
@@ -347,11 +305,8 @@ if(isset($act))
                     }
                 }
 
-                // вызываем call (описан в functions.php) с url, названием метода и полями
-
-                $response = call(
-                    $queryUrl,
-                   'crm.'.$nameVar.'.add',
+                $response = CRest::call(
+                   'crm.lead.add',
                     [
                       'fields' => $fieldsToAdd
                     ]);
@@ -377,7 +332,7 @@ if(isset($act))
                                 array(
                                     "PHONE" => [
                                         "VALUE" => [                            // добавляем телефон
-                                            "VALUE" => ${$nameVar.'Phone'},
+                                            "VALUE" => $leadPhone,
                                             "VALUE_TYPE" => "MOBILE"
                                         ]
                                     ]
@@ -393,7 +348,7 @@ if(isset($act))
                                 array(
                                     "EMAIL" => [
                                         "VALUE" => [                            // почта как и телефон
-                                            "VALUE" => ${$nameVar.'Email'},
+                                            "VALUE" => $leadEmail,
                                             "VALUE_TYPE" => "HOME"
                                         ]
                                     ]
@@ -405,9 +360,8 @@ if(isset($act))
                     }
                 }
 
-                $response = call(
-                    $queryUrl,
-                   'crm.'.$nameVar.'.update',
+                $response = CRest::call(
+                   'crm.lead.update',
                    [
                       'id' => $inputId,
                       'fields' => $fieldsToChange
@@ -418,15 +372,14 @@ if(isset($act))
 
             // получить лид
             case 3:
-                $response = call(
-                    $queryUrl,
-                   'crm.'.$nameVar.'.get',
+                $response = CRest::call(
+                   'crm.lead.get',
                    [
                       'id' => $inputId
                 ]);
                 $result = $response['result'];
 
-                $found = "";
+                $foundLead = "";
                 foreach ($result as $key => $value) {
                     if($value != "")
                     {
@@ -441,12 +394,14 @@ if(isset($act))
 
                         if($key == 'PHONE')
                         {
-                            $found .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
+                            $foundLead .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
                         }
                         else if($key == 'EMAIL')
                         {
-                            $found .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
+                            $foundLead .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
                         }
+                        // пропускаем значение этого ключа
+                        elseif ($key == 'STATUS_SEMANTIC_ID') continue;
                         else
                         {
                             // меняем значение, если Y или N на адекватные русские названия
@@ -459,7 +414,7 @@ if(isset($act))
                                     break;
                             }
 
-                            $found .= $russianKey.": ".$value.'<br>';
+                            $foundLead .= $russianKey.": ".$value.'<br>';
                         }
                     }
                 }
@@ -468,51 +423,14 @@ if(isset($act))
 
             // удалить лид
             case 4:
-                $response = call(
-                    $queryUrl,
-                   'crm.'.$nameVar.'.delete',
+                $response = CRest::call(
+                   'crm.lead.delete',
                    [
                       'id' => $inputId
                 ]);
                 $result = $response['result'];
                 $out = 1;
                 break;
-
-            case 5:
-            	$response = call(
-            		$queryUrl,
-				    'crm.lead.list',
-				    [
-				        'filter' => [
-				            '>DATE_CREATE' => '2020-01-24T00:00:00',
-            									'2020-02-24T00:00:00',
-            				"STATUS_ID" => "20"	// купили
-				        ],
-				        'select' => [
-				            'ID'
-				        ]
-				    ]
-				);
-				$response2 = call(
-            		$queryUrl,
-				    'crm.lead.list',
-				    [
-				        'filter' => [
-				            '>DATE_CREATE' => '2020-01-24T00:00:00',
-            									'2020-02-24T00:00:00',
-            				"STATUS_ID" => "55" // слились
-				        ],
-				        'select' => [
-				            'ID'
-				        ]
-				    ]
-				);
-				$result = $response['result'];
-				$kupili = $response['total'];
-				$sliv = $response2['total'];
-				$found = (($kupili + $sliv)/$kupili)*100;
-                $out = 1;
-            	break;
 
             default:
                 // code...
@@ -525,7 +443,7 @@ if(isset($act))
             
             'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
                 'result' => $result,
-                'found' => $found
+                'foundLead' => $foundLead
             ]
         ];
 
@@ -539,5 +457,5 @@ if(isset($act))
 }
 else
 {
-    echo '<p> Привет, Битрикс! Это приложение для АЮ. Управляй им там :)</p>';
+   
 }

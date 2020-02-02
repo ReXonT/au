@@ -447,21 +447,21 @@ elseif($act == 'run')
 														// json_decode не работает
 				
 				// поиск нужного столбца
-			  	for($j = 0;$j <= $sheetRowCount;$j++)
+			  	for($i = 0;$i <= $sheetRowCount;$i++)
 			    {
-			      for($i = 0;$i <= $sheetColumnCount;$i++)
+			      for($j = 0;$j <= $sheetColumnCount;$j++)
 			      {
-			          if($php_text[$j][$i] == $find_col)
+			          if($php_text[$i][$j] == $find_col)
 			          {
-			              $found_col = $i+1;				// найденный индекс колонки
+			              $found_col = $j+1;				// найденный индекс колонки
 			          }
 			      }
 			    }
 			  	
 			  	// поиск нужной строки
-			  	for($j = 0;$j <= $sheetRowCount;$j++)
+			  	for($i = 0;$i <= $sheetRowCount;$i++)
 			    {
-			      for($i = 0;$i <= $sheetColumnCount;$i++)
+			      for($j = 0;$j <= $sheetColumnCount;$j++)
 			      {
 			          if($php_text[$i][$j] == $find_row)
 			          {
@@ -578,16 +578,16 @@ elseif($act == 'run')
 			{
 				$find_row = $options['value_to_find'];	// строка для поиска
 
-				for($j = 0;$j <= $sheetRowCount;$j++)
-			    {
-			      for($i = 0;$i <= $sheetColumnCount;$i++)
-			      {
-			          if($php_text[$i][$j] == $find_row)
-			          {
-			              $found_row = $i+1;				// найденный индекс строки
-			          }
-			      }
-			    }
+				for($i = 0;$i <= $sheetRowCount;$i++)
+                {
+                  for($j = 0;$j <= $sheetColumnCount;$j++)
+                  {
+                      if($php_text[$i][$j] == $find_row)
+                      {
+                          $found_row = $i+1;                // найденный индекс строки
+                      }
+                  }
+                }
 
 			    // запрос по удалению строки
 				$requests = [
