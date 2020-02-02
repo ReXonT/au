@@ -33,6 +33,14 @@ if($act == 'options') {
                     'exec_type' => [2]
                 ]
             ],
+            'status_id' => [
+                'title' => 'ID статуса сделки',
+                'desc' => 'Обязательно (1 - новая)',
+                'default' => '1',
+                'show' => [
+                    'exec_type' => [2]
+                ]
+            ],
             'name' => [
                 'title' => 'Имя сделки',
                 'desc' => '',
@@ -114,7 +122,8 @@ if($act == 'options') {
         'tags',
         'sale',
         'responsible_user_id',
-        'id'
+        'id',
+        'status_id'
     ];
 
     foreach ($field_names as $value) {
@@ -146,6 +155,8 @@ if($act == 'options') {
             ${$type_name}[$exec_name][0][$field_name] = ${$type_name.'_'.$field_name};
         }
     }
+
+    ${$type_name}[$exec_name][0]['updated_at'] = time();
 
     switch ($exec_type) {
         case 1:
