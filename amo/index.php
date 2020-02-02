@@ -299,7 +299,7 @@ if($act == 'options') {
                         {
                             if($v['values'][0]['value'] == 'au'.$target)
                             {
-                                $contacts['update'][0]['id'] = $value['id']; 
+                                ${$type_name}['update'][0]['id'] = $value['id']; 
                                 break;
                             }
                         }   
