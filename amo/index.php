@@ -2,6 +2,7 @@
 
 require_once('amo_class.php');
 
+
 $act = $_REQUEST['act'];
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -45,10 +46,10 @@ if($act == 'options') {
             ],
 
             // сделки
-            'status_id' => [
-                'title' => 'ID статуса сделки',
-                'desc' => 'Обязательно (1 - новая)',
-                'default' => '1',
+            'status_name' => [
+                'title' => 'Этап воронки',
+                'desc' => 'Название этапа (например: Переговоры)',
+                'default' => '',
                 'show' => [
                     'method_type' => [1],
                     'exec_type' => [2]
@@ -65,7 +66,7 @@ if($act == 'options') {
             ],
             'responsible_user_id' => [
                 'title' => 'ID ответственного',
-                'desc' => '',
+                'desc' => 'Не обязательно',
                 'show' => [
                     'method_type' => [1],
                     'exec_type' => [1,2]
@@ -123,7 +124,6 @@ if($act == 'options') {
     $options = $_REQUEST['options'];
     $session_id = $ums['id'];
 
-
     $user_login = 'lpwebinar@yandex.ru';
     $user_hash = '630dcb876794a2db5732262dc2240c8b2a2f4d49';
     $subdomain = 'lpwebinar'; // Наш аккаунт - поддомен
@@ -142,7 +142,6 @@ if($act == 'options') {
         echo 'Авторизация прошла успешно';
     }else echo 'Авторизация не удалась';
     //
-
     
 
 
@@ -183,7 +182,7 @@ if($act == 'options') {
         'tags',
         'sale',
         'responsible_user_id',
-        'status_id',
+        'status_name',
         'phone',
         'email'
     ];
@@ -303,6 +302,22 @@ if($act == 'options') {
                     }   
                 } 
             }
+            if($method_type == 1)
+            {
+                $temp = $amo->get_info($session_id, 'pipelines');   // запрашиваем этапы воронки
+                foreach ($temp['_embedded']['items'] as $value) 
+                {
+                    foreach ($value['statuses'] as $v) 
+                    {
+                        if($v['name'] == $leads_status_name)
+                        {
+                            $leads['update'][0]['status_id'] = $v['id'];
+                            break;                          // УБРАТЬ И ПЕРЕРАБОТАТЬ, ЕСЛИ МНОГО ВОРОНОК
+                        }
+                    }
+                    break;
+                }
+            }
             if($method_type == 2)
             {
                 
@@ -353,7 +368,8 @@ if($act == 'options') {
         'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля!
         
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
-            'id' => $new_id
+            'id' => $new_id,
+            'ls' => $leads_status_name
         ]
     ];
 
