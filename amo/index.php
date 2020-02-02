@@ -25,15 +25,15 @@ if($act == 'options') {
                     1 => 'Сделки',
                     2 => 'Контакты'
                 ],
-                'desc' => '',    // описание поля, можно пару строк
+                'desc' => '',    
             ],
             'exec_type' => [
-                'title' => 'Выбор действия',   // заголовок поля
+                'title' => 'Выбор действия',   
                 'values' => [
                     1 => 'Добавить',
                     2 => 'Обновить'
                 ],
-                'desc' => '',    // описание поля, можно пару строк
+                'desc' => '',    
             ],
 
             'name' => [
@@ -101,8 +101,8 @@ if($act == 'options') {
             ],
 
         ],
-        'out' => [                      // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
-            1 => [                      // Номер 0 означает красный выход блока ВРМ, зарезервированный для случаев сбоя
+        'out' => [                          // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
+            1 => [                          // Номер 0 означает красный выход блока ВРМ, зарезервированный для случаев сбоя
                 'title' => 'Результат',    // название выхода 1
             ]        
         ]
@@ -122,12 +122,16 @@ if($act == 'options') {
                                     // text - текст комментария, сообщения и т.д.
     $out    = 0;                    // Номер выхода по умолчанию. Если дальнейший код не назначит другой выход - значит что-то не так
     $options = $_REQUEST['options'];
-    $session_id = $ums['id'];
+    
+    $session_id = $ums['id'];       // id сессии
 
     $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
     $user_login = $ps['options']['secret'];
     $user_hash = $ps['options']['secret2'];
     $subdomain = $ps['options']['account']; // Наш аккаунт - поддомен
+
+    
+    /* Выполнение */
 
     $amo = new Amo($user_login, $user_hash, $subdomain);
     
@@ -145,7 +149,6 @@ if($act == 'options') {
     //
     
 
-
     $method_type = $options['method_type']; // с чем работаем (сделки, контакты ...)
 
     switch ($method_type) {
@@ -155,13 +158,13 @@ if($act == 'options') {
             break;
 
         case 2:
-            // Сделки...
+            // Контакты...
             $type_name = 'contacts';
             break;
-
     }
 
     
+    // получаем доп. поля по аккаунту
     $cab_custom_fields = $amo->get_custom_fields($session_id);
 
     // находим id поля vk_uid
@@ -176,8 +179,10 @@ if($act == 'options') {
                 ${'field_'.$type_name.'_email'} = $value['id'];
     }
 
+    // определяем тип выполнения (добавить, изменить ...)
     $exec_type = $options['exec_type'];
 
+    // массив имён полей
     $field_names = [
         'name',
         'tags',
@@ -188,7 +193,7 @@ if($act == 'options') {
         'email'
     ];
 
-    /* Инициализация переменных из исходника
+    /* Инициализация переменных из исходных данных
         пример:
         $leads_name
         $leads_id
@@ -198,6 +203,7 @@ if($act == 'options') {
         ${$type_name.'_'.$value} = $options[$value];
     }
 
+    // именуем тип выполнения в понятный для amo
     switch ($exec_type) {
         case 1:
             // Добавить сделку
@@ -211,7 +217,7 @@ if($act == 'options') {
         
         default:
             // code...
-        $exec_name = 'add';
+            $exec_name = 'add';
             break;
     }
 
@@ -284,7 +290,6 @@ if($act == 'options') {
             }
 
             $result = $amo->request(${$type_name}, $session_id, $type_name);
-            $new_id = $result['_embedded']['items'][0]['id'];
             break;
 
         case 2:
@@ -310,9 +315,9 @@ if($act == 'options') {
                 {
                     foreach ($value['statuses'] as $v) 
                     {
-                        if($v['name'] == $leads_status_name)
+                        if($v['name'] == $leads_status_name)        // если нашлось такое название этапа
                         {
-                            $leads['update'][0]['status_id'] = $v['id'];
+                            $leads['update'][0]['status_id'] = $v['id'];    // получаем id этапа по названию
                             break;                          // УБРАТЬ И ПЕРЕРАБОТАТЬ, ЕСЛИ МНОГО ВОРОНОК
                         }
                     }
@@ -321,7 +326,6 @@ if($act == 'options') {
             }
             if($method_type == 2)
             {
-                
                 // Проставляем телефон
                 $a = 
                 [
@@ -361,16 +365,13 @@ if($act == 'options') {
     
     var_dump($result);
     
-    
     $out = 1;
-    
 
     $responce = [
         'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля!
         
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
-            'id' => $new_id,
-            'ls' => $leads_status_name
+            ''
         ]
     ];
 
