@@ -46,7 +46,7 @@ if($act == 'options') {
 
             // сделки
             'id' => [
-                'title' => 'ID сделки',
+                'title' => 'ID',
                 'desc' => 'Обязательно',
                 'show' => [
                     'method_type' => [1],
@@ -249,7 +249,7 @@ if($act == 'options') {
             'id' => ${'field_'.$type_name.'_vk_uid_id'},
             'values' => [
                 [
-                'value' => $target,
+                'value' => 'au'.$target,
                 ],
             ],
         ],
@@ -310,19 +310,13 @@ if($act == 'options') {
     
     
     $out = 1;
-    unlink($session_id.'cookie.txt'); // удаляем файл куки
+    
 
     $responce = [
         'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля!
         
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
-            'result' => $result,     // где N - порядковый номер блока в схеме
-            'id' => $new_id,
-            'field' => ${'field_'.$type_name.'_vk_uid_id'},
-            'tar' => $target,
-            'mob' => ${'field_'.$type_name.'_phone'},
-            'em' => ${'field_'.$type_name.'_email'},
-            'phone' => ${$type_name.'_phone'}
+            'id' => $new_id
         ]
     ];
 
