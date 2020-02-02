@@ -176,6 +176,12 @@ if($act == 'options') {
     foreach ($cab_custom_fields['_embedded']['custom_fields'][$type_name] as $value) {
             if($value['name'] == 'vk_uid')
                 ${'field_'.$type_name.'_vk_uid_id'} = $value['id'];
+            
+            if($value['name'] == 'Телефон')
+                ${'field_'.$type_name.'_phone'} = $value['id'];
+
+            if($value['name'] == 'Email')
+                ${'field_'.$type_name.'_email'} = $value['id'];
     }
 
     $exec_type = $options['exec_type'];
@@ -191,6 +197,12 @@ if($act == 'options') {
         'email'
     ];
 
+    /* Инициализация переменных из исходника
+        пример:
+        $leads_name
+        $leads_id
+        ....
+    */
     foreach ($field_names as $value) {
         ${$type_name.'_'.$value} = $options[$value];
     }
@@ -212,7 +224,13 @@ if($act == 'options') {
             break;
     }
 
-
+    // формируем массив на создание/изменение сущности
+    /*
+        пример:
+        $leads['add'][0]['name'] = $leads_name;
+        $leads['add'][0]['id'] = $leads_id;
+        ....
+    */
     foreach ($field_names as $field_name) 
     {
         if(!empty(${$type_name.'_'.$field_name}))
@@ -221,14 +239,17 @@ if($act == 'options') {
         }
     }
 
+    // добавляем дату изменения
     ${$type_name}[$exec_name][0]['updated_at'] = time();
 
+
+    // ставим vk_uid
     ${$type_name}[$exec_name][0]['custom_fields'] = [
         [
             'id' => ${'field_'.$type_name.'_vk_uid_id'},
             'values' => [
                 [
-                'value' => 'au'.$target,
+                'value' => $target,
                 ],
             ],
         ],
@@ -241,7 +262,34 @@ if($act == 'options') {
             // Добавить
             if($method_type == 2)   // если контакт
             {
+                // Проставляем телефон
+                $a = 
+                [
+                    'id' => ${'field_'.$type_name.'_phone'},
+                    'values' => [
+                        [
+                            'value' => ${$type_name.'_phone'},
+                            'enum' => 'MOB'
+                        ],
+                    ],
+                
+                ];
 
+                array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
+
+                // Проставляем email
+                $a = 
+                [
+                    'id' => ${'field_'.$type_name.'_email'},
+                    'values' => [
+                        [
+                            'value' => ${$type_name.'_email'},
+                            'enum' => 'WORK'
+                        ],
+                    ],
+                ];
+
+                array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
             }
 
             $result = $amo->request(${$type_name}, $session_id, $type_name);
@@ -271,7 +319,10 @@ if($act == 'options') {
             'result' => $result,     // где N - порядковый номер блока в схеме
             'id' => $new_id,
             'field' => ${'field_'.$type_name.'_vk_uid_id'},
-            'tar' => $target
+            'tar' => $target,
+            'mob' => ${'field_'.$type_name.'_phone'},
+            'em' => ${'field_'.$type_name.'_email'},
+            'phone' => ${$type_name.'_phone'}
         ]
     ];
 

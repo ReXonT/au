@@ -25,13 +25,13 @@ curl_close($curl);
 
 
 $res = json_decode($out,true);
-foreach ($res['_embedded']['custom_fields']['leads'] as $value) {
-		if($value['name'] == 'vk_uid')
+foreach ($res['_embedded']['custom_fields']['contacts'] as $value) {
+		if($value['name'] == 'Телефон')
 			echo $value['id'];
 }
 echo '<pre>';
 echo $next;
-print_r($res['_embedded']['custom_fields']['leads']);
+print_r($res['_embedded']['custom_fields']['contacts']);
 echo '</pre>';
 
 ?>
