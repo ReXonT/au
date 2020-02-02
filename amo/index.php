@@ -228,7 +228,7 @@ if($act == 'options') {
             'id' => ${'field_'.$type_name.'_vk_uid_id'},
             'values' => [
                 [
-                'value' => $target,
+                'value' => 'au'.$target,
                 ],
             ],
         ],
@@ -261,7 +261,8 @@ if($act == 'options') {
     var_dump($result);
     
     
-
+    $out = 1;
+    unlink($session_id.'cookie.txt'); // удаляем файл куки
 
     $responce = [
         'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля!

@@ -71,7 +71,7 @@
 		    curl_close($curl);
 		    $result = json_decode($out,TRUE);
 
-		    unlink($session_id.'cookie.txt');
+		    
 
 		    return $result;
 		}
