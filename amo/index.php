@@ -15,7 +15,7 @@ if($act == 'options') {
         'paysys' => [                   // Группа полей, отвечающая за интеграцию с платёжными системами и внешними сервисами.
             'ps' => [                   // ВРМ получит доступ к ID аккаунта, секретному ключу и другим атрибутам выбранной системы
                 'title' => 'AmoCRM',
-                'type' => 8
+                'type' => 10
             ]
         ],
         'vars' => [                     // переменные, которые можно будет настроить в блоке
@@ -124,9 +124,10 @@ if($act == 'options') {
     $options = $_REQUEST['options'];
     $session_id = $ums['id'];
 
-    $user_login = 'lpwebinar@yandex.ru';
-    $user_hash = '630dcb876794a2db5732262dc2240c8b2a2f4d49';
-    $subdomain = 'lpwebinar'; // Наш аккаунт - поддомен
+    $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
+    $user_login = $ps['options']['secret'];
+    $user_hash = $ps['options']['secret2'];
+    $subdomain = $ps['options']['account']; // Наш аккаунт - поддомен
 
     $amo = new Amo($user_login, $user_hash, $subdomain);
     
