@@ -99,6 +99,15 @@ if($act == 'options') {
                     'exec_type' => [1,2]
                 ]
             ],
+            'note' => [
+                'title' => 'Примечание',
+                'desc' => 'Необязательно',
+                'format' => 'textarea',
+                'show' => [
+                    'method_type' => [1,2],
+                    'exec_type' => [1,2]
+                ]
+            ]
 
         ],
         'out' => [                          // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
@@ -155,11 +164,13 @@ if($act == 'options') {
         case 1:
             // Сделки...
             $type_name = 'leads';
+            $element_type = '2';
             break;
 
         case 2:
             // Контакты...
             $type_name = 'contacts';
+            $element_type = '1';
             break;
     }
 
@@ -190,7 +201,8 @@ if($act == 'options') {
         'responsible_user_id',
         'status_name',
         'phone',
-        'email'
+        'email',
+        'note'
     ];
 
     /* Инициализация переменных из исходных данных
@@ -290,6 +302,16 @@ if($act == 'options') {
             }
 
             $result = $amo->request(${$type_name}, $session_id, $type_name);
+            $new_id = $result['_embedded']['items'][0]['id'];
+            $data[$exec_name][0] = [
+                'element_id' => $new_id,
+                'element_type' => $element_type,
+                'text' => ${$type_name.'_note'},
+                'note_type' => '4',
+                'created_at' => time(),
+                'responsible_user_id' => ${$type_name.'_responsible_user_id'}
+            ];
+            $result = $amo->request($data, $session_id, 'notes');
             break;
 
         case 2:
@@ -356,6 +378,13 @@ if($act == 'options') {
                 array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
             }
             $result = $amo->request(${$type_name}, $session_id, $type_name);
+            $new_id = $result['_embedded']['items'][0]['id'];
+            $data[$exec_name][0] = [
+                'id' => $new_id,
+                'text' => ${$type_name.'_note'},
+                'created_at' => time()
+            ];
+            $result = $amo->request($data, $session_id, 'notes');
             break;
         
         default:
@@ -364,14 +393,18 @@ if($act == 'options') {
     }
     
     var_dump($result);
-    
+    unlink('cookies/'.$session_id.'cookie.txt'); // удаляем файл куки
     $out = 1;
 
     $responce = [
         'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля!
         
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
-            ''
+            'id' => $new_id,
+            'res' => $result,
+            'note' => ${$type_name."_note"},
+            'el_type' => $element_type,
+            'data' => $data
         ]
     ];
 
