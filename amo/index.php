@@ -22,25 +22,44 @@ if($act == 'options') {
                 'title' => 'Выбор действия',   // заголовок поля
                 'values' => [
                 	1 => 'Добавить сделку',
-                	2 => 'Удалить сделку'
+                	2 => 'Обновить сделку'
                 ],
                 'desc' => '',    // описание поля, можно пару строк
             ],
+            'id' => [
+                'title' => 'ID сделки',
+                'desc' => 'Обязательно',
+                'show' => [
+                    'exec_type' => [2]
+                ]
+            ],
             'name' => [
                 'title' => 'Имя сделки',
-                'desc' => 'Обязательно'
+                'desc' => '',
+                'show' => [
+                    'exec_type' => [1,2]
+                ]
             ],
             'sale' => [
                 'title' => 'Бюджет',
-                'desc' => ''
+                'desc' => '',
+                'show' => [
+                    'exec_type' => [1,2]
+                ]
             ],
             'responsible_user_id' => [
                 'title' => 'ID ответственного',
-                'desc' => ''
+                'desc' => '',
+                'show' => [
+                    'exec_type' => [1,2]
+                ]
             ],
             'tags' => [
                 'title' => 'Теги',
-                'desc' => 'Не обязательно'
+                'desc' => 'Не обязательно',
+                'show' => [
+                    'exec_type' => [1,2]
+                ]
             ],
         ],
         'out' => [                      // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
@@ -94,7 +113,8 @@ if($act == 'options') {
         'name',
         'tags',
         'sale',
-        'responsible_user_id'
+        'responsible_user_id',
+        'id'
     ];
 
     foreach ($field_names as $value) {
@@ -109,7 +129,7 @@ if($act == 'options') {
 
         case 2:
             // Удалить сделку
-            $exec_name = 'del';
+            $exec_name = 'update';
             break;
         
         default:
@@ -130,12 +150,12 @@ if($act == 'options') {
     switch ($exec_type) {
         case 1:
             // Добавить сделку
-            $result = $amo->addDeal($deal, $session_id);
+            $result = $amo->setDeal($deal, $session_id);
             break;
 
         case 2:
             // Удалить сделку
-            $exec_name = 'del';
+            $result = $amo->setDeal($deal, $session_id);
             break;
         
         default:

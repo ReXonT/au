@@ -50,7 +50,7 @@
 		    return $out;
 		}
 
-		public function addDeal($data, $session_id)
+		public function setDeal($data, $session_id)
 		{
 		    $link = 'https://' . $this->subdomain . '.amocrm.ru/api/v2/leads';
 
