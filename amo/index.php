@@ -301,8 +301,13 @@ if($act == 'options') {
                 array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
             }
 
-            $result = $amo->request(${$type_name}, $session_id, $type_name);
-            $new_id = $result['_embedded']['items'][0]['id'];
+            $result = $amo->request(${$type_name}, $session_id, $type_name); // запрос на добавление общий
+
+
+            /* Добавляем примечание */            
+            $new_id = $result['_embedded']['items'][0]['id'];   // id элемента для привязки примечания
+
+
             $data[$exec_name][0] = [
                 'element_id' => $new_id,
                 'element_type' => $element_type,
@@ -330,8 +335,11 @@ if($act == 'options') {
                     }   
                 } 
             }
+
+
             if($method_type == 1)
             {
+                $notes = $amo->get_info($session_id, 'notes?type=leads');   // запрашиваем данные по notes из сделок
                 $temp = $amo->get_info($session_id, 'pipelines');   // запрашиваем этапы воронки
                 foreach ($temp['_embedded']['items'] as $value) 
                 {
@@ -348,6 +356,8 @@ if($act == 'options') {
             }
             if($method_type == 2)
             {
+                $notes = $amo->get_info($session_id, 'notes?type=contact');   // запрашиваем данные по notes из контактов
+
                 // Проставляем телефон
                 $a = 
                 [
@@ -377,12 +387,21 @@ if($act == 'options') {
 
                 array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
             }
+
             $result = $amo->request(${$type_name}, $session_id, $type_name);
-            $new_id = $result['_embedded']['items'][0]['id'];
+
+            foreach ($notes['_embedded']['items'] as $value) 
+            {
+                if($value['element_id'] == ${$type_name}['update'][0]['id'])
+                {
+                    $note_id = $value['id'];
+                }
+            }
+
             $data[$exec_name][0] = [
-                'id' => $new_id,
+                'id' => $note_id,
                 'text' => ${$type_name.'_note'},
-                'created_at' => time()
+                'updated_at' => time()
             ];
             $result = $amo->request($data, $session_id, 'notes');
             break;
@@ -403,7 +422,7 @@ if($act == 'options') {
             'id' => $new_id,
             'res' => $result,
             'note' => ${$type_name."_note"},
-            'el_type' => $element_type,
+            'el_type' => $notes,
             'data' => $data
         ]
     ];
