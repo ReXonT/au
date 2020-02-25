@@ -67,7 +67,12 @@ if($act == 'options')
                     7 => '7',
                     8 => '8',
                     9 => '9',
-                    10 => '10'
+                    10 => '10',
+                    11 => '11',
+                    12 => '12',
+                    13 => '13',
+                    14 => '14',
+                    15 => '15'
                 ],
                 'default' => '',
                 'show' => [
@@ -167,7 +172,7 @@ if($act == 'options')
             	'default' => '',
             	'show' => [
             		'option' => 1,
-            		'field_count' => [1,2,3,4,5,6,7,8,9,10]	
+            		'field_count' => [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]	
             	]
             ],
             'value2' => [
@@ -176,7 +181,7 @@ if($act == 'options')
             	'default' => '',
             	'show' => [
             		'option' => [1],
-            		'field_count' => [2,3,4,5,6,7,8,9,10]	
+            		'field_count' => [2,3,4,5,6,7,8,9,10,11,12,13,14,15]	
             	]
             ],
             'value3' => [
@@ -185,7 +190,7 @@ if($act == 'options')
             	'default' => '',
             	'show' => [
             		'option' => [1],
-            		'field_count' => [3,4,5,6,7,8,9,10]	
+            		'field_count' => [3,4,5,6,7,8,9,10,11,12,13,14,15]	
             	]
             ],
             'value4' => [
@@ -194,7 +199,7 @@ if($act == 'options')
             	'default' => '',
             	'show' => [
             		'option' => [1],
-            		'field_count' => [4,5,6,7,8,9,10]	
+            		'field_count' => [4,5,6,7,8,9,10,11,12,13,14,15]	
             	]
             ],
             'value5' => [
@@ -203,7 +208,7 @@ if($act == 'options')
             	'default' => '',
             	'show' => [
             		'option' => [1],
-            		'field_count' => [5,6,7,8,9,10]	
+            		'field_count' => [5,6,7,8,9,10,11,12,13,14,15]	
             	]
             ],
             'value6' => [
@@ -212,7 +217,7 @@ if($act == 'options')
             	'default' => '',
             	'show' => [
             		'option' => [1],
-            		'field_count' => [6,7,8,9,10]	
+            		'field_count' => [6,7,8,9,10,11,12,13,14,15]	
             	]
             ],
             'value7' => [
@@ -221,7 +226,7 @@ if($act == 'options')
             	'default' => '',
             	'show' => [
             		'option' => [1],
-            		'field_count' => [7,8,9,10]	
+            		'field_count' => [7,8,9,10,11,12,13,14,15]	
             	]
             ],
             'value8' => [
@@ -230,7 +235,7 @@ if($act == 'options')
             	'default' => '',
             	'show' => [
             		'option' => [1],
-            		'field_count' => [8,9,10]	
+            		'field_count' => [8,9,10,11,12,13,14,15]	
             	]
             ],
             'value9' => [
@@ -239,7 +244,7 @@ if($act == 'options')
             	'default' => '',
             	'show' => [
             		'option' => [1],
-            		'field_count' => [9,10]	
+            		'field_count' => [9,10,11,12,13,14,15]	
             	]
             ],
             'value10' => [
@@ -248,8 +253,53 @@ if($act == 'options')
             	'default' => '',
             	'show' => [
             		'option' => [1],
-            		'field_count' => [10]	
+            		'field_count' => [10,11,12,13,14,15]	
             	]
+            ],
+            'value11' => [
+                'title' => 'Значение 11',
+                'desc' => "",
+                'default' => '',
+                'show' => [
+                    'option' => [1],
+                    'field_count' => [11,12,13,14,15]    
+                ]
+            ],
+            'value12' => [
+                'title' => 'Значение 12',
+                'desc' => "",
+                'default' => '',
+                'show' => [
+                    'option' => [1],
+                    'field_count' => [12,13,14,15]    
+                ]
+            ],
+            'value13' => [
+                'title' => 'Значение 13',
+                'desc' => "",
+                'default' => '',
+                'show' => [
+                    'option' => [1],
+                    'field_count' => [13,14,15]    
+                ]
+            ],
+            'value14' => [
+                'title' => 'Значение 14',
+                'desc' => "",
+                'default' => '',
+                'show' => [
+                    'option' => [1],
+                    'field_count' => [14,15]    
+                ]
+            ],
+            'value15' => [
+                'title' => 'Значение 15',
+                'desc' => "",
+                'default' => '',
+                'show' => [
+                    'option' => [1],
+                    'field_count' => [15]    
+                ]
             ],
             
         ],
@@ -398,6 +448,7 @@ elseif($act == 'run')
 
     $out = 0;						// выход в ноль
     $message = "";					// сообщение о результате
+    $return_row = "";               // инициализация
 
 	switch ($option) {
 		// добавить строчку в конец
@@ -447,21 +498,21 @@ elseif($act == 'run')
 														// json_decode не работает
 				
 				// поиск нужного столбца
-			  	for($j = 0;$j <= $sheetRowCount;$j++)
+			  	for($i = 0;$i <= $sheetRowCount;$i++)
 			    {
-			      for($i = 0;$i <= $sheetColumnCount;$i++)
+			      for($j = 0;$j <= $sheetColumnCount;$j++)
 			      {
-			          if($php_text[$j][$i] == $find_col)
+			          if($php_text[$i][$j] == $find_col)
 			          {
-			              $found_col = $i+1;				// найденный индекс колонки
+			              $found_col = $j+1;				// найденный индекс колонки
 			          }
 			      }
 			    }
 			  	
 			  	// поиск нужной строки
-			  	for($j = 0;$j <= $sheetRowCount;$j++)
+			  	for($i = 0;$i <= $sheetRowCount;$i++)
 			    {
-			      for($i = 0;$i <= $sheetColumnCount;$i++)
+			      for($j = 0;$j <= $sheetColumnCount;$j++)
 			      {
 			          if($php_text[$i][$j] == $find_row)
 			          {
@@ -525,6 +576,7 @@ elseif($act == 'run')
 		// получить строку
 		case 4:
 			$value_to_find = $options['value_to_find'];
+            $s = 0;
 			
 			// запросить данные по листу
 			$response = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
