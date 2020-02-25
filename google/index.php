@@ -107,6 +107,7 @@ if($act == 'options')
             	'title' => 'Название столбца',
             	'desc' => 'Например: Город',
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => 2,
             		'add_type' => 2
@@ -116,6 +117,7 @@ if($act == 'options')
             	'title' => 'Строка по уникальному ключу',
             	'desc' => 'Например id пользователя',
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => 2,
             		'add_type' => 2
@@ -127,6 +129,7 @@ if($act == 'options')
             	'title' => 'Значение для поиска',
             	'desc' => "",
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => [3,4,6]
             	]
@@ -135,6 +138,7 @@ if($act == 'options')
             	'title' => 'Значение на замену',
             	'desc' => "",
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => [3]	
             	]
@@ -159,6 +163,7 @@ if($act == 'options')
             	'title' => 'Значение',
             	'desc' => "",
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => 2,
             		'add_type' => [1,2]
@@ -170,6 +175,7 @@ if($act == 'options')
             	'title' => 'Значение 1',
             	'desc' => "",
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => 1,
             		'field_count' => [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]	
@@ -179,6 +185,7 @@ if($act == 'options')
             	'title' => 'Значение 2',
             	'desc' => "",
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => [1],
             		'field_count' => [2,3,4,5,6,7,8,9,10,11,12,13,14,15]	
@@ -188,6 +195,7 @@ if($act == 'options')
             	'title' => 'Значение 3',
             	'desc' => "",
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => [1],
             		'field_count' => [3,4,5,6,7,8,9,10,11,12,13,14,15]	
@@ -197,6 +205,7 @@ if($act == 'options')
             	'title' => 'Значение 4',
             	'desc' => "",
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => [1],
             		'field_count' => [4,5,6,7,8,9,10,11,12,13,14,15]	
@@ -206,6 +215,7 @@ if($act == 'options')
             	'title' => 'Значение 5',
             	'desc' => "",
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => [1],
             		'field_count' => [5,6,7,8,9,10,11,12,13,14,15]	
@@ -215,6 +225,7 @@ if($act == 'options')
             	'title' => 'Значение 6',
             	'desc' => "",
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => [1],
             		'field_count' => [6,7,8,9,10,11,12,13,14,15]	
@@ -224,6 +235,7 @@ if($act == 'options')
             	'title' => 'Значение 7',
             	'desc' => "",
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => [1],
             		'field_count' => [7,8,9,10,11,12,13,14,15]	
@@ -233,6 +245,7 @@ if($act == 'options')
             	'title' => 'Значение 8',
             	'desc' => "",
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => [1],
             		'field_count' => [8,9,10,11,12,13,14,15]	
@@ -242,6 +255,7 @@ if($act == 'options')
             	'title' => 'Значение 9',
             	'desc' => "",
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => [1],
             		'field_count' => [9,10,11,12,13,14,15]	
@@ -251,6 +265,7 @@ if($act == 'options')
             	'title' => 'Значение 10',
             	'desc' => "",
             	'default' => '',
+                'format' => 'textarea',
             	'show' => [
             		'option' => [1],
             		'field_count' => [10,11,12,13,14,15]	
@@ -260,6 +275,7 @@ if($act == 'options')
                 'title' => 'Значение 11',
                 'desc' => "",
                 'default' => '',
+                'format' => 'textarea',
                 'show' => [
                     'option' => [1],
                     'field_count' => [11,12,13,14,15]    
@@ -269,6 +285,7 @@ if($act == 'options')
                 'title' => 'Значение 12',
                 'desc' => "",
                 'default' => '',
+                'format' => 'textarea',
                 'show' => [
                     'option' => [1],
                     'field_count' => [12,13,14,15]    
@@ -278,6 +295,7 @@ if($act == 'options')
                 'title' => 'Значение 13',
                 'desc' => "",
                 'default' => '',
+                'format' => 'textarea',
                 'show' => [
                     'option' => [1],
                     'field_count' => [13,14,15]    
@@ -287,6 +305,7 @@ if($act == 'options')
                 'title' => 'Значение 14',
                 'desc' => "",
                 'default' => '',
+                'format' => 'textarea',
                 'show' => [
                     'option' => [1],
                     'field_count' => [14,15]    
@@ -296,10 +315,19 @@ if($act == 'options')
                 'title' => 'Значение 15',
                 'desc' => "",
                 'default' => '',
+                'format' => 'textarea',
                 'show' => [
                     'option' => [1],
                     'field_count' => [15]    
                 ]
+            ],
+            // парсить по спец.символу или нет?
+            'parse_cols' => [
+                'title' => 'Разделять текст по символу ";"?',
+                'desc' => 'Если да, то каждый символ ";" в тексте будет означать запись в следующий столбец (для метода записи в конец таблицы)',
+                'default' => '',
+                'format' => 'checkbox',
+                'more' => 1
             ],
             
         ],
@@ -453,15 +481,26 @@ elseif($act == 'run')
 	switch ($option) {
 		// добавить строчку в конец
 		case 1:
-			// формируем массив из values1,values2 ... values[[сюда]] по google api
-			$v = "";
-			for($i = 1;$i<=$field_count;$i++)
-			{
-				$v .= ${'value'.$i}.',';
-			}
-			$v = rtrim($v,',');
 
-			$values[] = explode(',',$v);	// массив values
+            $parse_cols = $options['parse_cols'];   // парсить по спец. символу по колонкам?
+            if($parse_cols)
+            {
+                $v = "";
+                for($i = 1;$i<=$field_count;$i++)
+                {
+                    $v .= ${'value'.$i}.';';
+                }
+                $v = rtrim($v,';');
+
+                $values[] = explode(';',$v);  // массив values
+            }
+            else
+            {
+                for($i = 1;$i<=$field_count;$i++)
+                {
+                    $values[0][] = ${'value'.$i};
+                }
+            }
 
 			$body = new Google_Service_Sheets_ValueRange([		// по api google
 			    'values' => $values
