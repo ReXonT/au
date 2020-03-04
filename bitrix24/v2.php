@@ -1,5 +1,5 @@
 <?php
-require_once('crest.php');
+//require_once('crest.php');
 require_once('functions.php');
 
 $act = $_REQUEST['act'];
@@ -13,7 +13,7 @@ if(isset($act))
 {
     if($act == 'options') {
         $responce = [
-            'title' => 'ВРМ Bitrix24 Лиды',      // Это заголовок блока, который будет виден на схеме
+            'title' => 'ВРМ Bitrix24 Webhook',      // Это заголовок блока, который будет виден на схеме
             'paysys' => [                   // Группа полей, отвечающая за интеграцию с платёжными системами и внешними сервисами.
                 'ps' => [                   // ВРМ получит доступ к ID аккаунта, секретному ключу и другим атрибутам выбранной системы
                     'title' => 'Bitrix24',
@@ -21,75 +21,88 @@ if(isset($act))
                 ]
             ],
             'vars' => [                     // переменные, которые можно будет настроить в блоке
+                'methodType' => [
+                    'title' => 'Лиды/Сделки',   // заголовок поля
+                    'values' => [
+                        1 => 'Лиды',
+                        2 => 'Сделки',
+                        3 => 'Контакты'
+                    ],
+                    'desc' => '',    // описание поля, можно пару строк
+                ],
                 'execType' => [
                     'title' => 'Выбор действия',   // заголовок поля
                     'values' => [
-                        1 => 'Добавить лид',
-                        2 => 'Изменить лид',
-                        3 => 'Получить лид',
-                        4 => 'Удалить лид'
+                        1 => 'Добавить/изменить',
+                        2 => 'Получить',
+                        3 => 'Удалить',
                     ],
                     'desc' => '',    // описание поля, можно пару строк
                 ],
 
                 // поля лида
-                'leadTitle' => [
+                'Title' => [
                     'title' => 'Заголовок карточки',
                     'desc' => '',
                     'show' => [
-                        'execType' => [1,2]
+                        'methodType' => [1,2],
+                        'execType' => [1]
                     ]
                 ],
-                'leadName' => [
+                'Name' => [
                     'title' => 'Имя',
                     'desc' => '',
                     'show' => [
-                        'execType' => [1,2]
+                        'execType' => [1]
                     ]
                 ],
-                'leadLast_Name' => [
+                'Last_Name' => [
                     'title' => 'Фамилия',
                     'desc' => '',
                     'show' => [
-                        'execType' => [1,2]
+                        'execType' => [1]
                     ]
                 ],
-                'leadAddress' => [
+                'Address' => [
                     'title' => 'Адрес',
                     'desc' => '',
                     'show' => [
-                        'execType' => [1,2]
+                        'methodType' => [1,2],
+                        'execType' => [1]
                     ]
                 ],
-                'leadComments' => [
+                'Comments' => [
                     'title' => 'Комментарий',
                     'desc' => '',
                     'show' => [
-                        'execType' => [1,2]
+                        'execType' => [1]
                     ]
                 ],
-                'leadPhone' => [
+                'Phone' => [
                     'title' => 'Телефон',
                     'desc' => '',
                     'show' => [
-                        'execType' => [1,2]
+                        'methodType' => [1,3],
+                        'execType' => [1]
                     ]
                 ],
-                'leadEmail' => [
+                'Email' => [
                     'title' => 'Email',
                     'desc' => '',
                     'show' => [
-                        'execType' => [1,2]
+                        'methodType' => [1,3],
+                        'execType' => [1]
                     ]
                 ],
-                'leadOpportunity' => [
+                'Opportunity' => [
                     'title' => 'Сумма заказа',
                     'desc' => '',
                     'show' => [
-                        'execType' => [1,2]
+                        'methodType' => [1,2],
+                        'execType' => [1]
                     ]
                 ],
-                'leadCurrency' => [
+                'Currency' => [
                     'title' => 'Валюта',
                     'desc' => '',
                     'values' => [
@@ -97,11 +110,12 @@ if(isset($act))
                         1 => "USD",
                     ],
                     'show' => [
-                        'execType' => [1,2]
+                        'methodType' => [1,2],
+                        'execType' => [1]
                     ],
                     'default' => 0
                 ],
-                'leadStatus_Id' => [
+                'Status_Id' => [
                     'title' => 'Статус заказа',
                     'desc' => '',
                     'values' => [
@@ -110,7 +124,8 @@ if(isset($act))
                         3 => 'Обработан'
                     ],
                     'show' => [
-                        'execType' => [1,2]
+                        'methodType' => 1,
+                        'execType' => [1]
                     ],
                     'default' => 1
                 ],
@@ -120,7 +135,7 @@ if(isset($act))
                     'title' => 'ID лида',
                     'desc' => 'Положительное число',
                     'show' => [
-                        'execType' => [2,3,4]
+                        'execType' => [2,3]
                     ]
                 ],
             ],
@@ -151,15 +166,39 @@ if(isset($act))
          * получаем данные ссылки, client_id и client_secret         *
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
         $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
+        // если стоит цель не на инициатора активности
+        if(isset($target)) { $user_id = $target; } 
+        else { $user_id = $ums['from_id']; }
 
-        $clientSecret = $ps['options']['secret']; // client_secret
-        $clientId = $ps['options']['account']; // client_id
+        $clientWebhook = $ps['options']['secret']; // webhook данные
+        $inputUrl = $ps['options']['account']; // ссылка на битрикс
+        if(!(strpos($inputUrl, '//')))
+        {
+            $clientUrl = $inputUrl;
+        }
+        else 
+        {
+            $arUrl = parse_url($inputUrl);
+            $clientUrl = $arUrl['host'];
+        }
 
-        define('C_REST_CLIENT_SECRET', $clientSecret); // устанавливаем значения
-        define('C_REST_CLIENT_ID', $clientId); // устанавливаем значения
+        $queryUrl = 'https://'.$clientUrl.'/rest/1/'.$clientWebhook.'/';    // ссылка на webhook
 
-        $nameVar = 'lead';  // часть названия переменной, ответственная за лиды
 
+        $methodType = $options['methodType']; // выбор метода запроса
+        switch ($methodType) {
+            case 1:
+                $nameVar = 'lead';  // часть названия переменной, ответственная за лиды
+                break;
+            case 2:
+                $nameVar = 'deal';  // часть названия переменной, ответственная за сделки
+                break;
+            case 3:
+                $nameVar = 'contact';  // часть названия переменной, ответственная за сделки
+                break;
+        }
+
+        // имена полей, которые доступны к изменению данной ВРМ
         $arrFieldNames = [
             'Title',
             'Name',
@@ -182,7 +221,7 @@ if(isset($act))
         /* Поля */
 
         foreach ($arrFieldNames as $value) {
-            ${$nameVar.$value} = $options[$nameVar.$value];
+            ${$nameVar.$value} = $options[$value];
         }
 
         /*
@@ -203,39 +242,160 @@ if(isset($act))
         */
 
 
-        switch ($leadCurrency) {
+        switch (${$nameVar.'Currency'}) {
             case 0:
-                $leadCurrency = "RUB";
+                ${$nameVar.'Currency'} = "RUB";
                 break;
             case 1:
-                $leadCurrency = "USD";
+                ${$nameVar.'Currency'} = "USD";
                 break;
             default:
-                $leadCurrency = "RUB";
+                ${$nameVar.'Currency'} = "RUB";
                 break;
         }
 
-        switch ($leadStatus) {
+        switch (${$nameVar.'Status'}) {
             case 1:
-                $leadStatus = "NEW";
+                ${$nameVar.'Status'} = "NEW";
                 break;
             case 2:
-                $leadStatus = "IN_PROCESS";
+                ${$nameVar.'Status'} = "IN_PROCESS";
                 break;
             case 3:
-                $leadStatus = "PROCESSED";
+                ${$nameVar.'Status'} = "PROCESSED";
                 break;
             default:
-                $leadStatus = "NEW";
+                ${$nameVar.'Status'} = "NEW";
                 break;
         }
+
+        $response = call(
+            $queryUrl,
+           'crm.'.$nameVar.'.fields',
+           [
+              
+        ]);
+        $fieldsBitrix = $response['result'];
+
+        foreach ($fieldsBitrix as $value) {
+        	if( $value['filterLabel'] == 'vk_uid' )
+        	{
+        		$vk_uid_field = $value['title'];
+        		break;
+        	}
+        }
+
+        if( empty($vk_uid_field))
+        {
+        	$message = 'Не найдено поле vk_uid';
+        } 
   
 
         switch ($type) {
             
-            // добавить лид
+            // добавить/изменить лид
             case 1:
 
+            	$email_duplicate = 0;
+            	$phone_duplicate = 0;
+            	// ищем в списке уже имеющийся VK_UID
+                $response = call(
+                    $queryUrl,
+                   'crm.'.$nameVar.'.list',
+                   [
+                      'filter' => [
+                      		$vk_uid_field => $target
+                      ],
+                      'select' => [
+			            'ID'
+			        ]
+                ]);
+
+                $foundId = $response['result'][0]['ID'];
+
+                if(empty($foundId))
+                {
+                	// ищем в списке уже имеющийся EMAIL
+	                $response = call(
+	                    $queryUrl,
+	                   'crm.'.$nameVar.'.list',
+	                   [
+	                      'filter' => [
+	                      		"EMAIL" => [
+                                        "VALUE" => [                            // изменение почты
+                                            "VALUE" => ${$nameVar.'Email'}
+                                        ]
+                                    ]
+	                      ],
+	                      'select' => [
+				            'ID'
+				        ]
+	                ]);
+	                $foundId = $response['result']['ID'];
+
+	                if(empty($foundId))
+	                {
+	                	// ищем в списке уже имеющийся ТЕЛЕФОН
+		                $response = call(
+		                    $queryUrl,
+		                   'crm.'.$nameVar.'.list',
+		                   [
+		                      'filter' => [
+		                      		"PHONE" => [
+	                                        "VALUE" => [                            // изменение почты
+	                                            "VALUE" => ${$nameVar.'Phone'}
+	                                        ]
+	                                    ]
+		                      ],
+		                      'select' => [
+					            'ID'
+					        ]
+		                ]);
+		                $foundId = $response['result']['ID'];
+		                if( !empty($foundId) )
+		                {
+		                	$message = 'Найден телефон';
+		                }
+	                }
+	                else
+	                {
+	                	$message = 'Найден email';
+	                }
+                }
+                else
+                {
+                	$message = 'Найден vk_uid';
+                }
+
+                // проверяем совпадения телефона и email
+
+                if( !empty($foundId) )
+                {
+                	$response = call(
+	                    $queryUrl,
+	                   'crm.'.$nameVar.'.get',
+	                   [
+	                      'id' => $foundId
+	                ]);
+	                $result = $response['result'];
+
+	                foreach ($result['EMAIL'] as $value) {
+	                	if( $value['VALUE'] == ${$nameVar.'Email'} )
+	                	{
+	                		$email_duplicate = 1;
+	                		break;
+	                	}
+	                }
+
+	                foreach ($result['PHONE'] as $value) {
+	                	if( $value['VALUE'] == ${$nameVar.'Phone'} )
+	                	{
+	                		$phone_duplicate = 1;
+	                		break;
+	                	}
+	                }
+                }
+               
                 $fieldsToAdd = array();
 
                 /*
@@ -269,117 +429,102 @@ if(isset($act))
                     if(${$nameVar.$value} != "")
                     {
                         $fieldName = mb_strtoupper($value);
+
+                        if( !empty($foundId) )
+                        {
+                            if($fieldName == 'TITLE')
+                                continue;
+                        }
+                        
                         if($fieldName == 'PHONE')
                         {
-                            $fieldsToAdd = 
-                            array_merge(
-                                $fieldsToAdd, 
-                                array(
-                                    "PHONE" => [
-                                        "VALUE" => [                            // добавляем телефон
-                                            "VALUE" => $leadPhone,
-                                            "VALUE_TYPE" => "MOBILE"
-                                        ]
-                                    ]
-                                )
-                            );
-                            continue;   
+                        	if(!$phone_duplicate)
+                        	{
+                        		$fieldsToAdd = 
+	                            array_merge(
+	                                $fieldsToAdd, 
+	                                array(
+	                                    "PHONE" => [
+	                                        "VALUE" => [                            // добавляем телефон
+	                                            "VALUE" => ${$nameVar.'Phone'},
+	                                            "VALUE_TYPE" => "MOBILE"
+	                                        ]
+	                                    ]
+	                                )
+	                            );
+	                            continue;
+                        	}        
                         }
                         if($fieldName == 'EMAIL')
                         {
-                            $fieldsToAdd = 
-                            array_merge(
-                                $fieldsToAdd, 
-                                array(
-                                    "EMAIL" => [
-                                        "VALUE" => [                            // изменение почты
-                                            "VALUE" => $leadEmail,
-                                            "VALUE_TYPE" => "HOME"
-                                        ]
-                                    ]
-                                )
-                            );
-                            continue;   
+                        	if(!$email_duplicate)
+                        	{
+	                            $fieldsToAdd = 
+	                            array_merge(
+	                                $fieldsToAdd, 
+	                                array(
+	                                    "EMAIL" => [
+	                                        "VALUE" => [                            // изменение почты
+	                                            "VALUE" => ${$nameVar.'Email'},
+	                                            "VALUE_TYPE" => "HOME"
+	                                        ]
+	                                    ]
+	                                )
+	                            );
+	                            continue;
+	                        }
                         }
-                        $fieldsToAdd = array_merge($fieldsToAdd, array($fieldName => ${$nameVar.$value}));
+
+                        $fieldsToAdd = array_merge( $fieldsToAdd, array( $fieldName => ${$nameVar.$value} ) );
                     }
                 }
 
-                $response = CRest::call(
-                   'crm.lead.add',
-                    [
-                      'fields' => $fieldsToAdd
-                    ]);
-                $result = $response['result'];
-                $out = 1;
-                break;
-
-            // изменить лид
-            case 2:
-                $fieldsToChange = array();
-
-                // процесс добавления описан в первом кейсе
-
-                foreach ($arrFieldNames as $value) {
-                    if(${$nameVar.$value} != "")
-                    {
-                        $fieldName = mb_strtoupper($value);
-                        if($fieldName == 'PHONE')
-                        {
-                            $fieldsToChange = 
-                            array_merge(
-                                $fieldsToChange, 
-                                array(
-                                    "PHONE" => [
-                                        "VALUE" => [                            // добавляем телефон
-                                            "VALUE" => $leadPhone,
-                                            "VALUE_TYPE" => "MOBILE"
-                                        ]
-                                    ]
-                                )
-                            );
-                            continue;   
-                        }
-                        if($fieldName == 'EMAIL')
-                        {
-                            $fieldsToChange = 
-                            array_merge(
-                                $fieldsToChange, 
-                                array(
-                                    "EMAIL" => [
-                                        "VALUE" => [                            // почта как и телефон
-                                            "VALUE" => $leadEmail,
-                                            "VALUE_TYPE" => "HOME"
-                                        ]
-                                    ]
-                                )
-                            );
-                            continue;   
-                        }
-                        $fieldsToChange = array_merge($fieldsToChange, array($fieldName => ${$nameVar.$value}));
-                    }
+                if( !empty($vk_uid_field) )
+                {
+                	$fieldsToAdd = array_merge($fieldsToAdd, array($vk_uid_field => $target));
                 }
 
-                $response = CRest::call(
-                   'crm.lead.update',
-                   [
-                      'id' => $inputId,
-                      'fields' => $fieldsToChange
-                    ]);
-                $result = $response['result'];
+                if( !empty($foundId) )
+                {  
+
+                	$response = call(
+	                    $queryUrl,
+	                   'crm.'.$nameVar.'.update',
+	                   [
+	                      'id' => $foundId,
+	                      'fields' => $fieldsToAdd
+	                    ]);
+	                $result = $response['result'];
+	                $message .= 'Перезаписана информация в '.$nameVar.' #'.$foundId;
+                }
+                else 
+                {
+                	$response = call(
+	                    $queryUrl,
+	                   'crm.'.$nameVar.'.add',
+	                    [
+	                      'fields' => $fieldsToAdd
+	                    ]);
+	                $result = $response['result'];
+	                $message .= 'Добавлен новый '.$nameVar;
+                }
+                
                 $out = 1;
                 break;
 
             // получить лид
-            case 3:
-                $response = CRest::call(
-                   'crm.lead.get',
+            case 2:
+                $response = call(
+                    $queryUrl,
+                   'crm.'.$nameVar.'.get',
                    [
                       'id' => $inputId
                 ]);
                 $result = $response['result'];
 
-                $foundLead = "";
+                $vk_uid = $result[$vk_uid_field];
+
+                $found = "";
                 foreach ($result as $key => $value) {
                     if($value != "")
                     {
@@ -394,11 +539,11 @@ if(isset($act))
 
                         if($key == 'PHONE')
                         {
-                            $foundLead .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
+                            $found .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
                         }
                         else if($key == 'EMAIL')
                         {
-                            $foundLead .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
+                            $found .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
                         }
                         // пропускаем значение этого ключа
                         elseif ($key == 'STATUS_SEMANTIC_ID') continue;
@@ -414,7 +559,7 @@ if(isset($act))
                                     break;
                             }
 
-                            $foundLead .= $russianKey.": ".$value.'<br>';
+                            $found .= $russianKey.": ".$value.'<br>';
                         }
                     }
                 }
@@ -422,9 +567,10 @@ if(isset($act))
                 break;
 
             // удалить лид
-            case 4:
-                $response = CRest::call(
-                   'crm.lead.delete',
+            case 3:
+                $response = call(
+                    $queryUrl,
+                   'crm.'.$nameVar.'.delete',
                    [
                       'id' => $inputId
                 ]);
@@ -443,12 +589,29 @@ if(isset($act))
             
             'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
                 'result' => $result,
-                'foundLead' => $foundLead
+                'found' => $found,
+                'message' => $message,
+                'vk_uid_field' => $vk_uid_field,
+                'vk_uid' => $vk_uid
             ]
         ];
 
     } elseif($act == '') {
         // Действие не задано, и что же нам сделать? Станцевать вальс, попрыгать, пойти в гости к Кролику?
+
+    }
+    elseif($act == 'man') {
+        $responce = [
+        	'html' => 
+        	'
+        	Доступные переменные:
+
+        	{b.{bid}.value.found} - информация по найденной карточке клиента
+        	{b.{bid}.value.vk_uid} - vk id клиента из карточки
+        	{b.{bid}.value.message} - информация по выполнению метода (если есть)
+        	{b.{bid}.value.result} - полный массив полученных данных при выполнении (для отладки, либо прямого доступа к нужным данным)
+        	';
+        ];
 
     }
 
@@ -457,5 +620,5 @@ if(isset($act))
 }
 else
 {
-   
+    echo '<p> Привет, Битрикс! Это приложение для АЮ. Управляй им там :)</p>';
 }
