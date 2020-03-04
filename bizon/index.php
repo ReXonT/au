@@ -106,8 +106,19 @@ if($act == 'options') {
                                     // text - текст комментария, сообщения и т.д.
     $out    = 0;                    // Номер выхода по умолчанию. Если дальнейший код не назначит другой выход - значит что-то не так
     $options = $_REQUEST['options'];
+    $session_id = $ums['id'];       // id сессии
 
     $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
+
+
+    $user = [
+    	'username' => 'lpwebinar@yandex.ru',
+    	'password' => 'BarkasPW303'
+	];
+
+    // авторизация
+    $bizon = new Bizon('cookies/'.$session_id.'cookie.txt');
+    $bizon->auth($user);
 
     $extype = $options['extype'];   // задача запроса
     $get_type = $options['get_type']; // тип получения информации
@@ -115,7 +126,6 @@ if($act == 'options') {
     $search_type = $options['search_type']; // тип поиска по вебинарам (автовеб, веб или везде)
 
     $web = [
-        'date' => $options['web_date'],     // дата вебинара
         'time' => $options['web_time'],     // время вебинара
         'room' => $options['room_id']       // ID комнаты вебинара
     ];
@@ -123,11 +133,6 @@ if($act == 'options') {
     // перевод в нужный формат даты
     $tmp = explode('.', $web['date']);
     $web['date'] = implode('-', $tmp);
-
-    $user = [
-    	'username' => 'lpwebinar@yandex.ru',
-    	'password' => 'BarkasPW303'
-	];
 
     switch ($search_type) {
         // искать везде
@@ -159,10 +164,6 @@ if($act == 'options') {
         'LiveWebinars' => $live_web,
         'AutoWebinars' => $auto_web
     ];
-
-    // авторизация
-    $bizon = new Bizon();
-    $bizon->auth($user); 
 
     switch ($get_type) {
         // полный отчет 
@@ -287,6 +288,8 @@ if($act == 'options') {
         $res .= "\nНаписано сообщений: ".$value['messages_num'];
     }*/
     $out = 1;
+
+    unlink('cookies/'.$session_id.'cookie.txt');                        // удаляем файл куки
 
     $responce = [
         'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля!

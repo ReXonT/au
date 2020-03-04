@@ -2,9 +2,14 @@
 
 class Bizon 
 {
-    private $cookie_file = 'cookie.txt';
+    private $cookie_file;
     private $url = 'https://online.bizon365.ru/api/v1/';
     private $useragent = 'activeusers';
+
+    public function __construct($cookie)
+    {
+        $this->$cookie_file = $cookie;
+    }
 
     function call ($method, $params) 
     {
