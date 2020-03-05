@@ -250,9 +250,10 @@ if($act == 'options') {
                                     // text - текст комментария, сообщения и т.д.
     $out    = 0;                    // Номер выхода по умолчанию. Если дальнейший код не назначит другой выход - значит что-то не так
     $options = $_REQUEST['options'];
-    $session_id = $ums['id'];       // id сессии
-
+    
     $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
+
+    $session_id = $ps['id'];       // id сессии
 
     $admin = [
     	'username' => $ps['options']['account'],
@@ -268,7 +269,7 @@ if($act == 'options') {
     /* Инициализация переменных */
     $option = $options['option']; // с чем работаем
     $write_type = $options['write_type']; // перевод в текст
-    $str = "";  // строка для вывода текста
+    $result = "";  // строка для вывода результата работы
 
     /* + Выбираем с кем работаем */
     switch ($option) {
@@ -281,7 +282,7 @@ if($act == 'options') {
             $option_name = 'webinar';
             break;
         default:
-            $str = 'Ошибка выбора типа действия';
+            $result = 'Ошибка выбора типа действия';
             break;
     }
 
@@ -303,6 +304,17 @@ if($act == 'options') {
         'date' => $options[$option_name.'_date'],     // дата вебинара
         'time' => $options[$option_name.'_time'],     // время вебинара
         'room' => $options[$option_name.'_room_id']       // ID комнаты вебинара
+    ];
+
+    /* Указываем какие данные из карточки зрителя нам нужны */
+    $return_keys = [
+        'username', // имя (+фамилия) пользователя
+        'phone',    // телефон
+        'email',    // email
+        'clickBanner', // был ли клик по баннеру
+        'clickFile',    // был ли клик по кнопке
+        'chatUserId',    // айди юзера в чате
+        'referer'   // источник
     ];
 
     /* Инициализация доступных методов по работе с Бизон365 */
@@ -399,60 +411,65 @@ if($act == 'options') {
             /* Получаем webinarId, считая от новейшего. Если нет привязки к комнате */
             else $params['webinarId'] = $web_list['list'][$last_num]['webinarId'];
 
-            /* Получаем инфо по нужному вебинару */
-            $web_info = $bizon->call($method, $params);
-
-            /* Работаем со зрителями */
-            if($option_name == 'viewers')
+            if( isset($params['webinar_id']) )
             {
+                $log .= 'Найден вебинар с webId: '.$params['webinarId'].'<br>';
+                /* Получаем инфо по нужному вебинару */
+                $web_info = $bizon->call($method, $params);
 
-                // получаем массив данных о зрителях выбранного веба
-                $users_info = $bizon->call( $bizon_methods['getviewers'], $params );
-
-                $return_keys = [
-                    'username', // имя (+фамилия) пользователя
-                    'phone',    // телефон
-                    'email',    // email
-                    'referer'   // источник
-                ];
-
-                $users = getUsersFromInfo($users_info, $return_keys);
-
-                $s = 0;
-                // Перебираем данные из зрителей (email, username, phone)
-                foreach ($users as $value) //  === 1 ===
+                /* Работаем со зрителями */
+                if($option_name == 'viewers')
                 {
-                    if($value['referer'])
+                    // проверяем: есть ли хоть 1 поле для поиска
+                    foreach ($viewer as $key => $value) 
                     {
-
-                    } // end if
-
-                    elseif( $value['phone'] || $value['email'] || $value['username'] )
-                    {
-                        // Перебираем данные по значениям, если phone, email или username
-                        foreach ($value as $k => $v) // === 2 ===
+                        if( !empty($value) )
                         {
-                            // Перебираем входные данные по искомому зрителю
-                            foreach ($viewer as $u) //  === 3 ===
+                            $viewer_to_find[$key] = $value;
+                        }    
+                    }
+
+                    if( isset($viewer_to_find) )
+                    {
+                        // получаем массив данных о зрителях выбранного веба
+                        $users_info = $bizon->call( $bizon_methods['getviewers'], $params );
+
+                        $users = getUsersFromInfo($users_info, $return_keys);
+
+                        $s = 0;
+                        // Перебираем данные из зрителей (email, username, phone)
+                        foreach ($users as $value) //  === 1 ===
+                        {
+                            foreach ($value as $k => $v) 
                             {
-                                // Если есть совпадение - возвращаем массив с данными найденного
-                                if($v == $u)
+                                // Если есть такое поле в исходном поиске
+                                if( isset($viewer_to_find[$k]) )
                                 {
-                                    $user = $value;
-                                    $str = 'Нашли по '.$k;
-                                    $s = 1;
-                                    break;  
-                                }       
-                            } //  end foreach 3 
+                                    // приводим к нижнему регистру оба текста
+                                    $v = mb_strtolower($v);
+                                    $viewer_to_find[$k] = mb_strtolower($viewer_to_find[$k]);
 
-                            if($s) break; 
-                        } //  end foreach 2
-                    } // end elseif
+                                    preg_match( '/'.$viewer_to_find[$k].'/', $v, $match );
+                                    if( !empty($match) && isset($match) )
+                                    {
+                                        $user = $value;
+                                        $log .= 'Нашли по '.$k.'<br>';
+                                        $s = 1;
+                                        break;
+                                    }
+                                } // end if
+                            }
 
-                    if($s) break; 
-                } //  end foreach 1 
-            
-            } //  end if ($option_name == 'viewers')
+                            if($s) break;
+                        } //  end foreach 1 
+                    } // end if isset
+                    else $result = 'Не указаны поля для поиска';
+                    
+                    if(!$s) $result = 'Не найден такой зритель';
+
+                } //  end if ($option_name == 'viewers')
+            } // end if ( isset $params['webinarId'] )
+            else $log .= 'Такой вебинар не найден <br>';
             break;
 
         /* Получаем вебинар по конкретным датам */
@@ -463,6 +480,8 @@ if($act == 'options') {
 
             $webinar_id = $web['room'].'*'.$web['date'].'T'.$web['time'];
 
+            $log .= 'Установлен webId: '.$webinar_id.'<br>';
+
             if($_REQUEST['test'])
             {
                 $webinar_id = '20578:prav_rody*2020-02-21T17:02:42';
@@ -471,7 +490,19 @@ if($act == 'options') {
             $params['webinarId'] = $webinar_id;
 
             /* Получаем инфо по нужному вебинару */
-            $web_info = $bizon->call($method, $params);
+            try
+            {
+                $web_info = $bizon->call($method, $params);
+            }
+            catch (Exception $e)
+            {
+                $log .= $e->getMessage().'<br>';
+            }
+
+            if( isset($web_info) )
+            {
+                $log .= 'Получены данные по webId <br>';
+            } else $log .= 'Ошибка запроса по webId <br>';
 
             break;
 
@@ -493,7 +524,7 @@ if($act == 'options') {
                 }
             }
             break;
-    }
+    } // end switch($extype)
 
 
     if($_REQUEST['debug'])
@@ -503,57 +534,65 @@ if($act == 'options') {
         echo '</pre>';
     }
 
-    /* Создаем строку для вывода данных для метода getviwers */
-    if( $write_type && $method == $bizon_methods['getviewers'] )
-    {
-        $return_keys = [
-            'username', // имя (+фамилия) пользователя
-            'phone',    // телефон
-            'email',    // email
-            'clickBanner', // был ли клик по баннеру
-            'clickFile',    // был ли клик по кнопке
-            'chatUserId',    // айди юзера в чате
-            'referer'   // источник
-        ];
-        
-        foreach ($web_info['viewers'] as $value) 
-        {
-            foreach ($value as $k => $v) 
+    switch ($option) {
+        // зрители
+        case 1:
+            if( $write_type )
             {
-                // Если есть значение в поле
-                if($v != "")
+                $result .= '<br>';
+                foreach ($user as $key => $value) 
                 {
-                    // Ищем только те, что нам нужны
-                    foreach ($return_keys as $r_k) 
-                    {
-                        // Если нашли - добавляем в строку
-                        if($k == $r_k)
-                        {
-                            $russian_key = russianName($k);
-                            $str .= $russian_key.": ".$v.'<br>';
-                        }
-                    }
+                    $russian_key = russianName($key);
+                    $result .= $russian_key.': '.$value.'<br>';
                 }
             }
-            $str .= '<br><br>';
-        }
-        $str .= "Общее число зрителей: ".$web_info['total'];
+            break;
+        // вебинары
+        case 2:
+            /* Создаем строку для вывода данных для метода getviwers */
+            if( $write_type && $method == $bizon_methods['getviewers'] )
+            {     
+                foreach ($web_info['viewers'] as $value) 
+                {
+                    foreach ($value as $k => $v) 
+                    {
+                        // Если есть значение в поле
+                        if($v != "")
+                        {
+                            // Ищем только те, что нам нужны
+                            foreach ($return_keys as $r_k) 
+                            {
+                                // Если нашли - добавляем в строку
+                                if($k == $r_k)
+                                {
+                                    $russian_key = russianName($k);
+                                    $result .= $russian_key.": ".$v.'<br>';
+                                }
+                            }
+                        }
+                    }
+                    $result .= '<br><br>';
+                }
+                $result .= "Общее число зрителей: ".$web_info['total'];
+            }
+            /* Создаем строку для вывода данных для метода get */
+            else if( $write_type && $method == $bizon_methods['get'] )
+            {
+                foreach ($web_info['report'] as $key => $value) 
+                {
+                    // Пропускаем большие массивы данных
+                    if($key == 'report' || $key == 'messages' || $key == 'messagesTS')
+                        continue;
+
+                    $result .= $key.": ".$value.'<br>';
+                }
+            }
+            else // иначе в результат отправляем весь массив данных
+            {
+                $result = $web_info;
+            }
+            break;
     }
-
-    /* Создаем строку для вывода данных для метода get */
-    if( $write_type && $method == $bizon_methods['get'] )
-    {
-        foreach ($web_info['report'] as $key => $value) 
-        {
-            // Пропускаем большие массивы данных
-            if($key == 'report' || $key == 'messages' || $key == 'messagesTS')
-                continue;
-
-            $str .= $key.": ".$value.'<br>';
-        }
-    }
-
-
 
     $out = 1;
 
@@ -563,9 +602,9 @@ if($act == 'options') {
         'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля!
         
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
-            'web_info' => $web_info,     // где N - порядковый номер блока в схеме
-            'str' => $str,
-            'user' => $user
+            'result' => $result,     // где N - порядковый номер блока в схеме
+            'user' => $user,
+            'log' => $log
         ]
     ];
 
@@ -577,7 +616,7 @@ if($act == 'options') {
         'html' =>'###Доступные переменные:
 
         **{b.{bid}.value.web_info}** - массив, в котором содержатся все поля, полученные от Бизон365. Чтобы посмотреть то, что пришло - включите режим отладки.
-        **{b.{bid}.value.str}** - текстовая строка отчета (если указано)
+        **{b.{bid}.value.result}** - текстовая строка отчета (если указано)
         '
     ];
 }
