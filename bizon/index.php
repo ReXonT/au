@@ -272,6 +272,8 @@ if($act == 'options') {
     if(empty($match))
     {
         $log .= $auth['message'].' Количество попыток осталось: '.$auth['availAttempts'].'<br>';
+        closeScript($log);
+        exit();
     }
     else
     {
@@ -426,10 +428,11 @@ if($act == 'options') {
                     $log .= 'Найден вебинар с webId: '.$params['webinarId'].'<br>';
                     
                     $web_info = $bizon->call($method, $params);
+
                     /* Получаем инфо по нужному вебинару */
                     if( !isset($web_info['message']) )
                     {
-                        $eee = 1;
+
                         /* Работаем со зрителями */
                         if($option_name == 'viewers')
                         {
@@ -447,42 +450,68 @@ if($act == 'options') {
                                 // получаем массив данных о зрителях выбранного веба
                                 $users_info = $bizon->call( $bizon_methods['getviewers'], $params );
 
-                                $users = getUsersFromInfo($users_info, $return_keys);
-
-                                $s = 0;
-                                // Перебираем данные из зрителей (email, username, phone)
-                                foreach ($users as $value) //  === 1 ===
+                                if( !isset($users_info['message']) )
                                 {
-                                    foreach ($value as $k => $v) 
+                                    $users = getUsersFromInfo($users_info, $return_keys);
+
+                                    /* Ищем зрителя на вебинаре */
+                                    if($viewers_method == 2)
                                     {
-                                        // Если есть такое поле в исходном поиске
-                                        if( isset($viewer_to_find[$k]) )
+
+                                        $s = 0; // стоп-переменная
+                                        
+                                        // Перебираем данные из зрителей (email, username, phone)
+                                        foreach ($users as $value) //  === 1 ===
                                         {
-                                            // приводим к нижнему регистру оба текста
-                                            $v = mb_strtolower($v);
-                                            $viewer_to_find[$k] = mb_strtolower($viewer_to_find[$k]);
-
-                                            preg_match( '/'.$viewer_to_find[$k].'/', $v, $match );
-                                            if( !empty($match) && isset($match) )
+                                            foreach ($value as $k => $v) 
                                             {
-                                                $user = $value;
-                                                $log .= 'Нашли по '.$k.'<br>';
-                                                $s = 1;
-                                                break;
-                                            }
-                                        } // end if
-                                    }
+                                                // Если есть такое поле в исходном поиске
+                                                if( isset($viewer_to_find[$k]) )
+                                                {
+                                                    // приводим к нижнему регистру оба текста
+                                                    $v = mb_strtolower($v);
+                                                    $viewer_to_find[$k] = mb_strtolower($viewer_to_find[$k]);
 
-                                    if($s) break;
-                                } //  end foreach 1 
+                                                    preg_match( '/'.$viewer_to_find[$k].'/', $v, $match );
+                                                    if( !empty($match) && isset($match) )
+                                                    {
+                                                        $user = $value;
+                                                        $log .= 'Нашли по '.$k.'<br>';
+                                                        $s = 1;
+                                                        break;
+                                                    }
+                                                } // end if
+                                            }
+
+                                            if($s) break;
+                                        } //  end foreach 1
+
+                                    } // end метода поиска зрителя на вебинаре 
+                                }
+                                else 
+                                {
+                                    $log .= 'Ошибка запроса к Бизон365: '.$users_info['message'].'<br>';
+                                    closeScript($log);
+                                    exit();
+                                }                     
                             } // end if isset
-                            else $result = 'Не указаны поля для поиска';
+                            else
+                            {
+                                $log .= 'Не указаны поля для поиска <br>';
+                                closeScript($log);
+                                exit();
+                            }
                             
                             if(!$s) $result = 'Не найден такой зритель';
 
                         } //  end if ($option_name == 'viewers')
                     }   // end if isset web_info
-                    else $log .= 'Ошибка запроса к Бизон365: '.$web_info['message'].'<br>';  
+                    else 
+                    {
+                        $log .= 'Ошибка запроса к Бизон365: '.$web_info['message'].'<br>';
+                        closeScript($log);
+                        exit();
+                    }
                 } // end if ( isset $params['webinarId'] )
                 else $log .= 'Такой вебинар не найден <br>';
                 break;
@@ -517,7 +546,13 @@ if($act == 'options') {
                 if( isset($web_info) )
                 {
                     $log .= 'Получены данные по webId <br>';
-                } else $log .= 'Ошибка запроса по webId <br>';
+                } 
+                else
+                {
+                    $log .= 'Ошибка запроса по webId <br>';
+                    closeScript($log);
+                    exit();
+                }
 
                 break;
 
@@ -621,9 +656,7 @@ if($act == 'options') {
             'result' => $result,     // где N - порядковый номер блока в схеме
             'user' => $user,
             'log' => $log,
-            'auth' => $auth,
             'web_info' => $web_info,
-            'eee' => $eee
         ]
     ];
 

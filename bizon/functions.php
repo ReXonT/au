@@ -66,3 +66,17 @@ function getUsersFromInfo ($users_info, $return_keys)
 
     return $users;
 }
+
+function closeScript ($log)
+{
+    $responce = [
+        'out' => 0,         // Обязательно должен быть номер выхода out, отличный от нуля!
+        
+        'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
+            'log' => $log
+        ]
+    ];
+
+    // Отдать JSON, не кодируя кириллические символы в кракозябры
+    echo json_encode($responce, JSON_UNESCAPED_UNICODE);
+}
