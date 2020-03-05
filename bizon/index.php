@@ -290,6 +290,14 @@ if($act == 'options') {
     $get_type = $options[$option_name.'_get_type']; // тип получения информации
     $last_num = $options[$option_name.'_last_num']; // номер веба с конца
     $search_type = $options[$option_name.'_search_type']; // тип поиска по вебинарам (автовеб, веб или везде)
+    
+    /* Инициализируем данные по зрителю */ 
+    $viewer = [
+        'username' => $options[$option_name.'_username'],
+        'phone' => $options[$option_name.'_phone'],
+        'email' => $options[$option_name.'_email'],
+        'referer' => $options[$option_name.'_referer']  // источник
+    ];
 
     $web = [
         'date' => $options[$option_name.'_date'],     // дата вебинара
@@ -409,8 +417,42 @@ if($act == 'options') {
                 ];
 
                 $users = getUsersFromInfo($users_info, $return_keys);
+
+                $s = 0;
+                // Перебираем данные из зрителей (email, username, phone)
+                foreach ($users as $value) //  === 1 ===
+                {
+                    if($value['referer'])
+                    {
+
+                    } // end if
+
+                    elseif( $value['phone'] || $value['email'] || $value['username'] )
+                    {
+                        // Перебираем данные по значениям, если phone, email или username
+                        foreach ($value as $k => $v) // === 2 ===
+                        {
+                            // Перебираем входные данные по искомому зрителю
+                            foreach ($viewer as $u) //  === 3 ===
+                            {
+                                // Если есть совпадение - возвращаем массив с данными найденного
+                                if($v == $u)
+                                {
+                                    $user = $value;
+                                    $str = 'Нашли по '.$k;
+                                    $s = 1;
+                                    break;  
+                                }       
+                            } //  end foreach 3 
+
+                            if($s) break; 
+                        } //  end foreach 2
+                    } // end elseif
+
+                    if($s) break; 
+                } //  end foreach 1 
             
-            }
+            } //  end if ($option_name == 'viewers')
             break;
 
         /* Получаем вебинар по конкретным датам */
@@ -433,39 +475,11 @@ if($act == 'options') {
 
             break;
 
-        // получаем список последних вебов
+        /* Получаем данные по списку последних вебинаров. 
+        Учитывая поиск по автовебам/живым */
         case 3:
-            /* Получаем данные по списку последних вебинаров. 
-            Учитывая поиск по автовебам/живым 
 
-            Получает массив вида:
-            [skip] => 0
-            [limit] => 20
-            [rooms] => Array
-                (
-                )
-
-            [count] => 106
-            [list] => Array
-                (
-                    [0] => Array
-                        (
-                            [_id] => 5e5eb3f2bd211614f9b6a8e1
-                            [name] => 20578:subarenda
-                            [text] => Завершен автовебинар 20578/20578:subarenda, начало: 03.03.2020 20:00, длительность: 166 минут, участников: 0
-                            [type] => AutoWebinars
-                            [nerrors] => 0
-                            [count1] => 0
-                            [count2] => 166
-                            [data] => {"minutes":166,"roomid":"20578:subarenda","group":20578,"start":1583254800000,"stat":0}
-                            [webinarId] => 20578:subarenda*2020-03-03T20:00:00
-                            [created] => 2020-03-03T19:45:54.955Z
-                        )
-            */
-
-            $method = $bizon_methods['getlist']; 
-
-            $web_list = $bizon->call($method, $params);
+            $web_list = $bizon->call($bizon_methods['getlist'], $params);
 
 
             if( !empty($web['room']) && isset($web['room']) )
@@ -551,9 +565,7 @@ if($act == 'options') {
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'web_info' => $web_info,     // где N - порядковый номер блока в схеме
             'str' => $str,
-            'params' => $params,
-            'webId' => $webinar_id,
-            'users' => $users
+            'user' => $user
         ]
     ];
 
@@ -610,34 +622,29 @@ echo json_encode($responce, JSON_UNESCAPED_UNICODE);
 "loaded": 14
 
 Содержание ответа getlist
-Array
-(
-    [skip] => 0
-    [limit] => 20
-    [rooms] => Array
-        (
-        )
+Получает массив вида:
+[skip] => 0
+[limit] => 20
+[rooms] => Array
+    (
+    )
 
-    [count] => 106
-    [list] => Array
-        (
-            [0] => Array
-                (
-                    [_id] => 5e5eb3f2bd211614f9b6a8e1
-                    [name] => 20578:subarenda
-                    [text] => Завершен автовебинар 20578/20578:subarenda, начало: 03.03.2020 20:00, длительность: 166 минут, участников: 0
-                    [type] => AutoWebinars
-                    [nerrors] => 0
-                    [count1] => 0
-                    [count2] => 166
-                    [data] => {"minutes":166,"roomid":"20578:subarenda","group":20578,"start":1583254800000,"stat":0}
-                    [webinarId] => 20578:subarenda*2020-03-03T20:00:00
-                    [created] => 2020-03-03T19:45:54.955Z
-                )
-            ...
-        )
-
-)
+[count] => 106
+[list] => Array
+    (
+        [0] => Array
+            (
+                [_id] => 5e5eb3f2bd211614f9b6a8e1
+                [name] => 20578:subarenda
+                [text] => Завершен автовебинар 20578/20578:subarenda, начало: 03.03.2020 20:00, длительность: 166 минут, участников: 0
+                [type] => AutoWebinars
+                [nerrors] => 0
+                [count1] => 0
+                [count2] => 166
+                [data] => {"minutes":166,"roomid":"20578:subarenda","group":20578,"start":1583254800000,"stat":0}
+                [webinarId] => 20578:subarenda*2020-03-03T20:00:00
+                [created] => 2020-03-03T19:45:54.955Z
+            )
 
 */
 
