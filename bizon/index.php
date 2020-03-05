@@ -1,6 +1,7 @@
 <?php
 
 require('bizon.class.php');
+require('functions.php');
 
 $act = $_REQUEST['act'];
 
@@ -14,7 +15,7 @@ if($act == 'options') {
         'paysys' => [                   // Группа полей, отвечающая за интеграцию с платёжными системами и внешними сервисами.
             'ps' => [                   // ВРМ получит доступ к ID аккаунта, секретному ключу и другим атрибутам выбранной системы
                 'title' => 'Интеграция',
-                'type' => 6
+                'type' => 12
             ]
         ],
         'vars' => [                     // переменные, которые можно будет настроить в блоке
@@ -254,8 +255,8 @@ if($act == 'options') {
     $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
 
     $admin = [
-    	'username' => 'lpwebinar@yandex.ru',
-    	'password' => 'BarkasPW303'
+    	'username' => $ps['options']['account'],
+    	'password' => $ps['options']['secret']
 	];
 
     $cookie = 'cookies/'.$session_id.'cookie.txt';  // адрес создания куки файла
@@ -407,27 +408,7 @@ if($act == 'options') {
                     'referer'   // источник
                 ];
 
-                /* Получаем массив с данными зрителей */
-                $i = 0;
-                foreach ($users_info['viewers'] as $value) 
-                {
-                    foreach ($value as $k => $v) 
-                    {
-                        // Если есть значение в поле
-                        if($v != "")
-                        {
-                            // Ищем только те, что нам нужны
-                            foreach ($return_keys as $r_k) 
-                            {
-                                if($k == $r_k)
-                                {
-                                    $users[$i][$k] = $v;
-                                }
-                            }
-                        }
-                    }
-                    $i++;
-                }
+                $users = getUsersFromInfo($users_info, $return_keys);
             
             }
             break;
@@ -581,11 +562,10 @@ if($act == 'options') {
 
 } elseif($act == 'man') {
     $responce = [
-        'html' =>
-        'Доступные переменные:
+        'html' =>'###Доступные переменные:
 
-        {b.{bid}.value.web_info} - массив, в котором содержатся все поля, полученные от Бизон365. Чтобы посмотреть то, что пришло - включите режим отладки.
-        {b.{bid}.value.str} - текстовая строка отчета (если указано)
+        **{b.{bid}.value.web_info}** - массив, в котором содержатся все поля, полученные от Бизон365. Чтобы посмотреть то, что пришло - включите режим отладки.
+        **{b.{bid}.value.str}** - текстовая строка отчета (если указано)
         '
     ];
 }
@@ -661,40 +641,3 @@ Array
 
 */
 
-function russianName($key)
-{
-    $name = [
-            'ip' => 'IP',
-            'city' => 'Город',
-            'country' => 'Страна', 
-            'email' => 'Email',
-            'username' => 'Имя',
-            'phone' =>  'Телефон',
-            'finished' =>  'Дошел до конца',
-            'view' =>  'Время входа UNIX',
-            'viewTill' =>  'Время выхода UNIX',
-            'page' => 'Страница регистрации',
-            'partner' =>  'Refid партнера',
-            'ban' =>  'Забанен?',
-            'ignore' => 'В игнор?',
-            'referer' =>  'Источник',
-            'mob' => 'С мобильного?',
-            'clickBanner' =>  'Клик по баннеру',
-            'clickFile' => ' Клик по кнопке',
-            'vizitForm' =>  'Открыта форма заказа',
-            'newOrder' =>   'Номер оформленного заказа',
-            'orderDetails' => 'Название товара в оформленном заказе', 
-            'utm_source' => 'utm_source', 
-            'utm_medium' => 'utm_medium', 
-            'utm_campaign' => 'utm_campaign', 
-            'utm_term' => 'utm_term',
-            'utm_content' =>  'utm_content',
-            'uid' => 'Идентификатор подписчика',
-            'playVideo' => 'Запустил просмотр',
-            'total' => 'Общее число зрителей',
-            'viewers' => 'Зрители',
-            'chatUserId' => 'ID в чате'
-    ];
-    return $name[$key];
-
-}
