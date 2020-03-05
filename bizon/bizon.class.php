@@ -2,13 +2,13 @@
 
 class Bizon 
 {
-    private $cookie_file;
-    private $url = 'https://online.bizon365.ru/api/v1/';
-    private $useragent = 'activeusers';
+    protected $cookie_file;
+    protected $url = 'https://online.bizon365.ru/api/v1/';
+    protected $useragent = 'activeusers';
 
     public function __construct($cookie)
     {
-        $this->$cookie_file = $cookie;
+        $this->cookie_file = $cookie;
     }
 
     function call ($method, $params) 
@@ -30,28 +30,31 @@ class Bizon
 
         $arr = json_decode($resp, 1);
 
-        $arr['link'] = $link;
-
         return $arr;
     }
 
     function auth ($user)
     {
 
+        $link = $this->url.'auth/login';
         $curl = curl_init(); 
 
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_USERAGENT, $useragent);
-        curl_setopt($curl, CURLOPT_URL, $link = $this->url.'/auth/login');
+        curl_setopt($curl, CURLOPT_URL, $link);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($user));
         curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-type: application/x-www-form-urlencoded'));
         curl_setopt($curl, CURLOPT_COOKIEFILE, $this->cookie_file); 
         curl_setopt($curl, CURLOPT_COOKIEJAR, $this->cookie_file); 
 
-        $out = curl_exec($curl); // Инициируем запрос к API и сохраняем ответ в переменную
-
+        $resp = curl_exec($curl); // Инициируем запрос к API и сохраняем ответ в переменную
+        
         curl_close($curl); // Завершаем сеанс cURL
+
+        $arr = json_decode($resp, 1);
+
+        return $arr;
     }
 
 }
