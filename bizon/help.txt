@@ -34,7 +34,30 @@
 "limit": 1000,
 "loaded": 14
 
-Содержание ответа getlist
+==== Содеражание ответа get ====
+
+"web_info": {
+    "orders": [],
+    "report": {
+        "_id": "5e61e34053181f1507b8f6e8",
+        "group": "20578",
+        "roomid": "20578:subarendator",
+        "webinarId": "20578:subarendator*2020-03-06T08:43:41",
+        "report": "{\"rating\":[\"HSA7Qw1BL\",\"B5HVXPJHU\",\"B96uxPJr8\"],\"urls\":{\"https://start.bizon365.ru/room/20578/subarendator?vk_uid=102036383\":1,\"https://start.bizon365.ru/room/20578/subarendator?vk_uid=323580766\":1},\"partners\":{},\"utmStat\":{\"utm_source\":{},\"utm_medium\":{},\"utm_campaign\":{},\"utm_term\":{},\"utm_content\":{},\"utm_keyword\":{},\"utm_banner\":{},\"utm_phrase\":{},\"utm_group\":{}},\"usersMeta\":{\"B96uxPJr8\":{\"_id\":\"5e61e31853181f1507b8f6c7\",\"playVideo\":0,\"username\":\"Александра\",\"chatUserId\":\"B96uxPJr8\",\"roomid\":\"20578:subarendator\",\"ip\":\"176.59.108.79\",\"mob\":true,\"np\":true,\"webinarId\":\"20578:subarendator*2020-03-06T08:43:41\",\"created\":\"2020-03-06T05:43:52.045Z\",\"phone\":\"+79043901248\",\"__v\":0,\"view\":1583473433997,\"viewTill\":1583473433997,\"messages_num\":0},\"HSA7Qw1BL\":{\"_id\":\"5e61e32c53181f1507b8f6cf\",\"playVideo\":1,\"username\":\"Марья\",\"url\":\"https://start.bizon365.ru/room/20578/subarendator?vk_uid=102036383\",\"ip\":\"176.213.8.58\",\"useragent\":\"Microsoft Windows, Firefox 73.0\",\"referer\":\"https://away.vk.com/\",\"cu1\":\"102036383\",\"p1\":\"\",\"p2\":\"\",\"p3\":\"\",\"roomid\":\"20578:subarendator\",\"chatUserId\":\"HSA7Qw1BL\",\"city\":\"Нижний Новгород\",\"country\":\"RU\",\"region\":\"Нижегородская область\",\"tz\":\"\",\"created\":\"2020-03-06T05:44:12.023Z\",\"__v\":0,\"webinarId\":\"20578:subarendator*2020-03-06T08:43:41\",\"view\":1583473448843,\"viewTill\":1583473462708,\"messages_num\":8},\"B5HVXPJHU\":{\"_id\":\"5e61e32c53181f1507b8f6d6\",\"playVideo\":1,\"username\":\"Артем\",\"url\":\"https://start.bizon365.ru/room/20578/subarendator?vk_uid=323580766\",\"ip\":\"176.59.108.79\",\"mob\":true,\"useragent\":\"iPhone, Safari 13.0.1, iPhone\",\"referer\":\"\",\"cu1\":\"323580766\",\"p1\":\"\",\"p2\":\"\",\"p3\":\"\",\"roomid\":\"20578:subarendator\",\"chatUserId\":\"B5HVXPJHU\",\"city\":\"Нижний Новгород\",\"country\":\"RU\",\"region\":\"Нижегородская область\",\"tz\":\"\",\"created\":\"2020-03-06T05:44:12.149Z\",\"__v\":0,\"webinarId\":\"20578:subarendator*2020-03-06T08:43:41\",\"view\":1583473455119,\"viewTill\":1583473469835,\"messages_num\":3,\"finished\":true}}}",
+        "messages": "{\"B96uxPJr8\":[],\"HSA7Qw1BL\":[\"суслик\",\"работай\",\"привет\",\"пока\",\"болят\",\"бока\",\"аха\",\"хаха\"],\"B5HVXPJHU\":[\"Привет\",\"Ты тут одна\",\"?\"]}",
+        "messagesTS": "{\"B96uxPJr8\":[],\"HSA7Qw1BL\":[31,32,34,36,38,39,41,43],\"B5HVXPJHU\":[41,46,48]}",
+        "ver": 2,
+        "created": "2020-03-06T05:44:32.112Z",
+        "__v": 0
+    },
+    "room_title": "БИЗНЕС НА ПОСУТОЧНОЙ АРЕНДЕ КВАРТИР"
+}
+
+
+
+
+==== Содержание ответа getlist ====
+
 Получает массив вида:
 [skip] => 0
 [limit] => 20

@@ -438,7 +438,8 @@ if($act == 'options') {
         /* Инициализуем массив с параметрами запроса к АПИ Бизон365 */
         $params = [
             'LiveWebinars' => $live_web,
-            'AutoWebinars' => $auto_web
+            'AutoWebinars' => $auto_web,
+            'limit' => 100 // забирать 100 последних вебинаров
         ];
 
         /* Задаем $method выбранного типа */
@@ -833,13 +834,14 @@ if($act == 'options') {
                 /* Если искали сообщения */
                 if($write_type && $viewers_method == 1)
                 {
-                    $result = "Сообщения от ".$user['username']." с вебинара комнаты: ".$web['room'].'. Дата проведения: '.$web['date'].' Время:'.$web['time'].'<br><br>';
+                    $result = "Сообщения от ".$user['username']." с вебинара комнаты: ".$web['room'].'. Дата проведения: '.$web['date'].' Время: '.$web['time'].'<br><br>';
                     
                     /* Вывод сообщений вида «Привет», «Пока» */
                     foreach ($messages as $value) 
                     {
                         $result .= '«'.$value.'», ';
                     }
+                    $result = rtrim($result, ', ');
                 }
 
                 /* Если искали человека на вебинаре */
