@@ -15,7 +15,7 @@ if($act == 'options') {
         'paysys' => [                   // Группа полей, отвечающая за интеграцию с платёжными системами и внешними сервисами.
             'ps' => [                   // ВРМ получит доступ к ID аккаунта, секретному ключу и другим атрибутам выбранной системы
                 'title' => 'AmoCRM',
-                'type' => 10
+                'type' => 11
             ]
         ],
         'vars' => [                     // переменные, которые можно будет настроить в блоке
@@ -32,6 +32,9 @@ if($act == 'options') {
                 'values' => [
                     1 => 'Добавить',
                     2 => 'Обновить'
+                ],
+                'show' => [
+                    'method_type' => [1]
                 ],
                 'desc' => '',    
             ],
@@ -52,7 +55,7 @@ if($act == 'options') {
                 'default' => '',
                 'show' => [
                     'method_type' => [1],
-                    'exec_type' => [2]
+                    'exec_type' => [1,2]
                 ]
             ],
             
@@ -135,12 +138,13 @@ if($act == 'options') {
     $session_id = $ums['id'];       // id сессии
 
     $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
-    $user_login = $ps['options']['secret'];
-    $user_hash = $ps['options']['secret2'];
-    $subdomain = $ps['options']['account']; // Наш аккаунт - поддомен
+    $user_login = $ps['options']['account'];
+    $user_hash = $ps['options']['secret'];
+    $subdomain = $ps['options']['domain']; // Наш аккаунт - поддомен
 
-    
-    /* Выполнение */
+
+    $exec_name = 'add';                     // тип: добавление изначально
+    $exec_type = $options['exec_type'];     // тип добавления
 
     $amo = new Amo($user_login, $user_hash, $subdomain);
     
@@ -150,11 +154,11 @@ if($act == 'options') {
     $response = $response['response'];  
     if (isset($response['auth'])) // Флаг авторизации доступен в свойстве "auth"
     {
-        echo '<pre>';
+        /*echo '<pre>';
         print_r($response);
         echo '</pre>';
-        echo 'Авторизация прошла успешно';
-    }else echo 'Авторизация не удалась';
+        echo 'Авторизация прошла успешно';*/
+    }else /*echo 'Авторизация не удалась'*/ $error = 'Авторизация не удалась';
     //
     
 
@@ -190,8 +194,10 @@ if($act == 'options') {
                 ${'field_'.$type_name.'_email'} = $value['id'];
     }
 
-    // определяем тип выполнения (добавить, изменить ...)
-    $exec_type = $options['exec_type'];
+    if(empty(${'field_'.$type_name.'_vk_uid_id'}))
+    {
+        $error .= ' ;Не нашлось поля vk_uid';
+    }
 
     // массив имён полей
     $field_names = [
@@ -211,27 +217,52 @@ if($act == 'options') {
         $leads_id
         ....
     */
-    foreach ($field_names as $value) {
+    foreach ($field_names as $value) 
+    {
         ${$type_name.'_'.$value} = $options[$value];
     }
 
-    // именуем тип выполнения в понятный для amo
-    switch ($exec_type) {
-        case 1:
-            // Добавить сделку
-            $exec_name = 'add';
-            break;
+    $leads_status_name = mb_strtolower($leads_status_name);     // статус сделки к нижнему регистру
 
-        case 2:
-            // Удалить сделку
-            $exec_name = 'update';
-            break;
-        
-        default:
-            // code...
-            $exec_name = 'add';
-            break;
+    /* Если работаем с контактом,
+     * режим работы добавление/обновление выбираем автоматически
+     * если есть - обнови. если нет - создай
+     */
+
+    if($method_type == 1)
+    {
+        switch ($exec_type) {
+            
+            // добавление
+            case 1:
+                $exec_name = 'add';
+                break;
+            
+            // изменение
+            case 2:
+                $exec_name = 'update';
+                break;
+            
+        }
     }
+
+    ${'arr_'.$type_name} = $amo->get_info($session_id, $type_name);
+    foreach (${'arr_'.$type_name}['_embedded']['items'] as $value) 
+    {
+        foreach ($value['custom_fields'] as $v) {
+           if($v['name']=='vk_uid')
+            {
+                if($v['values'][0]['value'] == 'au'.$target)
+                {
+                    if($method_type == 2)
+                        $exec_name = 'update';
+                    ${$type_name}[$exec_name][0]['id'] = $value['id']; 
+                    break;
+                }
+            }   
+        } 
+    }  
+    
 
     // формируем массив на создание/изменение сущности
     /*
@@ -248,10 +279,6 @@ if($act == 'options') {
         }
     }
 
-    // добавляем дату изменения
-    ${$type_name}[$exec_name][0]['updated_at'] = time();
-
-
     // ставим vk_uid
     ${$type_name}[$exec_name][0]['custom_fields'] = [
         [
@@ -265,185 +292,161 @@ if($act == 'options') {
     ];
 
 
-    switch ($exec_type) 
+    // Работа с методами
+    if($method_type == 1)   // сделка
     {
-        case 1:
-            // Добавить
-            if($method_type == 2)   // если контакт
+        // узнаем id статуса воронки по его названию
+        if(!empty($leads_status_name))
+        {
+           $temp = $amo->get_info($session_id, 'pipelines');   // запрашиваем этапы воронки
+            foreach ($temp['_embedded']['items'] as $value) 
             {
-                // Проставляем телефон
-                $a = 
-                [
-                    'id' => ${'field_'.$type_name.'_phone'},
-                    'values' => [
-                        [
-                            'value' => ${$type_name.'_phone'},
-                            'enum' => 'MOB'
-                        ],
-                    ],
-                
-                ];
-
-                array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
-
-                // Проставляем email
-                $a = 
-                [
-                    'id' => ${'field_'.$type_name.'_email'},
-                    'values' => [
-                        [
-                            'value' => ${$type_name.'_email'},
-                            'enum' => 'WORK'
-                        ],
-                    ],
-                ];
-
-                array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
-
-
-                /* Привязываем сделки к контакту */
-                $result = $amo->get_info($session_id, 'leads');
-                $leads_id = "";
-                foreach ($result['_embedded']['items'] as $value) 
+                foreach ($value['statuses'] as $v) 
                 {
-                    foreach ($value['custom_fields'] as $v) {
-                       if($v['name']=='vk_uid')
-                        {
-                            if($v['values'][0]['value'] == 'au'.$target)
-                            {
-                                $leads_id .= $value['id'];
-                                $leads_id .= ',';
-                            }
-                        }   
+                    $v['name'] = mb_strtolower($v['name']);
+                    if($v['name'] == $leads_status_name)        // если нашлось такое название этапа
+                    {
+                        $leads[$exec_name][0]['status_id'] = $v['id'];    // получаем id этапа по названию
+                        break;                          // УБРАТЬ И ПЕРЕРАБОТАТЬ, ЕСЛИ МНОГО ВОРОНОК
                     }
                 }
-                $leads_id = rtrim($leads_id, ',');
-                $leads_id = explode(',', $leads_id);
-                ${$type_name}[$exec_name][0]['leads_id'] = $leads_id;
-            }
+                break;
+            } 
+        }         
+    }
+    if($method_type == 2)   // если контакт
+    {
+        // Проставляем телефон
+        $a = 
+        [
+            'id' => ${'field_'.$type_name.'_phone'},
+            'values' => [
+                [
+                    'value' => ${$type_name.'_phone'},
+                    'enum' => 'MOB'
+                ],
+            ],
 
-            $result = $amo->request(${$type_name}, $session_id, $type_name); // запрос на добавление общий
+        ];
 
+        array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
 
-            /* Добавляем примечание */            
-            $new_id = $result['_embedded']['items'][0]['id'];   // id элемента для привязки примечания
+        // Проставляем email
+        $a = 
+        [
+            'id' => ${'field_'.$type_name.'_email'},
+            'values' => [
+                [
+                    'value' => ${$type_name.'_email'},
+                    'enum' => 'WORK'
+                ],
+            ],
+        ];
 
-
-            $data[$exec_name][0] = [
-                'element_id' => $new_id,
-                'element_type' => $element_type,
-                'text' => ${$type_name.'_note'},
-                'note_type' => '4',
-                'created_at' => time(),
-                'responsible_user_id' => ${$type_name.'_responsible_user_id'}
-            ];
-            $result = $amo->request($data, $session_id, 'notes');
-            break;
-
-        case 2:
-            // изменить
-            ${'arr_'.$type_name} = $amo->get_info($session_id, $type_name);
-            foreach (${'arr_'.$type_name}['_embedded']['items'] as $value) 
-            {
-                foreach ($value['custom_fields'] as $v) {
-                   if($v['name']=='vk_uid')
-                    {
-                        if($v['values'][0]['value'] == 'au'.$target)
-                        {
-                            ${$type_name}['update'][0]['id'] = $value['id']; 
-                            break;
-                        }
-                    }   
-                } 
-            }
+        array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
 
 
-            if($method_type == 1)
-            {
-                $notes = $amo->get_info($session_id, 'notes?type=leads');   // запрашиваем данные по notes из сделок
-                $temp = $amo->get_info($session_id, 'pipelines');   // запрашиваем этапы воронки
-                foreach ($temp['_embedded']['items'] as $value) 
+        /* Привязываем сделки к контакту */
+        $result = $amo->get_info($session_id, 'leads');
+        $leads_id = "";
+        foreach ($result['_embedded']['items'] as $value) 
+        {
+            foreach ($value['custom_fields'] as $v) {
+               if($v['name']=='vk_uid')
                 {
-                    foreach ($value['statuses'] as $v) 
+                    if($v['values'][0]['value'] == 'au'.$target)
                     {
-                        if($v['name'] == $leads_status_name)        // если нашлось такое название этапа
-                        {
-                            $leads['update'][0]['status_id'] = $v['id'];    // получаем id этапа по названию
-                            break;                          // УБРАТЬ И ПЕРЕРАБОТАТЬ, ЕСЛИ МНОГО ВОРОНОК
-                        }
+                        $leads_id .= $value['id'];
+                        $leads_id .= ',';
                     }
-                    break;
-                }
+                }   
             }
-            if($method_type == 2)
+        }
+        $leads_id = rtrim($leads_id, ',');
+        $leads_id = explode(',', $leads_id);
+        ${$type_name}[$exec_name][0]['leads_id'] = $leads_id;
+    }
+
+    if($exec_name == 'add')
+    {
+        // добавляем дату изменения
+        ${$type_name}[$exec_name][0]['created_at'] = time();
+    }
+    else if($exec_name == 'update')
+    {
+        // добавляем дату изменения
+        ${$type_name}[$exec_name][0]['updated_at'] = time();
+    }
+
+    $result = $amo->request(${$type_name}, $session_id, $type_name); // запрос на добавление общий
+    //var_dump($result);
+
+
+    /* Работа с примечаниями
+     * добавить/удалить 
+     */
+
+    if($exec_name == 'add')
+    {
+        /* Добавляем примечание */            
+        $new_id = $result['_embedded']['items'][0]['id'];   // id элемента для привязки примечания
+
+
+        $data[$exec_name][0] = [
+            'element_id' => $new_id,
+            'element_type' => $element_type,
+            'text' => ${$type_name.'_note'},
+            'note_type' => '4',
+            'created_at' => time(),
+            'responsible_user_id' => ${$type_name.'_responsible_user_id'}
+        ];
+        // добавляем дату изменения
+        ${$type_name}['add'][0]['created_at'] = time();
+
+        $result = $amo->request($data, $session_id, 'notes');
+    }
+
+    if($exec_name == 'update')
+    {
+        if($type_name == 'leads')
+        {
+            $notes = $amo->get_info($session_id, 'notes?type=leads');   // запрашиваем данные по notes из сделок
+        }
+        else if ($type_name == 'contacts')
+        {
+            $notes = $amo->get_info($session_id, 'notes?type=contact');   // запрашиваем данные по notes из контакта
+        }
+        foreach ($notes['_embedded']['items'] as $value) 
+        {
+            if($value['element_id'] == ${$type_name}['update'][0]['id'])
             {
-                $notes = $amo->get_info($session_id, 'notes?type=contact');   // запрашиваем данные по notes из контактов
-
-                // Проставляем телефон
-                $a = 
-                [
-                    'id' => ${'field_'.$type_name.'_phone'},
-                    'values' => [
-                        [
-                            'value' => ${$type_name.'_phone'},
-                            'enum' => 'MOB'
-                        ],
-                    ],
-                
-                ];
-
-                array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
-
-                // Проставляем email
-                $a = 
-                [
-                    'id' => ${'field_'.$type_name.'_email'},
-                    'values' => [
-                        [
-                            'value' => ${$type_name.'_email'},
-                            'enum' => 'WORK'
-                        ],
-                    ],
-                ];
-
-                array_push(${$type_name}[$exec_name][0]['custom_fields'], $a);
+                $note_id = $value['id'];    // находим id сущности примечания
             }
+        }
 
-            $result = $amo->request(${$type_name}, $session_id, $type_name);    // общее изменение
+        /* Изменяем примечание */            
 
-            foreach ($notes['_embedded']['items'] as $value) 
-            {
-                if($value['element_id'] == ${$type_name}['update'][0]['id'])
-                {
-                    $note_id = $value['id'];    // находим id сущности примечания
-                }
-            }
-
-            $data[$exec_name][0] = [
+        $data[$exec_name][0] = [
                 'id' => $note_id,
                 'text' => ${$type_name.'_note'},
                 'updated_at' => time()
             ];
-            $result = $amo->request($data, $session_id, 'notes');
-            break;
-        
-        default:
-            // code...
-            break;
+        $result = $amo->request($data, $session_id, 'notes');
     }
     
-    var_dump($result);
-    unlink('cookies/'.$session_id.'cookie.txt'); // удаляем файл куки
+
+    unlink('cookies/'.$session_id.'cookie.txt');                        // удаляем файл куки
+    
     $out = 1;
 
     $responce = [
         'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля!
         
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
-            'id' => $new_id,
-            'res' => ${$type_name}[$exec_name],
-            'data' => $leads_id,
-            'lead' => ${$type_name}[$exec_name][0]['leads_id']
+            'error' => $error,
+            'exec_name' => $exec_name,
+            'type_name' => $type_name,
+            'data' => $data[$exec_name][0]
         ]
     ];
 

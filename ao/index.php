@@ -91,7 +91,7 @@ if($act == 'options') {
 		'last_name'=>$options['user_last_name'],
 		'email' => $options['user_email'],
 		'phone' => $options['user_phone'],
-		'vk_id' => $target
+        'vk_id' => $target
 	];
 
 	$deal = [
@@ -109,7 +109,7 @@ if($act == 'options') {
 	]);
 
 
-	/*// создаем контакт (если контакт с таким email существует, информация о нем будет обновлена)
+	// создаем контакт (если контакт с таким email существует, информация о нем будет обновлена)
 	$contact = $api->contact()->create([
 	    [
 	        'email' => $user['email'],
@@ -126,7 +126,7 @@ if($act == 'options') {
 	    echo 'Ошибка при создании контакта: ' . $contact;
 	}
 
-	$idContact = $contact->id_contact;*/
+	$idContact = $contact->id_contact;
 
 	// создаем счет для этого контакта
 	$invoice = $api->invoice()->create([
@@ -162,12 +162,15 @@ if($act == 'options') {
 
 	// ссылка на оплату находится в свойстве 'link_for_pay'
 	$payment_link = $invoice->link_for_pay;
+	$new_deal_id = $invoice->account_number;
 	$out = 1;
 
     $responce = [
         'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля! 
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
-            'payment_link' => $payment_link     // где N - порядковый номер блока в схеме
+            'payment_link' => $payment_link,     // где N - порядковый номер блока в схеме
+            'id' => $new_deal_id,
+            'target' => $target
         ]
     ];
 
