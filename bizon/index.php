@@ -109,7 +109,9 @@ if($act == 'options') {
                 'title' => 'Данные в доп. url',   // заголовок поля
                 'default' => '',
                 'show' => [
-                    'option' => [1]
+                    'option' => [1],
+                    'viewers_method' => [1,2,3]
+
                 ],
                 'desc' => 'Например, укажите здесь id пользователя, которого ищем. Если вы давали ему ссылку с его id (по инструкции)',    // описание поля, можно пару строк
             ],
@@ -122,8 +124,10 @@ if($act == 'options') {
                     1 => 'Показать ещё поля для поиска',
                     2 => 'Не показывать'
                 ],
+                'default' => 2,
                 'show' => [
-                    'option' => [1]
+                    'option' => [1],
+                    'viewers_method' => [1,2,3]
                 ],
                 'desc' => 'На случай, если не было установлено доп. поле или url',    // описание поля, можно пару строк
             ],
@@ -623,16 +627,19 @@ if($act == 'options') {
                         $messages_json = $web_info['report']['messages'];
                         $messages_php = json_decode($messages_json, 1);
                         $messages = $messages_php[$user['chatUserId']];
-                        if(!empty($messages))
+                        if( !($viewers_method == 4) )
                         {
-                            $result = 'Сообщения зрителя найдены';
-                        }
-                        else
-                        {
-                            $log .= 'Не найдено сообщений зрителя <br>';
-                            closeScript($log);
-                            exit();
-                        }
+                          if(!empty($messages))
+                            {
+                                $result = 'Сообщения зрителя найдены';
+                            }
+                            else
+                            {
+                                $log .= 'Не найдено сообщений зрителя <br>';
+                                closeScript($log);
+                                exit();
+                            }  
+                        } 
 
                         /* Если ищем ключевое слово в сообщении || Людей с ключевыми */
                         if($viewers_method == 3 || $viewers_method == 4)
