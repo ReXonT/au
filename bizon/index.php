@@ -678,55 +678,79 @@ if($act == 'options') {
                         /* Если ищем ключевое слово в сообщении || Людей с ключевыми */
                         if($viewers_method == 3 || $viewers_method == 4)
                         {
-                            // Если несколько слов указали в ВРМ
-                            $much = 0;
-
-                            /* Если это не метод "Точное соответствие" и есть запятые в тексте */
-                            if( $keyword_stype != 3 && strpos($keyword, ',') )
+                            /* Если хоть что-то указано в ключевиках */
+                            if( !empty($keyword) )
                             {
-                                $keyword = explode(',', $keyword);
-                                $much = 1;
-                            }
+                                // Если несколько слов указали в ВРМ
+                                $much = 0;
 
-                            $k = 0; // стоп-переменная
-
-                            // Если ищем все слова
-                            if($keyword_stype == 2)
-                            {
-                                // Считаем сколько слов
-                                $count = count($keyword);
-                                // Счетчик для вхождений
-                                $counter = 0;
-                            }
-
-                            // Цикл как обертка для 3 метода и ключевой для 4
-                            foreach ($messages_php as $key => $messages) 
-                            {
-                                /* Если метод на поиск сообщений - ставим сразу нужного зрителя */
-                                if($viewers_method == 3)
+                                /* Если это не метод "Точное соответствие" и есть запятые в тексте */
+                                if( $keyword_stype != 3 && strpos($keyword, ',') )
                                 {
-                                    $messages = $messages_php[$user['chatUserId']];
+                                    $keyword = explode(',', $keyword);
+                                    $much = 1;
                                 }
 
-                                foreach ($messages as $value) 
+                                $k = 0; // стоп-переменная
+
+                                // Если ищем все слова
+                                if($keyword_stype == 2)
                                 {
-                                    // Перевод в универсальный формат (trim и mb_strtolower)
-                                    $value = wordToUniversalFormat($value);
+                                    // Считаем сколько слов
+                                    $count = count($keyword);
+                                    // Счетчик для вхождений
+                                    $counter = 0;
+                                }
 
-                                    // если много слов
-                                    if($much)
+                                // Цикл как обертка для 3 метода и ключевой для 4
+                                foreach ($messages_php as $key => $messages) 
+                                {
+                                    /* Если метод на поиск сообщений - ставим сразу нужного зрителя */
+                                    if($viewers_method == 3)
                                     {
-                                       foreach ($keyword as $v) 
-                                       {
-                                            /* Переводим в универсальный формат */
-                                            $v = wordToUniversalFormat($v);
-                                            /* Находим совпадения */
-                                            preg_match('/'.$v.'/', $value, $match);
+                                        $messages = $messages_php[$user['chatUserId']];
+                                    }
 
-                                            if(!empty($match))
-                                            {
-                                                // Если поиск для "хотя бы 1 слово"
-                                                if($keyword_stype == 1)
+                                    foreach ($messages as $value) 
+                                    {
+                                        // Перевод в универсальный формат (trim и mb_strtolower)
+                                        $value = wordToUniversalFormat($value);
+
+                                        // если много слов
+                                        if($much)
+                                        {
+                                           foreach ($keyword as $v) 
+                                           {
+                                                /* Переводим в универсальный формат */
+                                                $v = wordToUniversalFormat($v);
+                                                /* Находим совпадения */
+                                                preg_match('/'.$v.'/', $value, $match);
+
+                                                if(!empty($match))
+                                                {
+                                                    // Если поиск для "хотя бы 1 слово"
+                                                    if($keyword_stype == 1)
+                                                    {
+                                                        $result = 'Найдено';
+                                                        $k = 1; // остановка циклов
+
+                                                        /* Если ищем всех зрителей с этим ключевиком */
+                                                        if($viewers_method == 4)
+                                                        {
+                                                            /* Добавляем в массив найденных зрителей chatUserId найденного */
+                                                            $users_with_keys[] = $key;
+                                                        }
+                                                        break;
+                                                    }
+                                                    /* Если ищем все слова - прибавляем найденных совпадений */ 
+                                                    elseif($keyword_stype == 2)
+                                                    {
+                                                        $counter++;
+                                                    }
+                                                    
+                                                }
+                                                /* Если нашли все слова для метода "искать все слова" */
+                                                if($keyword_stype == 2 && $counter == $count)
                                                 {
                                                     $result = 'Найдено';
                                                     $k = 1; // остановка циклов
@@ -739,18 +763,27 @@ if($act == 'options') {
                                                     }
                                                     break;
                                                 }
-                                                /* Если ищем все слова - прибавляем найденных совпадений */ 
-                                                elseif($keyword_stype == 2)
-                                                {
-                                                    $counter++;
-                                                }
-                                                
+                                            } // end foreach $keyword
+                                            if($k) break; 
+                                        } // end if ($much)
+
+                                        /* Если 1 ключевое слово указано */
+                                        else
+                                        {
+                                            /* Приводим в универсальный формат */
+                                            $keyword = wordToUniversalFormat($keyword);
+
+                                            /* Если поиск не на точное соответствие */
+                                            if($keyword_stype != 3)
+                                            {
+                                                /* Ищем вхождения */
+                                                preg_match('/'.$keyword.'/', $value, $found);
                                             }
-                                            /* Если нашли все слова для метода "искать все слова" */
-                                            if($keyword_stype == 2 && $counter == $count)
+                                            
+                                            if( ($keyword_stype == 3 && $keyword == $value) || ( isset($found) && !empty($found) ) )
                                             {
                                                 $result = 'Найдено';
-                                                $k = 1; // остановка циклов
+                                                $k = 1;
 
                                                 /* Если ищем всех зрителей с этим ключевиком */
                                                 if($viewers_method == 4)
@@ -760,51 +793,31 @@ if($act == 'options') {
                                                 }
                                                 break;
                                             }
-                                        } // end foreach $keyword
-                                        if($k) break; 
-                                    } // end if ($much)
+                                        } 
+                                    } // end foreach $messages
 
-                                    /* Если 1 ключевое слово указано */
-                                    else
-                                    {
-                                        /* Приводим в универсальный формат */
-                                        $keyword = wordToUniversalFormat($keyword);
+                                    /* Если выбран метод поиска ключевого слово в сообщениях 1 зрителя
+                                    не перебираем дальше массив зрителей */
+                                    if($viewers_method == 3) break;
 
-                                        /* Если поиск не на точное соответствие */
-                                        if($keyword_stype != 3)
-                                        {
-                                            /* Ищем вхождения */
-                                            preg_match('/'.$keyword.'/', $value, $match);
-                                        }
-                                        
-                                        if( ($keyword_stype == 3 && $keyword == $value) || ( isset($match) && !empty($match) ) )
-                                        {
-                                            $result = 'Найдено';
-                                            $k = 1;
+                                } // end foreach messages_php
 
-                                            /* Если ищем всех зрителей с этим ключевиком */
-                                            if($viewers_method == 4)
-                                            {
-                                                /* Добавляем в массив найденных зрителей chatUserId найденного */
-                                                $users_with_keys[] = $key;
-                                            }
-                                            break;
-                                        }
-                                    } 
-                                } // end foreach $messages
+                                if(!$k)
+                                {
+                                    $log .= 'Не нашли таких сообщений';
+                                    closeScript($log);
+                                    exit();
+                                }
+                            } // end if !empty($keyword)
 
-                                /* Если выбран метод поиска ключевого слово в сообщениях 1 зрителя
-                                не перебираем дальше массив зрителей */
-                                if($viewers_method == 3) break;
-
-                            } // end foreach messages_php
-
-                            if(!$k)
+                            /* Если нет ключевых слов к поиску */
+                            else
                             {
-                                $log .= 'Не нашли таких сообщений';
+                                $log .= 'Не указаны ключевые слова для поиска <br>';
                                 closeScript($log);
                                 exit();
                             }
+                            
                         } // end if $viewers_method == 3,4
                     } // end if $viewers_method == 1,3,4
                 }
