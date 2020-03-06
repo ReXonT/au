@@ -517,15 +517,24 @@ if($act == 'options') {
 
                 $web_list = $bizon->call($bizon_methods['getlist'], $params);
 
-                if( !empty($web['room']) && isset($web['room']) )
+                if( !isset($web_list['message']) )
                 {
-                    foreach ($web_list['list'] as $value) 
+                    if( !empty($web['room']) && isset($web['room']) )
                     {
-                        if( $value['name'] == $web['room'] )
+                        foreach ($web_list['list'] as $value) 
                         {
-                            $web_info[] = $value;
+                            if( $value['name'] == $web['room'] )
+                            {
+                                $web_info[] = $value;
+                            }
                         }
                     }
+                }
+                else 
+                {
+                    $log .= 'Ошибка запроса к Бизон365: '.$web_info['message'].'<br>';
+                    closeScript($log);
+                    exit();
                 }
                 break;
         } // end switch($extype)
