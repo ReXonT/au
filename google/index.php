@@ -430,8 +430,8 @@ elseif($act == 'run')
 	$spreadsheetProperties = $response->getProperties();
 	$work_spreadsheet_name = $spreadsheetProperties->title; // Название таблицы
 	
-	foreach ($response->getSheets() as $sheet) {
-	 
+	foreach ($response->getSheets() as $sheet) 
+    {
 		// Свойства листа
 		$sheetProperties = $sheet->getProperties();
 		if($sheetProperties->title == $work_sheet_title) // Название листа
@@ -478,7 +478,8 @@ elseif($act == 'run')
     $message = "";					// сообщение о результате
     $return_row = "";               // инициализация
 
-	switch ($option) {
+	switch ($option) 
+    {
 		// добавить строчку в конец
 		case 1:
 
@@ -528,7 +529,6 @@ elseif($act == 'run')
 			{
 				$find_col = $options['find_col'];	// колонка для поиска
 				$find_row = $options['find_row'];	// строка для поиска
-
 
 				// достать данные из листа рабочего
 				$json_text = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
@@ -765,13 +765,15 @@ elseif($act == '') {
 elseif($act == 'man') {
     $responce = [
         'html' => 
-        "
-        Доступные переменные в блоке:
+        "##Описание
+        Данная ВРМ работает напрямую с Гугл Таблицами через сервисный аккаунт. Подробная инструкция тут - https://vk.com/@rexont-google-tables-from-activeusers
+
+        ###Доступные переменные:
         
-        {b.{bid}.value.message}
+        **{b.{bid}.value.message}**
         Текстовое сообщение о результате выполнения действия (чаще для отладки)
 
-        {b.{bid}.value.return_row}
+        **{b.{bid}.value.return_row}**
         Элементы найденной строки или false - если не найдена строка по значению
         "
     ];
