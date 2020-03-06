@@ -734,7 +734,7 @@ if($act == 'options') {
                     closeScript($log);
                     exit();
                 }                     
-            } // end if isset
+            } // end if isset ['message']
             else
             {
                 $log .= 'Не указаны поля для поиска <br>';
