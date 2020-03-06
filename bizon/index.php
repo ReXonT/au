@@ -582,13 +582,17 @@ if($act == 'options') {
                                             case 1:
                                                 foreach ($messages as $value) 
                                                 {
+                                                    $value = mb_strtolower($value);
                                                     // если много слов
                                                     if($much)
                                                     {
                                                        foreach ($keyword as $v) 
                                                         {
                                                             $v = trim($v);
+                                                            $v = mb_strtolower($v);
+
                                                             preg_match('/'.$v.'/', $value, $match);
+                                                            
                                                             if(!empty($match))
                                                             {
                                                                 $result = 'Найдено';
@@ -619,13 +623,17 @@ if($act == 'options') {
                                                 $counter = 0;
                                                 foreach ($messages as $value) 
                                                 {
+                                                    $value = mb_strtolower($value);
                                                     // если много слов
                                                     if($much)
                                                     {
                                                        foreach ($keyword as $v) 
                                                        {
                                                             $v = trim($v);
+                                                            $v = mb_strtolower($v);
+
                                                             preg_match('/'.$v.'/', $value, $match);
+
                                                             if(!empty($match))
                                                             {
                                                                 $counter++;
