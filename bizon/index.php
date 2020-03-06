@@ -421,6 +421,8 @@ if($act == 'options') {
         апи имеет толко 3 метода работы: get (отчет по вебинару (основные параметры)), getviewers (отчет по участникам) и getlist (получение всех вебинаров)
 
         Всё остальное - надстройка кодом.
+
+        Результат выполнения switch: установленный $params['webinarId'], кроме case 3: там чистое выполнение
         */
         switch ($extype) 
         {
@@ -454,247 +456,6 @@ if($act == 'options') {
                 if( isset($params['webinarId']) )
                 {
                     $log .= 'Найден вебинар с webId: '.$params['webinarId'].'<br>';
-                    
-                    /* Если работа с вебинарами */
-                    if($option_name == 'webinar')
-                    {
-                        /* Получаем инфо по нужному вебинару */
-                        $web_info = $bizon->call($method, $params);
-
-                        /* Если ошибка */
-                        if( isset($web_info['message']) )
-                        {
-                            $log .= 'Ошибка запроса к Бизон365: '.$web_info['message'].'<br>';
-                            closeScript($log);
-                            exit();
-                        }
-                    }
-
-                    /* Работаем со зрителями */
-                    if($option_name == 'viewers')
-                    {
-                        /* Проверяем: есть ли хоть 1 поле для поиска (указано ли в ВРМ) */
-                        foreach ($viewer as $key => $value) 
-                        {
-                            if( !empty($value) )
-                            {
-                                $viewer_to_find[$key] = $value;
-                            }    
-                        }
-
-                        if( isset($viewer_to_find) )
-                        {
-                            
-                            /* Получаем массив данных о зрителях выбранного веба */
-                            $web_info = $bizon->call($bizon_methods['getviewers'], $params);
-                            
-
-                            if( !isset($web_info['message']) )
-                            {
-                                /* Получаем массив юзеров на вебинаре */
-                                $users = getUsersFromInfo($web_info, $return_keys);
-
-                                $s = 0; // стоп-переменная
-
-                                // Перебираем данные из зрителей
-                                foreach ($users as $value) //  === 1 ===
-                                {
-                                    foreach ($value as $k => $v) 
-                                    {
-                                        // Если есть такое поле в исходном поиске
-                                        if( isset($viewer_to_find[$k]) )
-                                        {
-                                            // приводим к нижнему регистру оба текста
-                                            $v = mb_strtolower($v);
-                                            $viewer_to_find[$k] = mb_strtolower($viewer_to_find[$k]);
-
-                                            if($k == 'phone')
-                                            {
-                                                /* Приводим оба числа в формат (начинаем с 9) */ 
-                                                if($v[0] == '+' || $v[0] == 8 || $v[0] == 7)
-                                                {
-                                                    $v = mb_substr($v, 1);
-                                                    if($v[0] == 7)
-                                                        $v = mb_substr($v, 1);
-                                                }
-
-                                                if($viewer_to_find[$k][0] == '+' || $viewer_to_find[$k][0] == 8 || $viewer_to_find[$k][0] == 7)
-                                                {
-                                                    $viewer_to_find[$k] = mb_substr($viewer_to_find[$k], 1);
-                                                    if($viewer_to_find[$k][0] == 7)
-                                                        $viewer_to_find[$k] = mb_substr($viewer_to_find[$k], 1);
-                                                }                                                       
-                                            }
-
-                                            // Ищем вхождения
-                                            preg_match( '/'.$viewer_to_find[$k].'/', $v, $match );
-
-                                            if( !empty($match) && isset($match) )
-                                            {
-                                                $user = $value;
-                                                $result = 'Зритель найден';
-                                                $log .= 'Нашли по '.$k.'<br>';
-                                                $s = 1;
-                                                break;
-                                            }
-                                        } // end if
-                                    }
-
-                                    if($s) break;
-                                } //  end foreach 1 (перебор данных зрителей - поиск)
-
-                                if(!$s) $result = 'Не найден такой зритель';
-
-                                /* Если нам нужно найти сообщения */
-                                if($viewers_method == 1 || $viewers_method == 3 || $viewers_method == 4)
-                                {
-                                    /* Получаем массив данных о сообщениях выбранного веба */
-                                    $web_info = $bizon->call($bizon_methods['get'], $params);
-                                    $messages_json = $web_info['report']['messages'];
-                                    $messages_php = json_decode($messages_json, 1);
-                                    $messages = $messages_php[$user['chatUserId']];
-                                    if(!empty($messages))
-                                    {
-                                        $result = 'Сообщения зрителя найдены';
-                                    }
-                                    else
-                                    {
-                                        $log .= 'Не найдено сообщений зрителя <br>';
-                                        closeScript($log);
-                                        exit();
-                                    }
-
-                                    /* Если ищем ключевое слово в сообщении || Людей с ключевыми */
-                                    if($viewers_method == 3 || $viewers_method == 4)
-                                    {
-                                        $much = 0;
-                                        if(strpos($keyword, ','))
-                                        {
-                                            $keyword = explode(',',$keyword);
-                                            $much = 1;
-                                        }
-
-                                        $k = 0; // стоп-переменная
-
-                                        switch ($keyword_stype) 
-                                        {
-                                            // есть хотя бы 1
-                                            case 1:
-                                                foreach ($messages as $value) 
-                                                {
-                                                    $value = mb_strtolower($value);
-                                                    // если много слов
-                                                    if($much)
-                                                    {
-                                                       foreach ($keyword as $v) 
-                                                        {
-                                                            $v = trim($v);
-                                                            $v = mb_strtolower($v);
-
-                                                            preg_match('/'.$v.'/', $value, $match);
-                                                            
-                                                            if(!empty($match))
-                                                            {
-                                                                $result = 'Найдено';
-                                                                $k = 1;
-                                                                break;
-                                                            }
-                                                        }
-                                                        if($k) break; 
-                                                    }
-                                                    else
-                                                    {
-                                                        preg_match('/'.$keyword.'/', $value, $match);
-                                                        if(!empty($match))
-                                                        {
-                                                            $result = 'Найдено';
-                                                            $k = 1;
-                                                            break;
-                                                        }
-                                                    } // end else
-                                                } // end foreach $messages
-                                                break;
-
-                                            // есть все слова
-                                            case 2:
-                                                // Считаем сколько слов
-                                                $count = count($keyword);
-                                                // Счетчик для вхождений
-                                                $counter = 0;
-                                                foreach ($messages as $value) 
-                                                {
-                                                    $value = mb_strtolower($value);
-                                                    // если много слов
-                                                    if($much)
-                                                    {
-                                                       foreach ($keyword as $v) 
-                                                       {
-                                                            $v = trim($v);
-                                                            $v = mb_strtolower($v);
-
-                                                            preg_match('/'.$v.'/', $value, $match);
-
-                                                            if(!empty($match))
-                                                            {
-                                                                $counter++;
-                                                            }
-                                                            if($counter == $count)
-                                                            {
-                                                                $result = 'Найдено';
-                                                                $k = 1;
-                                                                break;
-                                                            }
-                                                        } // end foreach $keyword
-                                                        if($k) break; 
-                                                    }
-                                                    else
-                                                    {
-                                                        preg_match('/'.$keyword.'/', $value, $match);
-                                                        if(!empty($match))
-                                                        {
-                                                            $result = 'Найдено';
-                                                            $k = 1;
-                                                            break;
-                                                        }
-                                                    } // end else
-                                                } // end foreach $messages
-                                                break;
-                                            // точное соответствие
-                                            case 3:
-                                                foreach ($messages as $value) 
-                                                {
-                                                    if($value == $keyword)
-                                                    {
-                                                        $result = 'Найдено';
-                                                        $k = 1;
-                                                        break;
-                                                    }   
-                                                }
-                                                break;
-                                        } // end switch
-                                        if(!$k)
-                                        {
-                                            $log .= 'Не нашли таких сообщений';
-                                            closeScript($log);
-                                            exit();
-                                        }
-                                    }
-                                } // end if $viewers_method == 1,3,4
-                            }
-                            else 
-                            {
-                                $log .= 'Ошибка запроса к Бизон365: '.$web_info['message'].'<br>';
-                                closeScript($log);
-                                exit();
-                            }                     
-                        } // end if isset
-                        else
-                        {
-                            $log .= 'Не указаны поля для поиска <br>';
-                            closeScript($log);
-                            exit();
-                        }
-                    } //  end if ($option_name == 'viewers')
                 } // end if ( isset $params['webinarId'] )
                 else $log .= 'Такой вебинар не найден <br>';
                 break;
@@ -715,22 +476,6 @@ if($act == 'options') {
                 }
 
                 $params['webinarId'] = $webinar_id;
-
-                /* Получаем инфо по нужному вебинару */
-                $web_info = $bizon->call($method, $params);
- 
-
-                if( isset($web_info) )
-                {
-                    $log .= 'Получены данные по webId <br>';
-                } 
-                else
-                {
-                    $log .= 'Ошибка запроса по webId <br>';
-                    closeScript($log);
-                    exit();
-                }
-
                 break;
 
             /* Получаем данные по списку последних вебинаров. 
@@ -738,7 +483,6 @@ if($act == 'options') {
             case 3:
 
                 $web_list = $bizon->call($bizon_methods['getlist'], $params);
-
 
                 if( !empty($web['room']) && isset($web['room']) )
                 {
@@ -752,14 +496,252 @@ if($act == 'options') {
                 }
                 break;
         } // end switch($extype)
+        
 
-
-        if($_REQUEST['debug'])
+        /* Если работа с вебинарами */
+        if($option_name == 'webinar')
         {
-            echo '<pre>';
-            print_r($web_list);
-            echo '</pre>';
+            /* Получаем инфо по нужному вебинару */
+            $web_info = $bizon->call($method, $params);
+
+            /* Если ошибка */
+            if( isset($web_info['message']) )
+            {
+                $log .= 'Ошибка запроса к Бизон365: '.$web_info['message'].'<br>';
+                closeScript($log);
+                exit();
+            }
         }
+
+        /* Работаем со зрителями */
+        if($option_name == 'viewers')
+        {
+            /* Проверяем: есть ли хоть 1 поле для поиска (указано ли в ВРМ) */
+            foreach ($viewer as $key => $value) 
+            {
+                if( !empty($value) )
+                {
+                    $viewer_to_find[$key] = $value;
+                }    
+            }
+
+            if( isset($viewer_to_find) )
+            {
+                
+                /* Получаем массив данных о зрителях выбранного веба */
+                $web_info = $bizon->call($bizon_methods['getviewers'], $params);
+                
+
+                if( !isset($web_info['message']) )
+                {
+                    /* Получаем массив юзеров на вебинаре */
+                    $users = getUsersFromInfo($web_info, $return_keys);
+
+                    $s = 0; // стоп-переменная
+
+                    // Перебираем данные из зрителей
+                    foreach ($users as $value) //  === 1 ===
+                    {
+                        foreach ($value as $k => $v) 
+                        {
+                            // Если есть такое поле в исходном поиске
+                            if( isset($viewer_to_find[$k]) )
+                            {
+                                // приводим к нижнему регистру оба текста
+                                $v = mb_strtolower($v);
+                                $viewer_to_find[$k] = mb_strtolower($viewer_to_find[$k]);
+
+                                if($k == 'phone')
+                                {
+                                    /* Приводим оба числа в формат (начинаем с 9) */ 
+                                    if($v[0] == '+' || $v[0] == 8 || $v[0] == 7)
+                                    {
+                                        $v = mb_substr($v, 1);
+                                        if($v[0] == 7)
+                                            $v = mb_substr($v, 1);
+                                    }
+
+                                    if($viewer_to_find[$k][0] == '+' || $viewer_to_find[$k][0] == 8 || $viewer_to_find[$k][0] == 7)
+                                    {
+                                        $viewer_to_find[$k] = mb_substr($viewer_to_find[$k], 1);
+                                        if($viewer_to_find[$k][0] == 7)
+                                            $viewer_to_find[$k] = mb_substr($viewer_to_find[$k], 1);
+                                    }                                                       
+                                }
+
+                                // Ищем вхождения
+                                preg_match( '/'.$viewer_to_find[$k].'/', $v, $match );
+
+                                if( !empty($match) && isset($match) )
+                                {
+                                    $user = $value;
+                                    $result = 'Зритель найден';
+                                    $log .= 'Нашли по '.$k.'<br>';
+                                    $s = 1;
+                                    break;
+                                }
+                            } // end if
+                        }
+
+                        if($s) break;
+                    } //  end foreach 1 (перебор данных зрителей - поиск)
+
+                    if(!$s) $result = 'Не найден такой зритель';
+
+                    /* Если нам нужно найти сообщения */
+                    if($viewers_method == 1 || $viewers_method == 3 || $viewers_method == 4)
+                    {
+                        /* Получаем массив данных о сообщениях выбранного веба */
+                        $web_info = $bizon->call($bizon_methods['get'], $params);
+                        $messages_json = $web_info['report']['messages'];
+                        $messages_php = json_decode($messages_json, 1);
+                        $messages = $messages_php[$user['chatUserId']];
+                        if(!empty($messages))
+                        {
+                            $result = 'Сообщения зрителя найдены';
+                        }
+                        else
+                        {
+                            $log .= 'Не найдено сообщений зрителя <br>';
+                            closeScript($log);
+                            exit();
+                        }
+
+                        /* Если ищем ключевое слово в сообщении || Людей с ключевыми */
+                        if($viewers_method == 3 || $viewers_method == 4)
+                        {
+                            $much = 0;
+                            if(strpos($keyword, ','))
+                            {
+                                $keyword = explode(',',$keyword);
+                                $much = 1;
+                            }
+
+                            $k = 0; // стоп-переменная
+
+                            switch ($keyword_stype) 
+                            {
+                                // есть хотя бы 1
+                                case 1:
+                                    foreach ($messages as $value) 
+                                    {
+                                        $value = mb_strtolower($value);
+                                        // если много слов
+                                        if($much)
+                                        {
+                                           foreach ($keyword as $v) 
+                                            {
+                                                $v = trim($v);
+                                                $v = mb_strtolower($v);
+
+                                                preg_match('/'.$v.'/', $value, $match);
+
+                                                if(!empty($match))
+                                                {
+                                                    $result = 'Найдено';
+                                                    $k = 1;
+                                                    break;
+                                                }
+                                            }
+                                            if($k) break; 
+                                        }
+                                        else
+                                        {
+                                            $keyword = mb_strtolower($keyword);
+                                            preg_match('/'.$keyword.'/', $value, $match);
+                                            if(!empty($match))
+                                            {
+                                                $result = 'Найдено';
+                                                $k = 1;
+                                                break;
+                                            }
+                                        } // end else
+                                    } // end foreach $messages
+                                    break;
+
+                                // есть все слова
+                                case 2:
+                                    // Считаем сколько слов
+                                    $count = count($keyword);
+                                    // Счетчик для вхождений
+                                    $counter = 0;
+                                    foreach ($messages as $value) 
+                                    {
+                                        $value = mb_strtolower($value);
+                                        // если много слов
+                                        if($much)
+                                        {
+                                           foreach ($keyword as $v) 
+                                           {
+                                                $v = trim($v);
+                                                $v = mb_strtolower($v);
+
+                                                preg_match('/'.$v.'/', $value, $match);
+
+                                                if(!empty($match))
+                                                {
+                                                    $counter++;
+                                                }
+                                                if($counter == $count)
+                                                {
+                                                    $result = 'Найдено';
+                                                    $k = 1;
+                                                    break;
+                                                }
+                                            } // end foreach $keyword
+                                            if($k) break; 
+                                        }
+                                        else
+                                        {
+                                            $keyword = mb_strtolower($keyword);
+                                            preg_match('/'.$keyword.'/', $value, $match);
+                                            if(!empty($match))
+                                            {
+                                                $result = 'Найдено';
+                                                $k = 1;
+                                                break;
+                                            }
+                                        } // end else
+                                    } // end foreach $messages
+                                    break;
+                                // точное соответствие
+                                case 3:
+                                    foreach ($messages as $value) 
+                                    {
+                                        $keyword = mb_strtolower($keyword);
+                                        $value = mb_strtolower($value);
+                                        if($value == $keyword)
+                                        {
+                                            $result = 'Найдено';
+                                            $k = 1;
+                                            break;
+                                        }   
+                                    }
+                                    break;
+                            } // end switch
+                            if(!$k)
+                            {
+                                $log .= 'Не нашли таких сообщений';
+                                closeScript($log);
+                                exit();
+                            }
+                        }
+                    } // end if $viewers_method == 1,3,4
+                }
+                else 
+                {
+                    $log .= 'Ошибка запроса к Бизон365: '.$web_info['message'].'<br>';
+                    closeScript($log);
+                    exit();
+                }                     
+            } // end if isset
+            else
+            {
+                $log .= 'Не указаны поля для поиска <br>';
+                closeScript($log);
+                exit();
+            }
+        } //  end if ($option_name == 'viewers')
 
 
         /* Если стоит переключатель на "Выводить текстом" */
