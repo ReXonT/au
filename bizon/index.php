@@ -527,11 +527,9 @@ if($act == 'options') {
 
             if( isset($viewer_to_find) )
             {
-                
                 /* Получаем массив данных о зрителях выбранного веба */
                 $web_info = $bizon->call($bizon_methods['getviewers'], $params);
                 
-
                 if( !isset($web_info['message']) )
                 {
                     /* Получаем массив юзеров на вебинаре */
@@ -548,8 +546,8 @@ if($act == 'options') {
                             if( isset($viewer_to_find[$k]) )
                             {
                                 // приводим к нижнему регистру оба текста
-                                $v = mb_strtolower($v);
-                                $viewer_to_find[$k] = mb_strtolower($viewer_to_find[$k]);
+                                $v = wordToUniversalFormat($v);
+                                $viewer_to_find[$k] = wordToUniversalFormat($viewer_to_find[$k]);
 
                                 if($k == 'phone')
                                 {
@@ -619,106 +617,83 @@ if($act == 'options') {
 
                             $k = 0; // стоп-переменная
 
-                            switch ($keyword_stype) 
+                            // Если хотя бы 1 или все слова
+                            if($keyword_stype == 1 || $keyword_stype == 2)
                             {
-                                // есть хотя бы 1
-                                case 1:
-                                    foreach ($messages as $value) 
-                                    {
-                                        $value = mb_strtolower($value);
-                                        // если много слов
-                                        if($much)
-                                        {
-                                           foreach ($keyword as $v) 
-                                            {
-                                                $v = trim($v);
-                                                $v = mb_strtolower($v);
-
-                                                preg_match('/'.$v.'/', $value, $match);
-
-                                                if(!empty($match))
-                                                {
-                                                    $result = 'Найдено';
-                                                    $k = 1;
-                                                    break;
-                                                }
-                                            }
-                                            if($k) break; 
-                                        }
-                                        else
-                                        {
-                                            $keyword = mb_strtolower($keyword);
-                                            preg_match('/'.$keyword.'/', $value, $match);
-                                            if(!empty($match))
-                                            {
-                                                $result = 'Найдено';
-                                                $k = 1;
-                                                break;
-                                            }
-                                        } // end else
-                                    } // end foreach $messages
-                                    break;
-
-                                // есть все слова
-                                case 2:
+                                // Если ищем все слова
+                                if($keyword_stype == 2 )
+                                {
                                     // Считаем сколько слов
                                     $count = count($keyword);
                                     // Счетчик для вхождений
                                     $counter = 0;
-                                    foreach ($messages as $value) 
+                                }
+                                
+                                foreach ($messages as $value) 
+                                {
+                                    // Перевод в универсальный формат (trim и mb_strtolower)
+                                    $value = wordToUniversalFormat($value);
+                                    // если много слов
+                                    if($much)
                                     {
-                                        $value = mb_strtolower($value);
-                                        // если много слов
-                                        if($much)
-                                        {
-                                           foreach ($keyword as $v) 
-                                           {
-                                                $v = trim($v);
-                                                $v = mb_strtolower($v);
+                                       foreach ($keyword as $v) 
+                                       {
+                                            $v = wordToUniversalFormat($v);
 
-                                                preg_match('/'.$v.'/', $value, $match);
+                                            preg_match('/'.$v.'/', $value, $match);
 
-                                                if(!empty($match))
-                                                {
-                                                    $counter++;
-                                                }
-                                                if($counter == $count)
+                                            if(!empty($match))
+                                            {
+                                                // Если хотя бы 1
+                                                if($keyword_stype == 1)
                                                 {
                                                     $result = 'Найдено';
                                                     $k = 1;
                                                     break;
                                                 }
-                                            } // end foreach $keyword
-                                            if($k) break; 
-                                        }
-                                        else
-                                        {
-                                            $keyword = mb_strtolower($keyword);
-                                            preg_match('/'.$keyword.'/', $value, $match);
-                                            if(!empty($match))
+                                                elseif($keyword_stype == 2)
+                                                {
+                                                    $counter++;
+                                                }
+                                                
+                                            }
+                                            if($keyword_stype == 2 && $counter == $count)
                                             {
                                                 $result = 'Найдено';
                                                 $k = 1;
                                                 break;
                                             }
-                                        } // end else
-                                    } // end foreach $messages
-                                    break;
-                                // точное соответствие
-                                case 3:
-                                    foreach ($messages as $value) 
+                                        } // end foreach $keyword
+                                        if($k) break; 
+                                    }
+                                    else
                                     {
-                                        $keyword = mb_strtolower($keyword);
-                                        $value = mb_strtolower($value);
-                                        if($value == $keyword)
+                                        $keyword = wordToUniversalFormat($keyword);
+                                        preg_match('/'.$keyword.'/', $value, $match);
+                                        if(!empty($match))
                                         {
                                             $result = 'Найдено';
                                             $k = 1;
                                             break;
-                                        }   
-                                    }
-                                    break;
-                            } // end switch
+                                        }
+                                    } // end else
+                                } // end foreach $messages
+                            }
+                            else if($keyword_stype == 3)
+                            {
+                                foreach ($messages as $value) 
+                                {
+                                    $keyword = wordToUniversalFormat($keyword);
+                                    $value = wordToUniversalFormat($value);
+                                    if($value == $keyword)
+                                    {
+                                        $result = 'Найдено';
+                                        $k = 1;
+                                        break;
+                                    }   
+                                }
+                            }
+
                             if(!$k)
                             {
                                 $log .= 'Не нашли таких сообщений';

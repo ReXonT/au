@@ -1,5 +1,12 @@
 <?php
 
+function wordToUniversalFormat ($word)
+{
+    $word = trim($word);
+    $word = mb_strtolower($word);
+    return $word;
+}
+
 /* Перевод ключей в понятные названия */
 function russianName($key)
 {
