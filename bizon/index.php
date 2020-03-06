@@ -658,12 +658,12 @@ if($act == 'options') {
                                                     // Если хотя бы 1
                                                     if($keyword_stype == 1)
                                                     {
-                                                        if($viewers_method == 4)
-                                                        {
-                                                            $users_chat_ids[] = $key;
-                                                        }
                                                         $result = 'Найдено';
                                                         $k = 1;
+                                                        if($viewers_method == 4)
+                                                        {
+                                                            $users_with_keys[] = $key;
+                                                        }
                                                         break;
                                                     }
                                                     elseif($keyword_stype == 2)
@@ -674,12 +674,12 @@ if($act == 'options') {
                                                 }
                                                 if($keyword_stype == 2 && $counter == $count)
                                                 {
-                                                    if($viewers_method == 4)
-                                                    {
-                                                        $users_chat_ids[] = $key;
-                                                    }
                                                     $result = 'Найдено';
                                                     $k = 1;
+                                                    if($viewers_method == 4)
+                                                    {
+                                                        $users_with_keys[] = $key;
+                                                    }
                                                     break;
                                                 }
                                             } // end foreach $keyword
@@ -691,12 +691,12 @@ if($act == 'options') {
                                             preg_match('/'.$keyword.'/', $value, $match);
                                             if(!empty($match))
                                             {
-                                                if($viewers_method == 4)
-                                                {
-                                                    $users_chat_ids[] = $key;
-                                                }
                                                 $result = 'Найдено';
                                                 $k = 1;
+                                                if($viewers_method == 4)
+                                                {
+                                                    $users_with_keys[] = $key;
+                                                }
                                                 break;
                                             }
                                         } // end else
@@ -706,17 +706,30 @@ if($act == 'options') {
                             }
                             else if($keyword_stype == 3)
                             {
-                                foreach ($messages as $value) 
+                                foreach ($messages_php as $key => $messages) 
                                 {
-                                    $keyword = wordToUniversalFormat($keyword);
-                                    $value = wordToUniversalFormat($value);
-                                    if($value == $keyword)
+                                    // Если метод на поиск сообщений - ставим сразу
+                                    if($viewers_method == 3)
                                     {
-                                        $result = 'Найдено';
-                                        $k = 1;
-                                        break;
-                                    }   
-                                }
+                                        $messages = $messages_php[$user['chatUserId']];
+                                    }
+                                    foreach ($messages as $value) 
+                                    {
+                                        $keyword = wordToUniversalFormat($keyword);
+                                        $value = wordToUniversalFormat($value);
+                                        if($value == $keyword)
+                                        {
+                                            $result = 'Найдено';
+                                            $k = 1;
+                                            if($viewers_method == 4)
+                                            {
+                                                $users_with_keys[] = $key;
+                                            }
+                                            break;
+                                        }   
+                                    }
+                                    if($viewers_method == 3) break;
+                                }// end foreach $messages_php
                             }
 
                             if(!$k)
@@ -752,7 +765,7 @@ if($act == 'options') {
                 /* Если искали сообщения */
                 if( $write_type && $viewers_method == 1)
                 {
-                    $result = "Сообщения от ".$user['username']." с вебинара ID: ".$params['webinarId'].'<br>';
+                    $result = "Сообщения от ".$user['username']." с вебинара ID: ".$params['webinarId'].'<br><br>';
                     foreach ($messages as $value) 
                     {
                         $result .= '«'.$value.'»;';
@@ -769,6 +782,36 @@ if($act == 'options') {
                         $result .= $russian_key.': '.$value.'<br>';
                     }
                 }
+
+                /* Если искали всех людей с ключевыми словами */
+                if( $write_type && $viewers_method == 4)
+                {
+                    $result = '';
+                    foreach ($users as $u) 
+                    {
+                        foreach ($u as $k => $u_v) 
+                        {
+                            foreach ($users_with_keys as $value) 
+                            {
+                                if($k == 'chatUserId' && $u_v == $value)
+                                {
+                                    $found_users[] = $u;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    foreach ($found_users as $value) 
+                    {
+                        foreach ($value as $key => $v) 
+                        {
+                            $russian_key = russianName($key);
+                            $result .= $russian_key.': '.$v.'<br>';
+                        }
+                        $result .= '<br>';
+                    }   
+                }
+
                 break;
             // вебинары
             case 2:
@@ -829,7 +872,9 @@ if($act == 'options') {
             'result' => $result,     // где N - порядковый номер блока в схеме
             'log' => $log,
             'messages' => $messages,
-            'users_chat_ids' => $users_chat_ids
+            'users_with_keys' => $users_with_keys,
+            'users' => $users,
+            'found_users' => $found_users
         ]
     ];
 
