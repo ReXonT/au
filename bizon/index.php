@@ -140,6 +140,15 @@ if($act == 'options') {
                 ],
                 'desc' => 'Например, укажите здесь id пользователя, которого ищем. Если вы давали ему ссылку с его id (по инструкции)',    // описание поля, можно пару строк
             ],
+            'viewers_referer' => [
+                'title' => 'Данные в источнике',   // заголовок поля
+                'default' => '',
+                'show' => [
+                    'option' => [1],
+                    'viewers_add_fields' => [1]
+                ],
+                'desc' => 'Значение в ссылке-источнике, с которой зритель пришел на вебинар',    // описание поля, можно пару строк
+            ],
             'viewers_phone' => [
                 'title' => 'Телефон',   // заголовок поля
                 'default' => '',
@@ -366,11 +375,13 @@ if($act == 'options') {
         $viewer = [
             'username' => $options[$option_name.'_username'],
             'phone' => $options[$option_name.'_phone'],
-            'email' => $options[$option_name.'_email'],
+            'email' => $options[$option_name.'_email'], 
+            'referer' => $options[$option_name.'_referer'], // ссылка-источник
             'c1' => $options[$option_name.'_c1'],  // доп поле
             'cu1' => $options[$option_name.'_cu1']  // доп url
         ];
 
+        /* Инициализируем данные по вебинару */ 
         $web = [
             'date' => $options[$option_name.'_date'],     // дата вебинара
             'time' => $options[$option_name.'_time'],     // время вебинара
@@ -386,8 +397,8 @@ if($act == 'options') {
             'clickFile',    // был ли клик по кнопке
             'chatUserId',    // айди юзера в чате
             'referer',   // источник
-            'c1',
-            'cu1'
+            'c1',   // доп. поле
+            'cu1'   // свой url
         ];
 
         /* Инициализация доступных методов по работе с Бизон365 */
@@ -451,7 +462,7 @@ if($act == 'options') {
         /* 
         Основное выполнение. Поиск по вебинарам 
         Принцип:
-        апи имеет толко 3 метода работы: get (отчет по вебинару (основные параметры)), getviewers (отчет по участникам) и getlist (получение всех вебинаров)
+        апи имеет только 3 метода работы: get (отчет по вебинару (основные параметры)), getviewers (отчет по участникам) и getlist (получение всех вебинаров)
 
         Всё остальное - надстройка кодом.
 
@@ -489,8 +500,13 @@ if($act == 'options') {
                 if( isset($params['webinarId']) )
                 {
                     $log .= 'Найден вебинар с webId: '.$params['webinarId'].'<br>';
-                } // end if ( isset $params['webinarId'] )
-                else $log .= 'Такой вебинар не найден <br>';
+                }
+                else 
+                {
+                    $log .= 'Такой вебинар не найден <br>';
+                    closeScript($log);
+                    exit();
+                }
                 break;
 
             /* Получаем вебинар по конкретным датам */
@@ -501,20 +517,29 @@ if($act == 'options') {
 
                 $webinar_id = $web['room'].'*'.$web['date'].'T'.$web['time'];
 
-                $log .= 'Установлен webId: '.$webinar_id.'<br>';
-
                 if($_REQUEST['test'])
                 {
                     $webinar_id = '20578:prav_rody*2020-02-21T17:02:42';
                 }
 
                 $params['webinarId'] = $webinar_id;
+
+                if( isset($params['webinarId']) )
+                {
+                    $log .= 'Установлен webId: '.$webinar_id.'<br>';
+                }
+                else 
+                {
+                    $log .= 'Такой вебинар не найден <br>';
+                    closeScript($log);
+                    exit();
+                }
                 break;
 
             /* Получаем данные по списку последних вебинаров. 
             Учитывая поиск по автовебам/живым */
             case 3:
-
+                // Запрос списка последних вебинаров
                 $web_list = $bizon->call($bizon_methods['getlist'], $params);
 
                 if( !isset($web_list['message']) )
@@ -553,6 +578,10 @@ if($act == 'options') {
                 closeScript($log);
                 exit();
             }
+            else 
+            {
+                $log .= 'Данные по вебинару получены методом '.$method.'<br>';
+            }
         }
 
         /* Работаем со зрителями */
@@ -587,46 +616,39 @@ if($act == 'options') {
                             // Если есть такое поле в исходном поиске
                             if( isset($viewer_to_find[$k]) )
                             {
-                                // приводим к нижнему регистру оба текста
+                                /* Приводим к нижнему регистру оба текста */
                                 $v = wordToUniversalFormat($v);
                                 $viewer_to_find[$k] = wordToUniversalFormat($viewer_to_find[$k]);
 
                                 if($k == 'phone')
                                 {
                                     /* Приводим оба числа в формат (начинаем с 9) */ 
-                                    if($v[0] == '+' || $v[0] == 8 || $v[0] == 7)
-                                    {
-                                        $v = mb_substr($v, 1);
-                                        if($v[0] == 7)
-                                            $v = mb_substr($v, 1);
-                                    }
-
-                                    if($viewer_to_find[$k][0] == '+' || $viewer_to_find[$k][0] == 8 || $viewer_to_find[$k][0] == 7)
-                                    {
-                                        $viewer_to_find[$k] = mb_substr($viewer_to_find[$k], 1);
-                                        if($viewer_to_find[$k][0] == 7)
-                                            $viewer_to_find[$k] = mb_substr($viewer_to_find[$k], 1);
-                                    }                                                       
+                                    $v = phoneFormat($v);
+                                    $viewer_to_find[$k] = phoneFormat($v);                                                       
                                 }
 
-                                // Ищем вхождения
+                                /* Ищем вхождения */
                                 preg_match( '/'.$viewer_to_find[$k].'/', $v, $match );
 
                                 if( !empty($match) && isset($match) )
                                 {
-                                    $user = $value;
+                                    $user = $value; // Записываем в $user массив данных по найденному зрителю
                                     $result = 'Зритель найден';
-                                    $log .= 'Нашли по '.$k.'<br>';
-                                    $s = 1;
+                                    $log .= 'Нашли зрителя по '.$k.'<br>';
+                                    $s = 1; // остановка циклов
                                     break;
                                 }
                             } // end if
                         }
-
                         if($s) break;
                     } //  end foreach 1 (перебор данных зрителей - поиск)
 
-                    if(!$s) $result = 'Не найден такой зритель';
+                    if(!$s)
+                    {
+                        $log .= 'Не найден такой зритель.<br>';
+                        closeScript($log);
+                        exit();
+                    }
 
                     /* Если нам нужно найти сообщения */
                     if($viewers_method == 1 || $viewers_method == 3 || $viewers_method == 4)
@@ -636,7 +658,9 @@ if($act == 'options') {
                         $messages_json = $web_info['report']['messages'];
                         $messages_php = json_decode($messages_json, 1);
                         $messages = $messages_php[$user['chatUserId']];
-                        if( !($viewers_method == 4) )
+                        
+                        /* Если работаем с поиском сообщений конкретного зрителя */
+                        if($viewers_method != 4)
                         {
                           if(!empty($messages))
                             {
@@ -655,126 +679,124 @@ if($act == 'options') {
                         {
                             // Если несколько слов указали в ВРМ
                             $much = 0;
-                            if(strpos($keyword, ','))
+
+                            /* Если это не метод "Точное соответствие" и есть запятые в тексте */
+                            if( $keyword_stype != 3 && strpos($keyword, ',') )
                             {
-                                $keyword = explode(',',$keyword);
+                                $keyword = explode(',', $keyword);
                                 $much = 1;
                             }
 
                             $k = 0; // стоп-переменная
 
-                            // Если хотя бы 1 или все слова
-                            if($keyword_stype == 1 || $keyword_stype == 2)
+                            // Если ищем все слова
+                            if($keyword_stype == 2)
                             {
-                                // Если ищем все слова
-                                if($keyword_stype == 2 )
+                                // Считаем сколько слов
+                                $count = count($keyword);
+                                // Счетчик для вхождений
+                                $counter = 0;
+                            }
+
+                            // Цикл как обертка для 3 метода и ключевой для 4
+                            foreach ($messages_php as $key => $messages) 
+                            {
+                                /* Если метод на поиск сообщений - ставим сразу нужного зрителя */
+                                if($viewers_method == 3)
                                 {
-                                    // Считаем сколько слов
-                                    $count = count($keyword);
-                                    // Счетчик для вхождений
-                                    $counter = 0;
+                                    $messages = $messages_php[$user['chatUserId']];
                                 }
 
-                                // Цикл как обертка для 3 метода и ключевой для 4
-                                foreach ($messages_php as $key => $messages) 
+                                foreach ($messages as $value) 
                                 {
-                                    // Если метод на поиск сообщений - ставим сразу
-                                    if($viewers_method == 3)
+                                    // Перевод в универсальный формат (trim и mb_strtolower)
+                                    $value = wordToUniversalFormat($value);
+
+                                    // если много слов
+                                    if($much)
                                     {
-                                        $messages = $messages_php[$user['chatUserId']];
-                                    }
+                                       foreach ($keyword as $v) 
+                                       {
+                                            /* Переводим в универсальный формат */
+                                            $v = wordToUniversalFormat($v);
+                                            /* Находим совпадения */
+                                            preg_match('/'.$v.'/', $value, $match);
 
-                                    foreach ($messages as $value) 
-                                    {
-                                        // Перевод в универсальный формат (trim и mb_strtolower)
-                                        $value = wordToUniversalFormat($value);
-                                        // если много слов
-                                        if($much)
-                                        {
-                                           foreach ($keyword as $v) 
-                                           {
-                                                $v = wordToUniversalFormat($v);
-
-                                                preg_match('/'.$v.'/', $value, $match);
-
-                                                if(!empty($match))
-                                                {
-                                                    // Если хотя бы 1
-                                                    if($keyword_stype == 1)
-                                                    {
-                                                        $result = 'Найдено';
-                                                        $k = 1;
-                                                        if($viewers_method == 4)
-                                                        {
-                                                            $users_with_keys[] = $key;
-                                                        }
-                                                        break;
-                                                    }
-                                                    elseif($keyword_stype == 2)
-                                                    {
-                                                        $counter++;
-                                                    }
-                                                    
-                                                }
-                                                if($keyword_stype == 2 && $counter == $count)
+                                            if(!empty($match))
+                                            {
+                                                // Если поиск для "хотя бы 1 слово"
+                                                if($keyword_stype == 1)
                                                 {
                                                     $result = 'Найдено';
-                                                    $k = 1;
+                                                    $k = 1; // остановка циклов
+
+                                                    /* Если ищем всех зрителей с этим ключевиком */
                                                     if($viewers_method == 4)
                                                     {
+                                                        /* Добавляем в массив найденных зрителей chatUserId найденного */
                                                         $users_with_keys[] = $key;
                                                     }
                                                     break;
                                                 }
-                                            } // end foreach $keyword
-                                            if($k) break; 
-                                        }
-                                        else
-                                        {
-                                            $keyword = wordToUniversalFormat($keyword);
-                                            preg_match('/'.$keyword.'/', $value, $match);
-                                            if(!empty($match))
+                                                /* Если ищем все слова - прибавляем найденных совпадений */ 
+                                                elseif($keyword_stype == 2)
+                                                {
+                                                    $counter++;
+                                                }
+                                                
+                                            }
+                                            /* Если нашли все слова для метода "искать все слова" */
+                                            if($keyword_stype == 2 && $counter == $count)
                                             {
                                                 $result = 'Найдено';
-                                                $k = 1;
+                                                $k = 1; // остановка циклов
+
+                                                /* Если ищем всех зрителей с этим ключевиком */
                                                 if($viewers_method == 4)
                                                 {
+                                                    /* Добавляем в массив найденных зрителей chatUserId найденного */
                                                     $users_with_keys[] = $key;
                                                 }
                                                 break;
                                             }
-                                        } // end else
-                                    } // end foreach $messages
-                                    if($viewers_method == 3) break; // если метод поиска сообщения - не перебираем дальше
-                                } // end foreach messages_php
-                            }
-                            else if($keyword_stype == 3)
-                            {
-                                foreach ($messages_php as $key => $messages) 
-                                {
-                                    // Если метод на поиск сообщений - ставим сразу
-                                    if($viewers_method == 3)
+                                        } // end foreach $keyword
+                                        if($k) break; 
+                                    } // end if ($much)
+
+                                    /* Если 1 ключевое слово указано */
+                                    else
                                     {
-                                        $messages = $messages_php[$user['chatUserId']];
-                                    }
-                                    foreach ($messages as $value) 
-                                    {
+                                        /* Приводим в универсальный формат */
                                         $keyword = wordToUniversalFormat($keyword);
-                                        $value = wordToUniversalFormat($value);
-                                        if($value == $keyword)
+
+                                        /* Если поиск не на точное соответствие */
+                                        if($keyword_stype != 3)
+                                        {
+                                            /* Ищем вхождения */
+                                            preg_match('/'.$keyword.'/', $value, $match);
+                                        }
+                                        
+                                        if( ($keyword_stype == 3 && $keyword == $value) || ( isset($match) && !empty($match) ) )
                                         {
                                             $result = 'Найдено';
                                             $k = 1;
+
+                                            /* Если ищем всех зрителей с этим ключевиком */
                                             if($viewers_method == 4)
                                             {
+                                                /* Добавляем в массив найденных зрителей chatUserId найденного */
                                                 $users_with_keys[] = $key;
                                             }
                                             break;
-                                        }   
-                                    }
-                                    if($viewers_method == 3) break;
-                                }// end foreach $messages_php
-                            }
+                                        }
+                                    } 
+                                } // end foreach $messages
+
+                                /* Если выбран метод поиска ключевого слово в сообщениях 1 зрителя
+                                не перебираем дальше массив зрителей */
+                                if($viewers_method == 3) break;
+
+                            } // end foreach messages_php
 
                             if(!$k)
                             {
@@ -782,7 +804,7 @@ if($act == 'options') {
                                 closeScript($log);
                                 exit();
                             }
-                        }
+                        } // end if $viewers_method == 3,4
                     } // end if $viewers_method == 1,3,4
                 }
                 else 
@@ -792,6 +814,8 @@ if($act == 'options') {
                     exit();
                 }                     
             } // end if isset ['message']
+
+            /* Если не указаны поля зрителя для поиска */
             else
             {
                 $log .= 'Не указаны поля для поиска <br>';
@@ -802,26 +826,38 @@ if($act == 'options') {
 
 
         /* Если стоит переключатель на "Выводить текстом" */
-        switch ($option) {
-            // зрители
+        switch ($option) 
+        {
+            /* Работа со зрителями */
             case 1:
-
                 /* Если искали сообщения */
-                if( $write_type && $viewers_method == 1)
+                if($write_type && $viewers_method == 1)
                 {
                     $result = "Сообщения от ".$user['username']." с вебинара комнаты: ".$web['room'].'. Дата проведения: '.$web['date'].' Время:'.$web['time'].'<br><br>';
+                    
+                    /* Вывод сообщений вида «Привет», «Пока» */
                     foreach ($messages as $value) 
                     {
                         $result .= '«'.$value.'», ';
                     }
                 }
 
-                /* Если искали человека */
-                if( $write_type && $viewers_method == 2)
+                /* Если искали человека на вебинаре */
+                if($write_type && $viewers_method == 2)
                 {
                     $result .= '<br>';
+
+                    /* В массиве $user содержится информация по найденному зрителю 
+                    вида: $user = [
+                        'username' => ...,
+                        'email' => ...,
+                        ....
+                        поля из $return_keys
+                    ];  
+                    */
                     foreach ($user as $key => $value) 
                     {
+                        /* Переводим названия полей в русские альтернативы */
                         $russian_key = russianName($key);
                         $result .= $russian_key.': '.$value.'<br>';
                     }
@@ -831,20 +867,38 @@ if($act == 'options') {
                 if( $write_type && $viewers_method == 4)
                 {
                     $result = '';
+
+                    /* В массиве $users содержится информация по всем зрителям
+                    вида: $users = [
+                        $user, // массив $user показан выше
+                        ....
+                    ];  
+                    */
                     foreach ($users as $u) 
                     {
                         foreach ($u as $k => $u_v) 
                         {
+                            /* В массиве $users_with_keys содержится информация по всем зрителям, 
+                            у кого найдены ключевы слова в тексте
+                            Структура массива: 
+                            $users_with_keys = [
+                                'chatUserId1',
+                                'chatUserId2',
+                                ....
+                            ];
+                            */
                             foreach ($users_with_keys as $value) 
                             {
                                 if($k == 'chatUserId' && $u_v == $value)
                                 {
+                                    /* Записываем в новый массив полные данные, исходя из chatUserId */
                                     $found_users[] = $u;
                                     break;
                                 }
                             }
                         }
                     }
+                    /* Структура $found_users схожа с $users */
                     foreach ($found_users as $value) 
                     {
                         foreach ($value as $key => $v) 
@@ -855,13 +909,14 @@ if($act == 'options') {
                         $result .= '<br>';
                     }   
                 }
-
                 break;
-            // вебинары
+
+            /* Если выбраны "Вебинары" */
             case 2:
                 /* Создаем строку для вывода данных для метода getviwers */
                 if( $write_type && $method == $bizon_methods['getviewers'] )
-                {     
+                {   
+                    /* Структура массива $web_info для метода getviewers показана в help.txt */ 
                     foreach ($web_info['viewers'] as $value) 
                     {
                         foreach ($value as $k => $v) 
@@ -869,10 +924,10 @@ if($act == 'options') {
                             // Если есть значение в поле
                             if($v != "")
                             {
-                                // Ищем только те, что нам нужны
+                                // Ищем только те поля в данных зрителя, что нам нужны
                                 foreach ($return_keys as $r_k) 
                                 {
-                                    // Если нашли - добавляем в строку
+                                    // Если поле нашли - добавляем в строку
                                     if($k == $r_k)
                                     {
                                         $russian_key = russianName($k);
@@ -885,9 +940,11 @@ if($act == 'options') {
                     }
                     $result .= "Общее число зрителей: ".$web_info['total'];
                 }
+
                 /* Создаем строку для вывода данных для метода get */
                 else if( $write_type && $method == $bizon_methods['get'] )
                 {
+                    /* Структура массива $web_info для метода get показана в help.txt */
                     foreach ($web_info['report'] as $key => $value) 
                     {
                         // Пропускаем большие массивы данных

@@ -7,6 +7,17 @@ function wordToUniversalFormat ($word)
     return $word;
 }
 
+function phoneFormat ($phone)
+{
+    if($phone[0] == '+' || $phone[0] == 8 || $phone[0] == 7)
+    {
+        $phone = mb_substr($phone, 1);
+        if($v[0] == 7)
+            $phone = mb_substr($phone, 1);
+    }
+    return $phone;
+}
+
 /* Перевод ключей в понятные названия */
 function russianName($key)
 {
