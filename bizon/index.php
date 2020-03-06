@@ -142,6 +142,29 @@ if($act == 'options') {
                 ],
                 'desc' => 'Регистр не важен. Совпадения по этому полю минимальные, потому что человек может указать что угодно.',    // описание поля, можно пару строк
             ],
+            'viewers_keyword_stype' => [
+                'title' => 'Тип поиска',   // заголовок поля
+                'values' => [
+                    1 => 'Есть хотя бы одно',
+                    2 => 'Есть все слова',
+                    3 => 'Точное соответствие'
+                ],
+                'show' => [
+                    'option' => [1],
+                    'viewers_extype' => [3,4]
+                ],
+                'desc' => '',    // описание поля, можно пару строк
+            ],
+            'viewers_keyword' => [
+                'title' => 'Ключевое слово',   // заголовок поля
+                'default' => '',
+                'show' => [
+                    'option' => [1],
+                    'viewers_extype' => [3,4]
+                ],
+                'desc' => 'Какое слово(слова) ищем. Через запятую',    // описание поля, можно пару строк
+            ],
+            
 
 
             /* ==== Вебинарные поля ==== */ 
@@ -310,6 +333,8 @@ if($act == 'options') {
         $get_type = $options[$option_name.'_get_type']; // тип получения информации
         $last_num = $options[$option_name.'_last_num']; // номер веба с конца
         $search_type = $options[$option_name.'_search_type']; // тип поиска по вебинарам (автовеб, веб или везде)
+        $keyword = $options[$option_name.'_keyword']; // ключевое слово на поиск
+        $keyword_stype = $options[$option_name.'_keyword_stype']; // тип поиска ключа
         
         /* Инициализируем данные по зрителю */ 
         $viewer = [
@@ -542,6 +567,114 @@ if($act == 'options') {
                                         closeScript($log);
                                         exit();
                                     }
+
+                                    /* Если ищем ключевое слово в сообщении */
+                                    if($viewers_method == 3)
+                                    {
+                                        $much = 0;
+                                        if(strpos($keyword, ','))
+                                        {
+                                            $keyword = explode(',',$keyword);
+                                            $much = 1;
+                                        }
+
+                                        $k = 0; // стоп-переменная
+
+                                        switch ($keyword_stype) 
+                                        {
+                                            // есть хотя бы 1
+                                            case 1:
+                                                foreach ($messages as $value) 
+                                                {
+                                                    // если много слов
+                                                    if($much)
+                                                    {
+                                                       foreach ($keyword as $v) 
+                                                        {
+                                                            $v = trim($v);
+                                                            preg_match('/'.$v.'/', $value, $match);
+                                                            if(!empty($match))
+                                                            {
+                                                                $result = 'Найдено';
+                                                                $k = 1;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if($k) break; 
+                                                    }
+                                                    else
+                                                    {
+                                                        preg_match('/'.$keyword.'/', $value, $match);
+                                                        if(!empty($match))
+                                                        {
+                                                            $result = 'Найдено';
+                                                            $k = 1;
+                                                            break;
+                                                        }
+                                                    } // end else
+                                                } // end foreach $messages
+                                                break;
+
+                                            // есть все слова
+                                            case 2:
+                                                // Считаем сколько слов
+                                                $count = count($keyword);
+                                                // Счетчик для вхождений
+                                                $counter = 0;
+                                                foreach ($messages as $value) 
+                                                {
+                                                    // если много слов
+                                                    if($much)
+                                                    {
+                                                       foreach ($keyword as $v) 
+                                                       {
+                                                            $v = trim($v);
+                                                            preg_match('/'.$v.'/', $value, $match);
+                                                            if(!empty($match))
+                                                            {
+                                                                $counter++;
+                                                            }
+                                                            if($counter == $count)
+                                                            {
+                                                                $result = 'Найдено';
+                                                                $k = 1;
+                                                                break;
+                                                            }
+                                                        } // end foreach $keyword
+                                                        if($k) break; 
+                                                    }
+                                                    else
+                                                    {
+                                                        preg_match('/'.$keyword.'/', $value, $match);
+                                                        if(!empty($match))
+                                                        {
+                                                            $result = 'Найдено';
+                                                            $k = 1;
+                                                            break;
+                                                        }
+                                                    } // end else
+                                                } // end foreach $messages
+                                                break;
+                                            // точное соответствие
+                                            case 3:
+                                                foreach ($messages as $value) 
+                                                {
+                                                    if($value == $keyword)
+                                                    {
+                                                        $result = 'Найдено';
+                                                        $k = 1;
+                                                        break;
+                                                    }   
+                                                }
+                                                break;
+                                        } // end switch
+                                        if(!$k)
+                                        {
+                                            $log .= 'Не нашли сообщения такого';
+                                            closeScript($log);
+                                            exit();
+                                        }
+                                    }
                                 }
                             }
                             else 
@@ -631,13 +764,12 @@ if($act == 'options') {
             case 1:
 
                 /* Если искали сообщения */
-                if( $write_type && $viewers_method == 2)
+                if( $write_type && $viewers_method == 1)
                 {
-                    $result .= '<br>';
-                    foreach ($user as $key => $value) 
+                    $result = "Сообщения от ".$user['username']." с вебинара ID: ".$params['webinarId'].'<br>';
+                    foreach ($messages as $value) 
                     {
-                        $russian_key = russianName($key);
-                        $result .= $russian_key.': '.$value.'<br>';
+                        $result .= '«'.$value.'»;';
                     }
                 }
 
