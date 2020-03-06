@@ -40,7 +40,8 @@ function russianName($key)
             'playVideo' => 'Запустил просмотр',
             'total' => 'Общее число зрителей',
             'viewers' => 'Зрители',
-            'chatUserId' => 'ID в чате'
+            'chatUserId' => 'ID в чате',
+            'c1' => 'Доп. поле (vk id)'
     ];
     return $name[$key];
 

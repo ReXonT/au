@@ -106,8 +106,8 @@ if($act == 'options') {
                 'desc' => 'Пример: 20578:subarenda <br><br>
                 Советую заполнить все поля ниже. Поиск будет идти до первого нахождения по любому из полей',    // описание поля, можно пару строк
             ],
-            'viewers_referer' => [
-                'title' => 'Данные в источнике',   // заголовок поля
+            'viewers_c1' => [
+                'title' => 'Данные в доп.поле',   // заголовок поля
                 'default' => '',
                 'show' => [
                     'option' => [1]
@@ -338,7 +338,7 @@ if($act == 'options') {
             'username' => $options[$option_name.'_username'],
             'phone' => $options[$option_name.'_phone'],
             'email' => $options[$option_name.'_email'],
-            'referer' => $options[$option_name.'_referer']  // источник
+            'c1' => $options[$option_name.'_c1']  // доп поле
         ];
 
         $web = [
@@ -355,7 +355,8 @@ if($act == 'options') {
             'clickBanner', // был ли клик по баннеру
             'clickFile',    // был ли клик по кнопке
             'chatUserId',    // айди юзера в чате
-            'referer'   // источник
+            'referer',   // источник
+            'c1'
         ];
 
         /* Инициализация доступных методов по работе с Бизон365 */
@@ -872,9 +873,7 @@ if($act == 'options') {
             'result' => $result,     // где N - порядковый номер блока в схеме
             'log' => $log,
             'messages' => $messages,
-            'users_with_keys' => $users_with_keys,
-            'users' => $users,
-            'found_users' => $found_users
+            'web_info' => $web_info
         ]
     ];
 
