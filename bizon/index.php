@@ -145,6 +145,7 @@ if($act == 'options') {
                     2 => 'Есть все слова',
                     3 => 'Точное соответствие'
                 ],
+                'default' => 1,
                 'show' => [
                     'option' => [1],
                     'viewers_method' => [3,4]
@@ -541,7 +542,7 @@ if($act == 'options') {
                     foreach ($users as $value) //  === 1 ===
                     {
                         foreach ($value as $k => $v) 
-                        {
+                        {     
                             // Если есть такое поле в исходном поиске
                             if( isset($viewer_to_find[$k]) )
                             {
@@ -608,6 +609,7 @@ if($act == 'options') {
                         /* Если ищем ключевое слово в сообщении || Людей с ключевыми */
                         if($viewers_method == 3 || $viewers_method == 4)
                         {
+                            // Если несколько слов указали в ВРМ
                             $much = 0;
                             if(strpos($keyword, ','))
                             {
@@ -628,56 +630,79 @@ if($act == 'options') {
                                     // Счетчик для вхождений
                                     $counter = 0;
                                 }
-                                
-                                foreach ($messages as $value) 
+
+                                // Цикл как обертка для 3 метода и ключевой для 4
+                                foreach ($messages_php as $key => $messages) 
                                 {
-                                    // Перевод в универсальный формат (trim и mb_strtolower)
-                                    $value = wordToUniversalFormat($value);
-                                    // если много слов
-                                    if($much)
+                                    // Если метод на поиск сообщений - ставим сразу
+                                    if($viewers_method == 3)
                                     {
-                                       foreach ($keyword as $v) 
-                                       {
-                                            $v = wordToUniversalFormat($v);
+                                        $messages = $messages_php[$user['chatUserId']];
+                                    }
 
-                                            preg_match('/'.$v.'/', $value, $match);
+                                    foreach ($messages as $value) 
+                                    {
+                                        // Перевод в универсальный формат (trim и mb_strtolower)
+                                        $value = wordToUniversalFormat($value);
+                                        // если много слов
+                                        if($much)
+                                        {
+                                           foreach ($keyword as $v) 
+                                           {
+                                                $v = wordToUniversalFormat($v);
 
-                                            if(!empty($match))
-                                            {
-                                                // Если хотя бы 1
-                                                if($keyword_stype == 1)
+                                                preg_match('/'.$v.'/', $value, $match);
+
+                                                if(!empty($match))
                                                 {
+                                                    // Если хотя бы 1
+                                                    if($keyword_stype == 1)
+                                                    {
+                                                        if($viewers_method == 4)
+                                                        {
+                                                            $users_chat_ids[] = $key;
+                                                        }
+                                                        $result = 'Найдено';
+                                                        $k = 1;
+                                                        break;
+                                                    }
+                                                    elseif($keyword_stype == 2)
+                                                    {
+                                                        $counter++;
+                                                    }
+                                                    
+                                                }
+                                                if($keyword_stype == 2 && $counter == $count)
+                                                {
+                                                    if($viewers_method == 4)
+                                                    {
+                                                        $users_chat_ids[] = $key;
+                                                    }
                                                     $result = 'Найдено';
                                                     $k = 1;
                                                     break;
                                                 }
-                                                elseif($keyword_stype == 2)
-                                                {
-                                                    $counter++;
-                                                }
-                                                
-                                            }
-                                            if($keyword_stype == 2 && $counter == $count)
+                                            } // end foreach $keyword
+                                            if($k) break; 
+                                        }
+                                        else
+                                        {
+                                            $keyword = wordToUniversalFormat($keyword);
+                                            preg_match('/'.$keyword.'/', $value, $match);
+                                            if(!empty($match))
                                             {
+                                                if($viewers_method == 4)
+                                                {
+                                                    $users_chat_ids[] = $key;
+                                                }
                                                 $result = 'Найдено';
                                                 $k = 1;
                                                 break;
                                             }
-                                        } // end foreach $keyword
-                                        if($k) break; 
-                                    }
-                                    else
-                                    {
-                                        $keyword = wordToUniversalFormat($keyword);
-                                        preg_match('/'.$keyword.'/', $value, $match);
-                                        if(!empty($match))
-                                        {
-                                            $result = 'Найдено';
-                                            $k = 1;
-                                            break;
-                                        }
-                                    } // end else
-                                } // end foreach $messages
+                                        } // end else
+                                    } // end foreach $messages
+                                    if($viewers_method == 3) break; // если метод поиска сообщения - не перебираем дальше
+                                } // end foreach messages_php
                             }
                             else if($keyword_stype == 3)
                             {
@@ -803,7 +828,8 @@ if($act == 'options') {
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'result' => $result,     // где N - порядковый номер блока в схеме
             'log' => $log,
-            'messages' => $messages
+            'messages' => $messages,
+            'users_chat_ids' => $users_chat_ids
         ]
     ];
 
