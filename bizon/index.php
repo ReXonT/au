@@ -33,7 +33,9 @@ if($act == 'options') {
                 'title' => 'Выбор действия',   // заголовок поля
                 'values' => [
                     1 => 'Получить сообщения зрителя с вебинара',
-                    2 => 'Проверить присутствие на вебинаре'
+                    2 => 'Проверить присутствие на вебинаре',
+                    3 => 'Найти ключевое слово в сообщении у зрителя',
+                    4 => 'Найти всех, кто написал ключевое слово'
                 ],
                 'show' => [
                     'option' => [1]
@@ -232,6 +234,9 @@ if($act == 'options') {
         'out' => [                      // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
             1 => [                      // Номер 0 означает красный выход блока ВРМ, зарезервированный для случаев сбоя
                 'title' => 'Найдено',    // название выхода 1
+            ],
+            2 => [
+                'title' => 'Не найдено'
             ]        
         ]
     ];
@@ -294,7 +299,9 @@ if($act == 'options') {
                 $option_name = 'webinar';
                 break;
             default:
-                $result = 'Ошибка выбора типа действия';
+                $log .= 'Ошибка выбора типа действия';
+                closeScript($log);
+                exit();
                 break;
         }
 
@@ -427,110 +434,130 @@ if($act == 'options') {
                 {
                     $log .= 'Найден вебинар с webId: '.$params['webinarId'].'<br>';
                     
-                    $web_info = $bizon->call($method, $params);
-
-                    /* Получаем инфо по нужному вебинару */
-                    if( !isset($web_info['message']) )
+                    /* Если работа с вебинарами */
+                    if($option_name == 'webinar')
                     {
+                        /* Получаем инфо по нужному вебинару */
+                        $web_info = $bizon->call($method, $params);
 
-                        /* Работаем со зрителями */
-                        if($option_name == 'viewers')
+                        /* Если ошибка */
+                        if( isset($web_info['message']) )
                         {
-                            // проверяем: есть ли хоть 1 поле для поиска
-                            foreach ($viewer as $key => $value) 
+                            $log .= 'Ошибка запроса к Бизон365: '.$web_info['message'].'<br>';
+                            closeScript($log);
+                            exit();
+                        }
+                    }
+
+                    /* Работаем со зрителями */
+                    if($option_name == 'viewers')
+                    {
+                        /* Проверяем: есть ли хоть 1 поле для поиска (указано ли в ВРМ) */
+                        foreach ($viewer as $key => $value) 
+                        {
+                            if( !empty($value) )
                             {
-                                if( !empty($value) )
-                                {
-                                    $viewer_to_find[$key] = $value;
-                                }    
-                            }
+                                $viewer_to_find[$key] = $value;
+                            }    
+                        }
 
-                            if( isset($viewer_to_find) )
+                        if( isset($viewer_to_find) )
+                        {
+                            
+                            /* Получаем массив данных о зрителях выбранного веба */
+                            $web_info = $bizon->call($bizon_methods['getviewers'], $params);
+                            
+
+                            if( !isset($web_info['message']) )
                             {
-                                // получаем массив данных о зрителях выбранного веба
-                                $users_info = $bizon->call( $bizon_methods['getviewers'], $params );
+                                /* Получаем массив юзеров на вебинаре */
+                                $users = getUsersFromInfo($web_info, $return_keys);
 
-                                if( !isset($users_info['message']) )
+                                $s = 0; // стоп-переменная
+
+                                // Перебираем данные из зрителей
+                                foreach ($users as $value) //  === 1 ===
                                 {
-                                    /* Получаем массив юзеров на вебинаре */
-                                    $users = getUsersFromInfo($users_info, $return_keys);
-
-                                    /* Ищем зрителя на вебинаре */
-                                    if($viewers_method == 2)
+                                    foreach ($value as $k => $v) 
                                     {
-
-                                        $s = 0; // стоп-переменная
-                                        
-                                        // Перебираем данные из зрителей (email, username, phone)
-                                        foreach ($users as $value) //  === 1 ===
+                                        // Если есть такое поле в исходном поиске
+                                        if( isset($viewer_to_find[$k]) )
                                         {
-                                            foreach ($value as $k => $v) 
+                                            // приводим к нижнему регистру оба текста
+                                            $v = mb_strtolower($v);
+                                            $viewer_to_find[$k] = mb_strtolower($viewer_to_find[$k]);
+
+                                            if($k == 'phone')
                                             {
-                                                // Если есть такое поле в исходном поиске
-                                                if( isset($viewer_to_find[$k]) )
+                                                /* Приводим оба числа в формат (начинаем с 9) */ 
+                                                if($v[0] == '+' || $v[0] == 8 || $v[0] == 7)
                                                 {
-                                                    // приводим к нижнему регистру оба текста
-                                                    $v = mb_strtolower($v);
-                                                    $viewer_to_find[$k] = mb_strtolower($viewer_to_find[$k]);
+                                                    $v = mb_substr($v, 1);
+                                                    if($v[0] == 7)
+                                                        $v = mb_substr($v, 1);
+                                                }
 
-                                                    if($k == 'phone')
-                                                    {
-                                                        /* Приводим оба числа в формат (начинаем с 9) */ 
-                                                        if($v[0] == '+' || $v[0] == 8 || $v[0] == 7)
-                                                        {
-                                                            $v = mb_substr($v, 1);
-                                                            if($v[0] == 7)
-                                                                $v = mb_substr($v, 1);
-                                                        }
-
-                                                        if($viewer_to_find[$k][0] == '+' || $viewer_to_find[$k][0] == 8 || $viewer_to_find[$k][0] == 7)
-                                                        {
-                                                            $viewer_to_find[$k] = mb_substr($viewer_to_find[$k], 1);
-                                                            if($viewer_to_find[$k][0] == 7)
-                                                                $viewer_to_find[$k] = mb_substr($viewer_to_find[$k], 1);
-                                                        }                                                       
-                                                    }
-
-                                                    preg_match( '/'.$viewer_to_find[$k].'/', $v, $match );
-                                                    if( !empty($match) && isset($match) )
-                                                    {
-                                                        $user = $value;
-                                                        $log .= 'Нашли по '.$k.'<br>';
-                                                        $s = 1;
-                                                        break;
-                                                    }
-                                                } // end if
+                                                if($viewer_to_find[$k][0] == '+' || $viewer_to_find[$k][0] == 8 || $viewer_to_find[$k][0] == 7)
+                                                {
+                                                    $viewer_to_find[$k] = mb_substr($viewer_to_find[$k], 1);
+                                                    if($viewer_to_find[$k][0] == 7)
+                                                        $viewer_to_find[$k] = mb_substr($viewer_to_find[$k], 1);
+                                                }                                                       
                                             }
 
-                                            if($s) break;
-                                        } //  end foreach 1
+                                            // Ищем вхождения
+                                            preg_match( '/'.$viewer_to_find[$k].'/', $v, $match );
 
-                                    } // end метода поиска зрителя на вебинаре 
-                                }
-                                else 
+                                            if( !empty($match) && isset($match) )
+                                            {
+                                                $user = $value;
+                                                $result = 'Зритель найден';
+                                                $log .= 'Нашли по '.$k.'<br>';
+                                                $s = 1;
+                                                break;
+                                            }
+                                        } // end if
+                                    }
+
+                                    if($s) break;
+                                } //  end foreach 1 (перебор данных зрителей - поиск)
+
+                                if(!$s) $result = 'Не найден такой зритель';
+
+                                /* Если нам нужно найти сообщения зрителя */
+                                if($viewers_method == 1)
                                 {
-                                    $log .= 'Ошибка запроса к Бизон365: '.$users_info['message'].'<br>';
-                                    closeScript($log);
-                                    exit();
-                                }                     
-                            } // end if isset
-                            else
+                                    /* Получаем массив данных о сообщениях выбранного веба */
+                                    $web_info = $bizon->call($bizon_methods['get'], $params);
+                                    $messages_json = $web_info['report']['messages'];
+                                    $messages_php = json_decode($messages_json, 1);
+                                    $messages = $messages_php[$user['chatUserId']];
+                                    if(!empty($messages))
+                                    {
+                                        $result = 'Сообщения зрителя найдены';
+                                    }
+                                    else
+                                    {
+                                        $log .= 'Не найдено сообщений зрителя <br>';
+                                        closeScript($log);
+                                        exit();
+                                    }
+                                }
+                            }
+                            else 
                             {
-                                $log .= 'Не указаны поля для поиска <br>';
+                                $log .= 'Ошибка запроса к Бизон365: '.$web_info['message'].'<br>';
                                 closeScript($log);
                                 exit();
-                            }
-                            
-                            if(!$s) $result = 'Не найден такой зритель';
-
-                        } //  end if ($option_name == 'viewers')
-                    }   // end if isset web_info
-                    else 
-                    {
-                        $log .= 'Ошибка запроса к Бизон365: '.$web_info['message'].'<br>';
-                        closeScript($log);
-                        exit();
-                    }
+                            }                     
+                        } // end if isset
+                        else
+                        {
+                            $log .= 'Не указаны поля для поиска <br>';
+                            closeScript($log);
+                            exit();
+                        }
+                    } //  end if ($option_name == 'viewers')
                 } // end if ( isset $params['webinarId'] )
                 else $log .= 'Такой вебинар не найден <br>';
                 break;
@@ -553,14 +580,8 @@ if($act == 'options') {
                 $params['webinarId'] = $webinar_id;
 
                 /* Получаем инфо по нужному вебинару */
-                try
-                {
-                    $web_info = $bizon->call($method, $params);
-                }
-                catch (Exception $e)
-                {
-                    $log .= $e->getMessage().'<br>';
-                }
+                $web_info = $bizon->call($method, $params);
+ 
 
                 if( isset($web_info) )
                 {
@@ -603,10 +624,25 @@ if($act == 'options') {
             echo '</pre>';
         }
 
+
+        /* Если стоит переключатель на "Выводить текстом" */
         switch ($option) {
             // зрители
             case 1:
-                if( $write_type )
+
+                /* Если искали сообщения */
+                if( $write_type && $viewers_method == 2)
+                {
+                    $result .= '<br>';
+                    foreach ($user as $key => $value) 
+                    {
+                        $russian_key = russianName($key);
+                        $result .= $russian_key.': '.$value.'<br>';
+                    }
+                }
+
+                /* Если искали человека */
+                if( $write_type && $viewers_method == 2)
                 {
                     $result .= '<br>';
                     foreach ($user as $key => $value) 
@@ -673,9 +709,8 @@ if($act == 'options') {
         
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'result' => $result,     // где N - порядковый номер блока в схеме
-            'user' => $user,
             'log' => $log,
-            'web_info' => $web_info,
+            'messages' => $messages
         ]
     ];
 
@@ -684,10 +719,17 @@ if($act == 'options') {
 
 } elseif($act == 'man') {
     $responce = [
-        'html' =>'###Доступные переменные:
+        'html' =>
+        '##Описание
+        Данная ВРМ работает с аккаунтом Бизон365, который Вы указали в интеграции. Подробная инструкция тут - 
 
-        **{b.{bid}.value.result}** - результат выполнения
-        **{b.{bid}.value.log}** - строка логирования ошибок
+        ###Доступные переменные:
+
+        **{b.{bid}.value.result}** - результат выполнения в текстовом виде
+        **{b.{bid}.value.messages}** - массив с сообщениями зрителя
+
+        ####Отладка
+        **{b.{bid}.value.log}** - строка логирования действий/ошибок (для выхода "Не найдено")
         '
     ];
 }

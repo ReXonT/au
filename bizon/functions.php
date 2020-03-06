@@ -70,7 +70,7 @@ function getUsersFromInfo ($users_info, $return_keys)
 function closeScript ($log)
 {
     $responce = [
-        'out' => 0,         // Обязательно должен быть номер выхода out, отличный от нуля!
+        'out' => 2,         // Обязательно должен быть номер выхода out, отличный от нуля!
         
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'log' => $log
