@@ -36,8 +36,7 @@ if(isset($act))
                         1 => 'Добавить',
                         2 => 'Изменить',
                         3 => 'Получить',
-                        4 => 'Удалить',
-                        5 => 'Конверсия'
+                        4 => 'Удалить'
                     ],
                     'desc' => '',    // описание поля, можно пару строк
                 ],
@@ -196,11 +195,9 @@ if(isset($act))
                 $nameVar = 'deal';  // часть названия переменной, ответственная за сделки
                 break;
             case 3:
-                $nameVar = 'contact';  // часть названия переменной, ответственная за контакты
+                $nameVar = 'contact';  // часть названия переменной, ответственная за сделки
                 break;
         }
-
-        // массив имен полей для Битрикс24
 
         $arrFieldNames = [
             'Title',
@@ -231,7 +228,7 @@ if(isset($act))
 
         Составятся такие переменные:
 
-        $leadTitle = $options['leadTitle']; // title лида. Если сделка, то dealTitle и тд
+        $leadTitle = $options['leadTitle']; // title лида
         $leadName = $options['leadName']; // имя лида
         $leadLast_Name = $options['leadLast_Name']; // фамилия лида
         $leadComments = $options['leadComments']; // комментарии для лида
@@ -347,8 +344,6 @@ if(isset($act))
                     }
                 }
 
-                // вызываем call (описан в functions.php) с url, названием метода и полями
-
                 $response = call(
                     $queryUrl,
                    'crm.'.$nameVar.'.add',
@@ -447,6 +442,8 @@ if(isset($act))
                         {
                             $found .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
                         }
+                        // пропускаем значение этого ключа
+                        elseif ($key == 'STATUS_SEMANTIC_ID') continue;
                         else
                         {
                             // меняем значение, если Y или N на адекватные русские названия
@@ -478,42 +475,6 @@ if(isset($act))
                 $out = 1;
                 break;
 
-            case 5:
-            	$response = call(
-            		$queryUrl,
-				    'crm.lead.list',
-				    [
-				        'filter' => [
-				            '>DATE_CREATE' => '2020-01-24T00:00:00',
-            									'2020-02-24T00:00:00',
-            				"STATUS_ID" => "20"	// купили
-				        ],
-				        'select' => [
-				            'ID'
-				        ]
-				    ]
-				);
-				$response2 = call(
-            		$queryUrl,
-				    'crm.lead.list',
-				    [
-				        'filter' => [
-				            '>DATE_CREATE' => '2020-01-24T00:00:00',
-            									'2020-02-24T00:00:00',
-            				"STATUS_ID" => "55" // слились
-				        ],
-				        'select' => [
-				            'ID'
-				        ]
-				    ]
-				);
-				$result = $response['result'];
-				$kupili = $response['total'];
-				$sliv = $response2['total'];
-				$found = (($kupili + $sliv)/$kupili)*100;
-                $out = 1;
-            	break;
-
             default:
                 // code...
                 break;
@@ -532,6 +493,31 @@ if(isset($act))
     } elseif($act == '') {
         // Действие не задано, и что же нам сделать? Станцевать вальс, попрыгать, пойти в гости к Кролику?
 
+    }
+    elseif($act == 'man')
+    {
+        $responce = [
+            'html' => 
+            '##Описание
+            Данная ВРМ работает с аккаунтом Bitrix24, который Вы указали в интеграции. Подробная инструкция тут - https://vk.com/@rexont-bitrix24-au
+
+            **Версия ВРМ: 1.0** в инструкции есть более новая версия (beta)
+
+            ###Доступные переменные:
+
+            **{b.{bid}.value.found}**
+            информация по найденной карточке клиента
+
+            **{b.{bid}.value.vk_uid}**
+            vk id клиента из карточки
+
+            **{b.{bid}.value.message}**
+            информация по выполнению метода (если есть)
+
+            **{b.{bid}.value.result}**
+            полный массив полученных данных при выполнении (для отладки, либо прямого доступа к нужным данным)
+            '
+        ];
     }
 
     // Отдать JSON, не кодируя кириллические символы в кракозябры
