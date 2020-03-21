@@ -37,7 +37,7 @@ class JustClick
 		return $result;
 	}
 
-    // Формируем подпись к передаваемым в API данным
+	// Формируем подпись к передаваемым в API данным
     function getHash($params)
     {
         $params = http_build_query($params);
