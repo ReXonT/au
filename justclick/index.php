@@ -14,6 +14,12 @@ $act = $_REQUEST['act'];
 if($act == 'options') {
      $responce = [
         'title' => 'Создаем в JC заказ',      // Это заголовок блока, который будет виден на схеме
+         'paysys' => [
+             'ps' => [
+                 'title' => 'Интеграция',
+                 'type' => 4
+             ]
+         ],
         'vars' => [                     // переменные, которые можно будет настроить в блоке
             'good_name' => [
                 'title' => 'Название продукта',   // заголовок поля
@@ -49,26 +55,96 @@ if($act == 'options') {
                 'title' => 'Купон скидки',   // заголовок поля
                 'desc' => ''    // описание поля, можно пару строк
             ],
+
+            // UTM данные
+            'utm_exec' => [
+                'title' => 'Добавить utm',
+                'values' => [
+                    0 => 'Нет',
+                    1 => 'Да'
+                ],
+                'default' => 0
+            ],
             'utm_medium' => [
                 'title' => 'utm_medium',   // заголовок поля
-                'desc' => 'UTM-параметр канал'    // описание поля, можно пару строк
+                'desc' => 'UTM-параметр канал',
+                'show' => [
+                    'utm_exec' => [1]
+                ]
             ],
             'utm_source' => [
-                'title' => 'utm_source',   // заголовок поля
-                'desc' => 'UTM-параметр источник'    // описание поля, можно пару строк
+                'title' => 'utm_source',
+                'desc' => 'UTM-параметр источник',
+                'show' => [
+                    'utm_exec' => [1]
+                ]
             ],
             'utm_campaign' => [
-                'title' => 'utm_campaign',   // заголовок поля
-                'desc' => 'UTM-параметр кампания'    // описание поля, можно пару строк
+                'title' => 'utm_campaign',
+                'desc' => 'UTM-параметр кампания',
+                'show' => [
+                    'utm_exec' => [1]
+                ]
             ],
             'utm_content' => [
-                'title' => 'utm_content',   // заголовок поля
-                'desc' => 'UTM-параметр объявление'    // описание поля, можно пару строк
+                'title' => 'utm_content',
+                'desc' => 'UTM-параметр объявление',
+                'show' => [
+                    'utm_exec' => [1]
+                ]
             ],
             'utm_term' => [
-                'title' => 'utm_term',   // заголовок поля
-                'desc' => 'UTM-параметр ключ'    // описание поля, можно пару строк
-            ]
+                'title' => 'utm_term',
+                'desc' => 'UTM-параметр ключ',
+                'show' => [
+                    'utm_exec' => [1]
+                ]
+            ],
+
+            // Партнерские данные
+            'aff_exec' => [
+                'title' => 'Добавить парнерские данные',
+                'values' => [
+                    0 => 'Нет',
+                    1 => 'Да'
+                ],
+                'default' => 0
+            ],
+            'aff_medium' => [
+                'title' => 'aff_medium',   // заголовок поля
+                'desc' => 'Партнерский-параметр канал',
+                'show' => [
+                    'aff_exec' => [1]
+                ]
+            ],
+            'aff_source' => [
+                'title' => 'aff_source',
+                'desc' => 'Партнерский-параметр источник',
+                'show' => [
+                    'aff_exec' => [1]
+                ]
+            ],
+            'aff_campaign' => [
+                'title' => 'aff_campaign',
+                'desc' => 'Партнерский-параметр кампания',
+                'show' => [
+                    'aff_exec' => [1]
+                ]
+            ],
+            'aff_content' => [
+                'title' => 'aff_content',
+                'desc' => 'Партнерский-параметр объявление',
+                'show' => [
+                    'aff_exec' => [1]
+                ]
+            ],
+            'aff_term' => [
+                'title' => 'aff_term',
+                'desc' => 'Партнерский-параметр ключ',
+                'show' => [
+                    'aff_exec' => [1]
+                ]
+            ],
         ],
         'out' => [                      // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
             1 => [                      // Номер 0 означает красный выход блока ВРМ, зарезервированный для случаев сбоя
@@ -94,39 +170,57 @@ if($act == 'options') {
                                     // text - текст комментария, сообщения и т.д.
     $out = 0;                    // Номер выхода по умолчанию. Если дальнейший код не назначит другой выход - значит что-то не так
     $options = $_REQUEST['options'];
+    $ps = $_REQUEST['paysys']['ps'];
+    $pso = $ps['options'];
 
-    $jc = new JustClick('', '');
+    $jc = new JustClick($pso['account'], $pso['secret']);
     
     // Формируем массив купленных товаров
     $order = new Order();
 
     $order->addProduct($options['good_name'], $options['good_sum']);
 
+    // Информация о клиенте
     $order->setNameFirst($options['bill_first_name']);
     $order->setNameLast($options['bill_last_name']);
     $order->setOtchestvo($options['bill_otchestvo']);
     $order->setEmail($options['bill_email']);
     $order->setPhoneNumber($options['bill_phone']);
 
+    // Скидочный купон
     $order->setCoupon($options['bill_coupon']);
 
+    // Текстовые заметки
     $order->setComment($options['bill_comment']);
     $order->setTag($options['bill_tag']);
 
+    // Время
     $order->setTimerKill(true); // есть ли ограничение на время оплаты заказа, где:
         // false или 0 - счет автоматически не отменяется;
         // true или 1 - автоматическая отмена счета согласно настройкам в продукте;
         // при передаче времени в unixtime - автоотмена счета выставляется по этому времени.
     $order->setDateCreated(time());
 
-    $order->setDomainName('biz.faceexpert.ru');
+    // Доп. информация
+    $order->setDomainName('');
+
+    // UTM метки
     $order->setUtm([
             'utm_source' => $options['utm_source'],
             'utm_medium' => $options['utm_medium'],
             'utm_campaign' => $options['utm_campaign'],
             'utm_content' => $options['utm_content'],
             'utm_term' => $options['utm_term'],
-        ]);
+    ]);
+
+    // Партнерские метки
+    $order->setUtmAff([
+        'aff_source' => $options['aff_source'],
+        'aff_medium' => $options['aff_medium'],
+        'aff_campaign' => $options['aff_campaign'],
+        'aff_content' => $options['aff_content'],
+        'aff_term' => $options['aff_term'],
+    ]);
 
     // Вызываем функцию создания нового заказа и декодируем полученные данные
     $result = $jc->errorCodeToRussian(

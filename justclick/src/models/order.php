@@ -169,8 +169,8 @@ class Order
     public function setUtm(array $utm)
     {
         $temp_data = [
-            'utm[utm_medium]' => $utm['utm_medium'],
             'utm[utm_source]' => $utm['utm_source'],
+            'utm[utm_medium]' => $utm['utm_medium'],
             'utm[utm_campaign]' => $utm['utm_campaign'],
             'utm[utm_content]' => $utm['utm_content'],
             'utm[utm_term]' => $utm['utm_term']
@@ -184,8 +184,8 @@ class Order
     public function setUtmAff(array $utm_aff)
     {
         $temp_data = [
-            'utm[aff_medium]' => $utm_aff['aff_medium'],
             'utm[aff_source]' => $utm_aff['aff_source'],
+            'utm[aff_medium]' => $utm_aff['aff_medium'],
             'utm[aff_campaign]' => $utm_aff['aff_campaign'],
             'utm[aff_content]' => $utm_aff['aff_content'],
             'utm[aff_term]' => $utm_aff['aff_term']
