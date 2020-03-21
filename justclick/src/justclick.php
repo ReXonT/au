@@ -1,43 +1,41 @@
 <?php
-
 class JustClick
 {
-	private $user_id;
-	private $user_rps_key;
+    private $user_id;
+    private $user_rps_key;
 
-	public function __construct($user_id, $user_rps_key)
-	{
-		$this->user_id = $user_id;
-		$this->user_rps_key = $user_rps_key;
-	}
+    public function __construct($user_id, $user_rps_key)
+    {
+        $this->user_id = $user_id;
+        $this->user_rps_key = $user_rps_key;
+    }
 
-	public function createOrder(Order $order)
-	{
-		return $this->send('CreateOrder', $order->getData());
-	}
+    public function createOrder(Order $order)
+    {
+        return $this->send('CreateOrder', $order->getData());
+    }
 
-	function send($method, $data)
-	{
-		$url = 'https://' . $this->user_id . '.justclick.ru/api/'.$method;
-		$data['hash'] = $this->getHash($data);
+    function send($method, $data)
+    {
+        $url = 'https://' . $this->user_id . '.justclick.ru/api/' . $method;
+        $data['hash'] = $this->getHash($data);
 
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // выводим ответ в переменную
-	 
-		$res = curl_exec($ch);
-		curl_close($ch);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // выводим ответ в переменную
+        $res = curl_exec($ch);
+        curl_close($ch);
 
-	 	$result = json_decode($res, 1);
-		
-		return $result;
-	}
+        $result = json_decode($res, 1);
 
-	// Формируем подпись к передаваемым в API данным
+        return $result;
+    }
+
+    // Формируем подпись к передаваемым в API данным
     function getHash($params)
     {
         $params = http_build_query($params);
@@ -54,14 +52,13 @@ class JustClick
         $code = $resp->error_code;
         $text = $resp->error_text;
         $hash = md5("$code::$text::$secret");
-        if($hash == $resp->hash)
+        if ($hash == $resp->hash)
             return true; // подпись верна
         else
             return false; // подпись не верна
     }
 
-
-	/* Декодим ошибку */
+    /* Декодим ошибку */
     function errorCodeToRussian($code)
     {
         $text = '';
@@ -134,7 +131,6 @@ class JustClick
             case 303:
                 $text = 'Такого статуса заказа нет в системе';
                 break;
-
 
             case 400:
                 $text = 'Заказ с таким номером не существует';
