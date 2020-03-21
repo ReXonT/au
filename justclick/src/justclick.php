@@ -15,6 +15,31 @@ class JustClick
         return $this->send('CreateOrder', $order->getData());
     }
 
+    public function updateOrderStatus(Order $order)
+    {
+        return $this->send('UpdateOrderStatus', $order->getData());
+    }
+
+    public function deleteOrder(Order $order)
+    {
+        return $this->send('DeleteOrder', $order->getData());
+    }
+
+    public function getBills(Order $order)
+    {
+        return $this->send('GetBills', $order->getData());
+    }
+
+    public function getOrderDetails(Order $order)
+    {
+        return $this->send('getOrderDetails', $order->getData());
+    }
+
+    public function getOrdersWithGoods(Order $order)
+    {
+        return $this->send('getOrdersWithGoods', $order->getData());
+    }
+
     function send($method, $data)
     {
         $url = 'https://' . $this->user_id . '.justclick.ru/api/' . $method;

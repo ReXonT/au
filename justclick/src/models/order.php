@@ -27,6 +27,47 @@ class Order
     }
 
     /**
+     * @param integer $id
+     */
+    public function setId($id)
+    {
+        $this->data['bill_id'] = $id;
+    }
+
+    /**
+     * @param string $status
+     */
+    public function setStatus($status)
+    {
+        $this->data['status'] = $status;
+    }
+
+    /**
+     * @param string $status
+     */
+    public function setPayStatus($status)
+    {
+        $this->data['pay_status'] = $status;
+    }
+
+    /**
+     * @param bool $good_info
+     */
+    public function setGoodInfo($good_info)
+    {
+        $this->data['good_info'] = $good_info;
+    }
+
+    /**
+     * @param string $good_ids
+     */
+    public function setGoods($good_ids)
+    {
+        $this->data['goods'] = $good_ids;
+    }
+
+
+    /**
      * @param string $first_name
      */
     public function setNameFirst($first_name)
@@ -56,6 +97,14 @@ class Order
     public function setEmail($email)
     {
         $this->data['bill_email'] = $email;
+    }
+
+    /**
+     * @param string $email
+     */
+    public function setEmailForBills($email)
+    {
+        $this->data['email'] = $email;
     }
 
     /**
@@ -139,6 +188,49 @@ class Order
     }
 
     /**
+     * @param string $domain_name
+     */
+    public function setDomainName($domain_name)
+    {
+        $this->data['bill_domain'] = $domain_name;
+    }
+
+    /**
+     * @param bool $paid
+     */
+    public function setPaid($paid)
+    {
+        $this->data['paid'] = $paid;
+    }
+
+    /**
+     * @param int $date
+     * unixtime
+     */
+    public function setDate($date)
+    {
+        $this->data['date'] = $date;
+    }
+
+    /**
+     * @param int $date
+     * unixtime
+     */
+    public function setBeginDate($date)
+    {
+        $this->data['begin_date'] = $date;
+    }
+
+    /**
+     * @param int $date
+     * unixtime
+     */
+    public function setEndDate($date)
+    {
+        $this->data['end_date'] = $date;
+    }
+
+    /**
      * @param string $timer_kill
      */
     public function setTimerKill($timer_kill)
@@ -156,11 +248,11 @@ class Order
     }
 
     /**
-     * @param string $domain_name
+     * @param string $rpo
      */
-    public function setDomainName($domain_name)
+    public function setRPO($rpo)
     {
-        $this->data['bill_domain'] = $domain_name;
+        $this->data['rpo'] = $rpo;
     }
 
     /**
