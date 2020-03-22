@@ -198,7 +198,7 @@ elseif ($act == 'run')
     }
 
     // Декодируем код ответа в текст для отладки
-    $result = $jc->errorCodeToRussian(
+    $answer = $jc->errorCodeToRussian(
         $response['error_code']
     );
 
@@ -209,7 +209,8 @@ elseif ($act == 'run')
         'value' => [                // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'result' => $result,    // где N - порядковый номер блока в схеме
             'response' => $response,
-            'payment_link' => $payment_link
+            'payment_link' => $payment_link,
+            'answer' => $answer
         ]
     ];
 

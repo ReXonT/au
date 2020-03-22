@@ -72,7 +72,7 @@ elseif ($act == 'run')
             ]);
 
             $response = $jc->addLeadToGroup($contact);
-        break;
+            break;
 
         // Изменить данные контакта  
         case 2:
@@ -82,7 +82,7 @@ elseif ($act == 'run')
             $contact->setCity($options['lead_city']);
 
             $response = $jc->updateSubscriberData($contact);
-        break;
+            break;
 
         // Отписать от группы
         case 3:
@@ -90,24 +90,25 @@ elseif ($act == 'run')
             $contact->setMailingName($options['mailing_id']);
 
             $response = $jc->deleteSubscribe($contact);
-        break;
+            break;
 
         // Получить все группы контакта  
         case 4:
             $contact->setEmail($options['lead_email']);
 
             $response = $jc->getLeadGroupStatuses($contact);
-        break;
+            break;
 
         // Получить все группы из аккаунта  
         case 5:
             $contact->clearData();
 
             $response = $jc->getAllGroups($contact);
-        break;
+            break;
     }
 
-    $result = $jc->errorCodeToRussian(
+    // Декодируем код ответа в текст для отладки
+    $answer = $jc->errorCodeToRussian(
         $response['error_code']
     );
 
