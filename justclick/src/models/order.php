@@ -8,22 +8,11 @@ class Order
 
     /**
      * Adds product to the order.
-     *
-     * @param string $name
-     * @param integer|null $price
+     * @param Good $good
      */
-    public function addProduct($name, $price)
+    public function addProduct(Good $good)
     {
-        if (!isset($this->data['goods'])) {
-            $this->data['goods'] = [];
-        }
-
-        $product = [
-            'good_name' => $name,
-            'good_sum' => (int) $price
-        ]; 
-
-        $this->data['goods'][] = $product;
+        $this->data['goods'][] = $good->getData();
     }
 
     /**
@@ -291,5 +280,13 @@ class Order
     public function getData()
     {
         return $this->data;
+    }
+
+    /**
+     *
+     */
+    public function clearData()
+    {
+        $this->data = [];
     }
 }

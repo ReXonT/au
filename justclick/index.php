@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 
 require_once 'src/justclick.php';
 require_once 'src/models/order.php';
+require_once 'src/models/good.php';
 
 $act = $_REQUEST['act'];
 
@@ -44,8 +45,13 @@ if($act == 'options') {
             {
                 // Создать счет
                 case 1:
+                    // Создаем товар
+                    $good = new Good();
+
+                    $good->setName($options['good_name']);
+                    $good->setSum($options['good_sum']);
                     // Формируем массив купленных товаров
-                    $order->addProduct($options['good_name'], $options['good_sum']);
+                    $order->addProduct($good);
 
                     // Информация о клиенте
                     $order->setNameFirst($options['bill_first_name']);
@@ -68,9 +74,6 @@ if($act == 'options') {
                     // при передаче времени в unixtime - автоотмена счета выставляется по этому времени.
                     $order->setDateCreated(time());
 
-                    // Доп. информация
-                    $order->setDomainName($options['bill_domain']);
-
                     // UTM метки
                     $order->setUtm([
                         'utm_source' => $options['utm_source'],
@@ -89,7 +92,26 @@ if($act == 'options') {
                         'aff_term' => $options['aff_term'],
                     ]);
 
+                    if($options['domain_exec'])
+                        $order->setDomainName($options['bill_domain']);
+
+                    // Создаем счет
                     $response = $jc->createOrder($order);
+
+                    if($response['error_code'] == 0)
+                    {
+                        // Чистим данные заказа
+                        $order->clearData();
+                        $order->setId($response['result']['bill_id']);
+
+                        // Получаем ссылку на оплату по id заказа
+                        $response = $jc->getOrderDetails($order);
+                        $payment_link = $response['result']['link'];
+                    }
+                    else
+                    {
+                        $result = 'Неверные данные. Заказ не создан';
+                    }
                     break;
 
                 // Изменить статус счета
@@ -150,7 +172,21 @@ if($act == 'options') {
 
         // Работа с продуктами
         case 3:
-            // продукты
+            switch ($options['product_option']) 
+            {
+                // Удаление продукта
+                case 1:
+                    $good = new Good();
+                    $good->setName($options['product_name']);
+                    
+                    $response = $jc->deleteGood($good);
+                    break;
+
+                // Получить список всех продуктов
+                case 2:
+                    $response = $jc->getAllGoods();
+                    break;
+            }
             break;
     }
 
@@ -163,7 +199,8 @@ if($act == 'options') {
         
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'result' => $result,     // где N - порядковый номер блока в схеме
-            'response' => $response
+            'response' => $response,
+            'payment_link' => $payment_link
         ]
     ];
 

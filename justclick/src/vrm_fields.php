@@ -49,15 +49,25 @@ $responce = [
         'product_option' => [
             'title' => 'Что делаем',
             'values' => [
-                1 => 'Изменить настройки продукта',
-                2 => 'Удалить продукт',
-                3 => 'Получить список всех продуктов'
+                1 => 'Удалить продукт',
+                2 => 'Получить список всех продуктов'
             ],
-            'default' => 1,
+            'default' => 2,
             'show' => [
                 'option' => [3]
             ]
         ],
+
+        'product_name' => [
+            'title' => 'Название продукта',   // заголовок поля
+            'desc' => '',
+            'default' => '',
+            'show' => [
+                'option' => [3],
+                'product_option' => [1]
+            ]
+        ],
+
         'good_ids' => [
             'title' => 'ID продуктов',   // заголовок поля
             'desc' => 'Через запятую. Берется из адресной строки при редактировании продукта',
@@ -129,15 +139,6 @@ $responce = [
                 'bill_option' => [4]
             ]
         ],
-        'bill_domain' => [
-            'title' => 'Ссылка на оплату заказа',
-            'default' => '',
-            'desc' => 'Указывайте ссылку на форму заказа выбранного товара',
-            'show' => [
-                'option' => [1],
-                'bill_option' => [1]
-            ]
-        ],
         'bill_kupon' => [
             'title' => 'Купон скидки',   // заголовок поля
             'desc' => '',
@@ -163,7 +164,7 @@ $responce = [
                 'bill_option' => [1]
             ]
         ],
-        'bill_surname' => [
+        'bill_last_name' => [
             'title' => 'Фамилия',   // заголовок поля
             'desc' => '',
             'show' => [
@@ -201,18 +202,18 @@ $responce = [
                 'bill_option' => [1]
             ]
         ],
-        'utm_medium' => [
-            'title' => 'utm_medium',   // заголовок поля
-            'desc' => 'UTM-параметр канал',
+        'utm_source' => [
+            'title' => 'utm_source',
+            'desc' => 'UTM-параметр источник',
             'show' => [
                 'option' => [1],
                 'bill_option' => [1],
                 'utm_exec' => [1]
             ]
         ],
-        'utm_source' => [
-            'title' => 'utm_source',
-            'desc' => 'UTM-параметр источник',
+        'utm_medium' => [
+            'title' => 'utm_medium',   // заголовок поля
+            'desc' => 'UTM-параметр канал',
             'show' => [
                 'option' => [1],
                 'bill_option' => [1],
@@ -260,18 +261,18 @@ $responce = [
                 'bill_option' => [1]
             ]
         ],
-        'aff_medium' => [
-            'title' => 'aff_medium',   // заголовок поля
-            'desc' => 'Партнерский-параметр канал',
+        'aff_source' => [
+            'title' => 'aff_source',
+            'desc' => 'Партнерский-параметр источник',
             'show' => [
                 'option' => [1],
                 'bill_option' => [1],
                 'aff_exec' => [1]
             ]
         ],
-        'aff_source' => [
-            'title' => 'aff_source',
-            'desc' => 'Партнерский-параметр источник',
+        'aff_medium' => [
+            'title' => 'aff_medium',   // заголовок поля
+            'desc' => 'Партнерский-параметр канал',
             'show' => [
                 'option' => [1],
                 'bill_option' => [1],
@@ -323,6 +324,29 @@ $responce = [
             'show' => [
                 'option' => [1],
                 'bill_option' => [6]
+            ]
+        ],
+
+        // Домен принятого заказа
+        'domain_exec' => [
+            'title' => 'Домен заказа',   // заголовок поля
+            'desc' => '',
+            'values' => [
+            	0 => 'Определить автоматически',
+            	1 => 'Ввести вручную'
+            ],
+            'show' => [
+                'option' => [1],
+                'bill_option' => [1]
+            ]
+        ],
+        'bill_domain' => [
+            'title' => 'Введите домен',   // заголовок поля
+            'desc' => '',
+            'show' => [
+                'option' => [1],
+                'bill_option' => [1],
+                'domain_exec' => [1]
             ]
         ],
 

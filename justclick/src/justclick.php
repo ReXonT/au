@@ -12,6 +12,9 @@ class JustClick
 
     public function createOrder(Order $order)
     {
+        if( ! $this->data['bill_domain'] )
+            $order->setDomainName($this->user_id . '.justclick.ru');
+
         return $this->send('CreateOrder', $order->getData());
     }
 
@@ -38,6 +41,16 @@ class JustClick
     public function getOrdersWithGoods(Order $order)
     {
         return $this->send('getOrdersWithGoods', $order->getData());
+    }
+
+    public function getAllGoods()
+    {
+        return $this->send( 'GetAllGoods',array() );
+    }
+    
+    public function deleteGood(Good $good)
+    {
+        return $this->send('DeleteGood',$good->getData());
     }
 
     function send($method, $data)
