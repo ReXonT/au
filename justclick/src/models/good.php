@@ -1,9 +1,7 @@
 <?php 
 
-class Good
+class Good extends Base
 {
-    protected $data;
-
     public function setName($good_name)
     {
         $this->data['good_name'] = $good_name;
@@ -14,18 +12,5 @@ class Good
         $this->data['good_sum'] = $good_sum;
     }
 
-
-
-    public function getData()
-    {
-        return $this->data;
-    }
-
-    public function clearData()
-    {
-        $this->data = [];
-    }
-
 }
 
-?>
