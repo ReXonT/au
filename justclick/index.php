@@ -2,9 +2,11 @@
 
 ini_set('display_errors', 1);
 
+require_once 'src/models/base.php';
 require_once 'src/justclick.php';
 require_once 'src/models/order.php';
 require_once 'src/models/good.php';
+
 
 $act = $_REQUEST['act'];
 
@@ -23,7 +25,7 @@ if($act == 'options') {
 } elseif($act == 'run') {              // Схема прислала данные, обрабатываем
 
     $target = $_REQUEST['target'];  // Пользователь, от имени которого выполняется блок
-    $ums = $_REQUEST['ums'];     // Данные об активности пользователя, массив в котором есть
+    $ums = $_REQUEST['ums'];        // Данные об активности пользователя, массив в котором есть
                                     // id - номер элемента (комментария, поста, смотря о чём речь в активности)
                                     // from_id - UID пользователя
                                     // date - дата в формате timestamp
@@ -92,6 +94,7 @@ if($act == 'options') {
                         'aff_term' => $options['aff_term'],
                     ]);
 
+                    // Домен для оплаты заказа. Указанный вручную
                     if($options['domain_exec'])
                         $order->setDomainName($options['bill_domain']);
 
@@ -119,6 +122,8 @@ if($act == 'options') {
                     $order->setId($options['bill_id']);
                     $order->setStatus($options['status']);
                     $order->setDate(time());
+
+                    // Если статус "Отправлен по почте" - указываем обязательный номер почтового отделения
                     if($options['status'] == 'sent')
                     {
                         $order->setRPO($options['rpo']);
@@ -150,6 +155,7 @@ if($act == 'options') {
 
                     $response = $jc->getOrderDetails($order);
                     break;
+
                 // Получить все счета за указанную дату
                 case 6:
                     $order->setBeginDate( strtotime($options['begin_date']) );
@@ -160,20 +166,12 @@ if($act == 'options') {
                     $response = $jc->getOrdersWithGoods($order);
                     break;
             }
-            $result = $jc->errorCodeToRussian(
-                $response['error_code']
-            );
-            break;
-
-        // Работа с контактами
-        case 2:
-            // контакты
             break;
 
         // Работа с продуктами
-        case 3:
+        case 2:
             switch ($options['product_option']) 
-            {
+            {             
                 // Удаление продукта
                 case 1:
                     $good = new Good();
@@ -190,7 +188,10 @@ if($act == 'options') {
             break;
     }
 
-    logToFile($result);
+    // Декодируем код ответа в текст для отладки
+    $result = $jc->errorCodeToRussian(
+        $response['error_code']
+    );
 
     $out = 1;
 
@@ -211,14 +212,3 @@ if($act == 'options') {
 
 // Отдать JSON, не кодируя кириллические символы в кракозябры
 echo json_encode($responce, JSON_UNESCAPED_UNICODE);
-
-
-function logToFile($data)
-{
-    $json = json_encode($data);
-    $dir_home = __DIR__;
-    $res = file($dir_home . '/log.txt');
-    $res[] = $json . " \n";
-    $str = implode ("", $res);
-    file_put_contents($dir_home . '/log.txt', $str);
-}

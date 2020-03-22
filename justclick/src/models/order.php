@@ -2,10 +2,6 @@
 
 class Order
 {
-    /** @var  array */
-    protected $data;
-
-
     /**
      * Adds product to the order.
      * @param Good $good
@@ -272,21 +268,5 @@ class Order
             'utm[aff_term]' => $utm_aff['aff_term']
         ];
         $this->data = array_merge($this->data, $temp_data);
-    }
-
-    /**
-     * @return array
-     */
-    public function getData()
-    {
-        return $this->data;
-    }
-
-    /**
-     *
-     */
-    public function clearData()
-    {
-        $this->data = [];
     }
 }

@@ -53,6 +53,31 @@ class JustClick
         return $this->send('DeleteGood',$good->getData());
     }
 
+    public function addLeadToGroup(Contact $contact)
+    {
+        return $this->send('AddLeadToGroup',$contact->getData());
+    }
+
+    public function updateSubscriberData(Contact $contact)
+    {
+        return $this->send('UpdateSubscriberData',$contact->getData());
+    }
+
+    public function deleteSubscribe(Contact $contact)
+    {
+        return $this->send('DeleteSubscribe',$contact->getData());
+    }
+
+    public function getAllGroups()
+    {
+        return $this->send( 'GetAllGroups',array() );
+    }
+
+    public function getLeadGroupStatuses(Contact $contact)
+    {
+        return $this->send('GetLeadGroupStatuses',$contact->getData());
+    }
+
     function send($method, $data)
     {
         $url = 'https://' . $this->user_id . '.justclick.ru/api/' . $method;
