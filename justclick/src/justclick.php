@@ -10,6 +10,7 @@ class JustClick
         $this->user_rps_key = $user_rps_key;
     }
 
+    /* Счета */
     public function createOrder(Order $order)
     {
         if( ! $this->data['bill_domain'] )
@@ -43,9 +44,10 @@ class JustClick
         return $this->send('getOrdersWithGoods', $order->getData());
     }
 
-    public function getAllGoods()
+    /* Продукты */
+    public function getAllGoods(Good $good)
     {
-        return $this->send( 'GetAllGoods',array() );
+        return $this->send('GetAllGoods', $good->getData());
     }
     
     public function deleteGood(Good $good)
@@ -53,6 +55,7 @@ class JustClick
         return $this->send('DeleteGood',$good->getData());
     }
 
+    /* Контакты */
     public function addLeadToGroup(Contact $contact)
     {
         return $this->send('AddLeadToGroup',$contact->getData());
@@ -68,9 +71,9 @@ class JustClick
         return $this->send('DeleteSubscribe',$contact->getData());
     }
 
-    public function getAllGroups()
+    public function getAllGroups(Contact $contact)
     {
-        return $this->send( 'GetAllGroups',array() );
+        return $this->send('GetAllGroups',$contact->getData());
     }
 
     public function getLeadGroupStatuses(Contact $contact)
@@ -78,6 +81,7 @@ class JustClick
         return $this->send('GetLeadGroupStatuses',$contact->getData());
     }
 
+    /* Работа с API */
     function send($method, $data)
     {
         $url = 'https://' . $this->user_id . '.justclick.ru/api/' . $method;

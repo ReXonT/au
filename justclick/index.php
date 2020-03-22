@@ -7,31 +7,33 @@ require_once 'src/justclick.php';
 require_once 'src/models/order.php';
 require_once 'src/models/good.php';
 
-
 $act = $_REQUEST['act'];
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Режим OPTIONS - в котором ВРМ создаёт в схеме блок управления  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-if($act == 'options') {
-
+if ($act == 'options')
+{
     include_once 'src/vrm_fields.php';
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Режим RUN - в котором ВРМ получает, обрабатывает и возвращает  *
- * полученные от схемы данные                                   *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-} elseif($act == 'run') {              // Схема прислала данные, обрабатываем
-
-    $target = $_REQUEST['target'];  // Пользователь, от имени которого выполняется блок
-    $ums = $_REQUEST['ums'];        // Данные об активности пользователя, массив в котором есть
-                                    // id - номер элемента (комментария, поста, смотря о чём речь в активности)
-                                    // from_id - UID пользователя
-                                    // date - дата в формате timestamp
-                                    // text - текст комментария, сообщения и т.д.
-    $out = 0;  // Номер выхода по умолчанию. Если дальнейший код не назначит другой выход - значит что-то не так
+* Режим RUN - в котором ВРМ получает, обрабатывает и возвращает  *
+* полученные от схемы данные                                   *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+elseif ($act == 'run')
+{
+    // Схема прислала данные, обрабатываем
+    $target = $_REQUEST['target'];              // Пользователь, от имени которого выполняется блок
+    $ums = $_REQUEST['ums'];                    // Данные об активности пользователя, массив в котором есть
+                                                // id - номер элемента (комментария, поста, смотря о чём речь в активности)
+                                                // from_id - UID пользователя
+                                                // date - дата в формате timestamp
+                                                // text - текст комментария, сообщения и т.д.
+    $out = 0;                                   // Номер выхода по умолчанию. Если дальнейший код не назначит другой выход - значит что-то не так
     $options = $_REQUEST['options'];
+
     $ps = $_REQUEST['paysys']['ps'];
     $pso = $ps['options']; // Здесь параметры платежной системы
 
@@ -40,12 +42,14 @@ if($act == 'options') {
     switch ($options['option'])
     {
         // Работа со счетами
+
         case 1:
             $order = new Order();
 
             switch ($options['bill_option'])
             {
                 // Создать счет
+
                 case 1:
                     // Создаем товар
                     $good = new Good();
@@ -82,7 +86,7 @@ if($act == 'options') {
                         'utm_medium' => $options['utm_medium'],
                         'utm_campaign' => $options['utm_campaign'],
                         'utm_content' => $options['utm_content'],
-                        'utm_term' => $options['utm_term'],
+                        'utm_term' => $options['utm_term']
                     ]);
 
                     // Партнерские метки
@@ -91,17 +95,16 @@ if($act == 'options') {
                         'aff_medium' => $options['aff_medium'],
                         'aff_campaign' => $options['aff_campaign'],
                         'aff_content' => $options['aff_content'],
-                        'aff_term' => $options['aff_term'],
+                        'aff_term' => $options['aff_term']
                     ]);
 
                     // Домен для оплаты заказа. Указанный вручную
-                    if($options['domain_exec'])
-                        $order->setDomainName($options['bill_domain']);
+                    if ($options['domain_exec']) $order->setDomainName($options['bill_domain']);
 
                     // Создаем счет
                     $response = $jc->createOrder($order);
 
-                    if($response['error_code'] == 0)
+                    if ($response['error_code'] == 0)
                     {
                         // Чистим данные заказа
                         $order->clearData();
@@ -118,21 +121,21 @@ if($act == 'options') {
                     break;
 
                 // Изменить статус счета
+
                 case 2:
                     $order->setId($options['bill_id']);
                     $order->setStatus($options['status']);
                     $order->setDate(time());
 
                     // Если статус "Отправлен по почте" - указываем обязательный номер почтового отделения
-                    if($options['status'] == 'sent')
-                    {
+                    if ($options['status'] == 'sent')
                         $order->setRPO($options['rpo']);
-                    }
 
                     $response = $jc->updateOrderStatus($order);
                     break;
 
                 // Удалить счет
+
                 case 3:
                     $order->setId($options['bill_id']);
 
@@ -140,6 +143,7 @@ if($act == 'options') {
                     break;
 
                 // Получить счета клиента
+
                 case 4:
                     $order->setEmailForBills($options['bill_email']); // чтоб этот ваш jc...
                     if($options['pay_status'])
@@ -149,6 +153,7 @@ if($act == 'options') {
                     break;
 
                 // Получить информацию по счету
+
                 case 5:
                     $order->setId($options['bill_id']);
                     $order->setGoodInfo($options['good_info']);
@@ -157,9 +162,10 @@ if($act == 'options') {
                     break;
 
                 // Получить все счета за указанную дату
+
                 case 6:
-                    $order->setBeginDate( strtotime($options['begin_date']) );
-                    $order->setEndDate( strtotime($options['end_date']) );
+                    $order->setBeginDate(strtotime($options['begin_date']));
+                    $order->setEndDate(strtotime($options['end_date']));
                     $order->setPaid($options['paid']);
                     $order->setGoods($options['good_ids']);
 
@@ -170,19 +176,22 @@ if($act == 'options') {
 
         // Работа с продуктами
         case 2:
-            switch ($options['product_option']) 
-            {             
+            $good = new Good();
+
+            switch ($options['product_option'])
+            {
                 // Удаление продукта
                 case 1:
-                    $good = new Good();
                     $good->setName($options['product_name']);
-                    
+
                     $response = $jc->deleteGood($good);
                     break;
 
                 // Получить список всех продуктов
                 case 2:
-                    $response = $jc->getAllGoods();
+                    $good->clearData();
+
+                    $response = $jc->getAllGoods($good);
                     break;
             }
             break;
@@ -196,19 +205,21 @@ if($act == 'options') {
     $out = 1;
 
     $responce = [
-        'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля!
-        
-        'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
-            'result' => $result,     // где N - порядковый номер блока в схеме
+        'out' => $out,              // Обязательно должен быть номер выхода out, отличный от нуля!
+        'value' => [                // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
+            'result' => $result,    // где N - порядковый номер блока в схеме
             'response' => $response,
             'payment_link' => $payment_link
         ]
     ];
 
-} elseif($act == '') {
+}
+elseif ($act == '')
+{
     // Действие не задано, и что же нам сделать? Станцевать вальс, попрыгать, пойти в гости к Кролику?
 
 }
 
 // Отдать JSON, не кодируя кириллические символы в кракозябры
 echo json_encode($responce, JSON_UNESCAPED_UNICODE);
+

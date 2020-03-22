@@ -2,54 +2,81 @@
 
 class Contact extends Base
 {
+    /**
+     * @param string $lead_name
+     */
     public function setLeadName($lead_name)
     {
         $this->data['lead_name'] = $lead_name;
     }
 
+    /**
+     * @param string $lead_email
+     */
     public function setLeadEmail($lead_email)
     {
         $this->data['lead_email'] = $lead_email;
     }
 
+    /**
+     * @param string $email
+     */
     public function setEmail($email)
     {
         $this->data['email'] = $email;
     }
 
+    /**
+     * @param string $lead_phone
+     */
     public function setPhone($lead_phone)
     {
         $this->data['lead_phone'] = $lead_phone;
     }
 
-    public function setMailingName($rass_name)
+    /**
+     * @param string $mailing_name
+     */
+    public function setMailingName($mailing_name)
     {
-        $this->data['rass_name'] = $rass_name;
+        $this->data['rass_name'] = $mailing_name;
     }
 
+    /**
+     * @param string $lead_city
+     */
 	public function setCity($lead_city)
     {
         $this->data['lead_city'] = $lead_city;
     }
 
+    /**
+     * @param string $tag
+     */
     public function setTag($tag)
     {
         $this->data['tag'] = $tag;
     }
 
+    /**
+     * @param string $doneurl
+     */
     public function setDoneUrl($doneurl)
     {
     	$this->data['doneurl2'] = $doneurl;
     }
 
+    /**
+     * @param string $rid
+     */
     public function setMailingId($rid)
     {
         $this->data['rid[0]'] = $rid;
     }
 
-
-
-
+    /**
+     * @param array $utm
+     */
     public function setUtm(array $utm)
     {
         $temp_data = [

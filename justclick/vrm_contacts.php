@@ -39,12 +39,12 @@ elseif ($act == 'run')
     
     $jc = new JustClick($pso['account'], $pso['secret']);
 
+    $contact = new Contact();
+
     switch ($options['lead_option'])
     {
         // Добавить контакт в группу  
         case 1:
-            $contact = new Contact();
-
             $contact->setMailingId($options['mailing_id']);
             $contact->setLeadName($options['lead_name']);
             $contact->setLeadEmail($options['lead_email']);
@@ -76,8 +76,6 @@ elseif ($act == 'run')
 
         // Изменить данные контакта  
         case 2:
-            $contact = new Contact();
-
             $contact->setLeadEmail($options['lead_email']);
             $contact->setLeadName($options['lead_name']);
             $contact->setPhone($options['lead_phone']);
@@ -86,11 +84,8 @@ elseif ($act == 'run')
             $response = $jc->updateSubscriberData($contact);
         break;
 
-            // Отписать от группы
-            
+        // Отписать от группы
         case 3:
-            $contact = new Contact();
-
             $contact->setLeadEmail($options['lead_email']);
             $contact->setMailingName($options['mailing_id']);
 
@@ -99,8 +94,6 @@ elseif ($act == 'run')
 
         // Получить все группы контакта  
         case 4:
-            $contact = new Contact();
-
             $contact->setEmail($options['lead_email']);
 
             $response = $jc->getLeadGroupStatuses($contact);
@@ -108,11 +101,15 @@ elseif ($act == 'run')
 
         // Получить все группы из аккаунта  
         case 5:
-            $response = $jc->getAllGroups();
+            $contact->clearData();
+
+            $response = $jc->getAllGroups($contact);
         break;
     }
 
-    $result = $jc->errorCodeToRussian($response['error_code']);
+    $result = $jc->errorCodeToRussian(
+        $response['error_code']
+    );
 
     $out = 1;
 
