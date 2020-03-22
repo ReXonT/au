@@ -1,6 +1,6 @@
 <?php
 
-ini_set('display_errors', 1);
+//ini_set('display_errors', 1);
 
 require_once 'src/models/base.php';
 require_once 'src/justclick.php';
