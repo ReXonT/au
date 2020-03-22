@@ -50,7 +50,7 @@ if($act == 'options') {
     		$contact->setTag($options['tag']);
     		$contact->setDoneUrl($options['done_url']);
 
-    		// UTM метки
+            // UTM метки
             $contact->setUtm([
                 'utm_source' => $options['utm_source'],
                 'utm_medium' => $options['utm_medium'],
