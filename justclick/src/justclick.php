@@ -147,7 +147,7 @@ class JustClick
 
             if($key == 'items')
             {
-                $result .= "Продукты: \n";
+                $result .= "\n Продукты: \n";
 
                 $number = 1;
                 foreach ($value as $item)
@@ -349,7 +349,8 @@ class JustClick
             'rass_title' => 'Название группы рассылки',
             'rass_name' => 'API название группы подписок',
             'rass_status' => 'Статус',
-            'subscription_time' => 'Время подписки'
+            'subscription_time' => 'Время подписки',
+            'good_ids' => 'ID продуктов'
         ];
 
         return $russian_keys[$text];
