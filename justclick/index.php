@@ -1,6 +1,6 @@
 <?php
 
-//ini_set('display_errors', 1);
+ini_set('display_errors', 1);
 
 require_once 'src/models/base.php';
 require_once 'src/justclick.php';
@@ -42,14 +42,12 @@ elseif ($act == 'run')
     switch ($options['option'])
     {
         // Работа со счетами
-
         case 1:
             $order = new Order();
 
             switch ($options['bill_option'])
             {
                 // Создать счет
-
                 case 1:
                     // Создаем товар
                     $good = new Good();
@@ -101,27 +99,23 @@ elseif ($act == 'run')
                     // Домен для оплаты заказа. Указанный вручную
                     if ($options['domain_exec']) $order->setDomainName($options['bill_domain']);
 
-                    // Создаем счет
+                    // Создаем счет. Вернет bill_id при создании нового или нахождении старого с теми же параметрами
                     $response = $jc->createOrder($order);
+                    $bill_id = $response['result']['bill_id'];
 
-                    if ($response['error_code'] == 0)
-                    {
-                        // Чистим данные заказа
-                        $order->clearData();
-                        $order->setId($response['result']['bill_id']);
+                    if($response['error_code'] != 0)
+                        $answer .= $jc->errorCodeToRussian($response['error_code']);
 
-                        // Получаем ссылку на оплату по id заказа
-                        $response = $jc->getOrderDetails($order);
-                        $payment_link = $response['result']['link'];
-                    }
-                    else
-                    {
-                        $result = 'Неверные данные. Заказ не создан';
-                    }
+                    // Чистим данные заказа
+                    $order->clearData();
+                    $order->setId($response['result']['bill_id']);
+
+                    // Получаем ссылку на оплату по id заказа
+                    $response = $jc->getOrderDetails($order);
+                    $payment_link = $response['result']['link'];
                     break;
 
                 // Изменить статус счета
-
                 case 2:
                     $order->setId($options['bill_id']);
                     $order->setStatus($options['status']);
@@ -135,7 +129,6 @@ elseif ($act == 'run')
                     break;
 
                 // Удалить счет
-
                 case 3:
                     $order->setId($options['bill_id']);
 
@@ -143,33 +136,48 @@ elseif ($act == 'run')
                     break;
 
                 // Получить счета клиента
-
                 case 4:
                     $order->setEmailForBills($options['bill_email']); // чтоб этот ваш jc...
                     if($options['pay_status'])
                         $order->setPayStatus($options['pay_status']);
 
                     $response = $jc->getBills($order);
+
+                    if($options['to_text'])
+                        $result = $jc->transformGetBillsToText($response['result']);
                     break;
 
                 // Получить информацию по счету
-
                 case 5:
                     $order->setId($options['bill_id']);
                     $order->setGoodInfo($options['good_info']);
 
                     $response = $jc->getOrderDetails($order);
+
+                    if($options['to_text'])
+                        $result = $jc->transformDataToText($response['result']);
                     break;
 
                 // Получить все счета за указанную дату
-
                 case 6:
-                    $order->setBeginDate(strtotime($options['begin_date']));
-                    $order->setEndDate(strtotime($options['end_date']));
+                    $order->setBeginDate($options['begin_date']);
+                    $order->setEndDate($options['end_date']);
                     $order->setPaid($options['paid']);
                     $order->setGoods($options['good_ids']);
 
                     $response = $jc->getOrdersWithGoods($order);
+
+                    if($options['to_text'])
+                    {
+                        $result = '';
+                        $number = 1;
+                        foreach ($response['result'] as $value)
+                        {
+                            $result .= "Заказ №" . $number++  . "\n";
+                            $result .= $jc->transformDataToText($value);
+                            $result .= "------\n";
+                        }
+                    }
                     break;
             }
             break;
@@ -198,9 +206,10 @@ elseif ($act == 'run')
     }
 
     // Декодируем код ответа в текст для отладки
-    $answer = $jc->errorCodeToRussian(
+    $answer .= ' '. $jc->errorCodeToRussian(
         $response['error_code']
     );
+
 
     $out = 1;
 
@@ -210,7 +219,9 @@ elseif ($act == 'run')
             'result' => $result,    // где N - порядковый номер блока в схеме
             'response' => $response,
             'payment_link' => $payment_link,
-            'answer' => $answer
+            'bill_id' => $bill_id,
+            'answer' => $answer,
+            //'result_big' => $result_big
         ]
     ];
 
@@ -223,4 +234,5 @@ elseif ($act == '')
 
 // Отдать JSON, не кодируя кириллические символы в кракозябры
 echo json_encode($responce, JSON_UNESCAPED_UNICODE);
+
 

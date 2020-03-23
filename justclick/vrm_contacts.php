@@ -97,6 +97,18 @@ elseif ($act == 'run')
             $contact->setEmail($options['lead_email']);
 
             $response = $jc->getLeadGroupStatuses($contact);
+
+            if($options['to_text'])
+            {
+                $result = '';
+                $number = 1;
+                foreach ($response['result'] as $value)
+                {
+                    $result .= "Группа №" . $number++ . "\n";
+                    $result .= $jc->transformDataToText($value);
+                    $result .= "------\n";
+                }
+            }
             break;
 
         // Получить все группы из аккаунта  

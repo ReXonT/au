@@ -1,6 +1,6 @@
 <?php
 
-class Order
+class Order extends Base
 {
     /**
      * Adds product to the order.

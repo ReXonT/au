@@ -1,4 +1,5 @@
 <?php
+
 class JustClick
 {
     private $user_id;
@@ -82,7 +83,7 @@ class JustClick
     }
 
     /* Работа с API */
-    function send($method, $data)
+    private function send($method, $data)
     {
         $url = 'https://' . $this->user_id . '.justclick.ru/api/' . $method;
         $data['hash'] = $this->getHash($data);
@@ -125,8 +126,72 @@ class JustClick
             return false; // подпись не верна
     }
 
+    /* Получаем текст с get запросов */
+    public function transformDataToText(array $response)
+    {
+        $result = '';
+        foreach ($response as $key => $value)
+        {
+            if( empty($value) )
+                continue;
+
+            if($key == 'utm')
+            {
+                $result .= "\n UTM метки: \n";
+                foreach ($value as $k => $v)
+                {
+                    $result .= $k. ": ". $v . "\n";
+                }
+                continue;
+            }
+
+            if($key == 'items')
+            {
+                $result .= "Продукты: \n";
+
+                $number = 1;
+                foreach ($value as $item)
+                {
+                    $result .= $number++ . ": \n";
+                    foreach ($item as $k => $v)
+                    {
+                        $russian_key = $this->changeToRussian($k);
+                        $result .= $russian_key . ": ". $v . "\n";
+                    }
+                    $result .= "\n";
+                }
+                continue;
+            }
+
+            $russian_key = $this->changeToRussian($key);
+            $result .= $russian_key . ": ". $value . "\n";
+        }
+
+        return $result;
+    }
+
+    public function transformGetBillsToText(array $response)
+    {
+        $result = '';
+        foreach ($response as $key => $value)
+        {
+            $result .= "*ID заказа: ". $key . "* \n";
+            foreach ($value as $item_key => $item)
+            {
+                $result .= "ID продукта: ". $item_key . "\n";
+                foreach ($item as $k => $v)
+                {
+                    $russian_key = $this->changeToRussian($k);
+                    $result .= $russian_key . ": ". $v . "\n";
+                }
+            }
+            $result .= "--- \n";
+        }
+        return $result;
+    }
+
     /* Декодим ошибку */
-    function errorCodeToRussian($code)
+    public function errorCodeToRussian($code)
     {
         $text = '';
         switch ($code)
@@ -245,6 +310,49 @@ class JustClick
                 break;
         }
         return $text;
+    }
+
+    public function changeToRussian($text)
+    {
+        $russian_keys = [
+            'id' => 'ID',
+            'first_name' => 'Имя',
+            'last_name' => 'Фамилия',
+            'middle_name' => 'Отчество',
+            'email' => 'Email',
+            'phone' => 'Телефон',
+            'city' => 'Город',
+            'country' => 'Страна',
+            'address' => 'Адрес',
+            'region' => 'Регион',
+            'postalcode' => 'Почтовый индекс',
+            'created' => 'Создано',
+            'pay_status' => 'Статус оплаты',
+            'paid' => 'Оплачено',
+            'type' => 'Тип',
+            'payway' => 'Тип оплаты',
+            'comment' => 'Комментарий',
+            'domain' => 'Домен принятого заказа',
+            'link' => 'Ссылка',
+            'price' => 'Цена',
+            'is_recurrent' => 'Повторный заказ',
+            'bill_sum_topay' => 'Сумма к оплате по счету',
+            'tag' => 'Тэг',
+            'kupon' => 'Купон скидки',
+            'title' => 'Название',
+            'utm' => 'UTM метки',
+            'items' => 'Продукты',
+            'sum' => 'Сумма заказа',
+            'good_name' => 'Название продукта в системе',
+            'good_title' => 'Название продукта',
+            'good_count' => 'Количество продуктов',
+            'rass_title' => 'Название группы рассылки',
+            'rass_name' => 'API название группы подписок',
+            'rass_status' => 'Статус',
+            'subscription_time' => 'Время подписки'
+        ];
+
+        return $russian_keys[$text];
     }
 }
 
