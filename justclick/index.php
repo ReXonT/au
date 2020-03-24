@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 
 require_once 'src/models/base.php';
 require_once 'src/justclick.php';
+require_once 'src/functions.php';
 require_once 'src/models/order.php';
 require_once 'src/models/good.php';
 
@@ -15,7 +16,7 @@ $act = $_REQUEST['act'];
 
 if ($act == 'options')
 {
-    include_once 'src/vrm_fields.php';
+    include_once 'src/fields/vrm_fields_index.php';
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -104,7 +105,7 @@ elseif ($act == 'run')
                     $bill_id = $response['result']['bill_id'];
 
                     if($response['error_code'] != 0)
-                        $answer .= $jc->errorCodeToRussian($response['error_code']);
+                        $answer .= errorCodeToRussian($response['error_code']);
 
                     // Чистим данные заказа
                     $order->clearData();
@@ -144,7 +145,7 @@ elseif ($act == 'run')
                     $response = $jc->getBills($order);
 
                     if($options['to_text'])
-                        $result = $jc->transformGetBillsToText($response['result']);
+                        $result = transformGetBillsToText($response['result']);
                     break;
 
                 // Получить информацию по счету
@@ -155,7 +156,7 @@ elseif ($act == 'run')
                     $response = $jc->getOrderDetails($order);
 
                     if($options['to_text'])
-                        $result = $jc->transformDataToText($response['result']);
+                        $result = transformDataToText($response['result']);
                     break;
 
                 // Получить все счета за указанную дату
@@ -174,7 +175,7 @@ elseif ($act == 'run')
                         foreach ($response['result'] as $value)
                         {
                             $result .= "Заказ №" . $number++  . "\n";
-                            $result .= $jc->transformDataToText($value);
+                            $result .= transformDataToText($value);
                             $result .= "------\n";
                         }
                     }
@@ -206,7 +207,7 @@ elseif ($act == 'run')
     }
 
     // Декодируем код ответа в текст для отладки
-    $answer .= ' '. $jc->errorCodeToRussian(
+    $answer .= ' '. errorCodeToRussian(
         $response['error_code']
     );
 

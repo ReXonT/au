@@ -43,6 +43,14 @@ class Contact extends Base
     }
 
     /**
+     * @param string $group_name
+     */
+    public function setGroupName($group_name)
+    {
+        $this->data['group_name'] = $group_name;
+    }
+
+    /**
      * @param string $lead_city
      */
 	public function setCity($lead_city)

@@ -4,6 +4,7 @@
 
 require_once 'src/models/base.php';
 require_once 'src/justclick.php';
+require_once 'src/functions.php';
 require_once 'src/models/contact.php';
 
 $act = $_REQUEST['act'];
@@ -14,7 +15,7 @@ $act = $_REQUEST['act'];
 
 if ($act == 'options')
 {
-    include_once 'src/vrm_fields_contacts.php';
+    include_once 'src/fields/vrm_fields_contacts.php';
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -105,7 +106,7 @@ elseif ($act == 'run')
                 foreach ($response['result'] as $value)
                 {
                     $result .= "Группа №" . $number++ . "\n";
-                    $result .= $jc->transformDataToText($value);
+                    $result .= transformDataToText($value);
                     $result .= "------\n";
                 }
             }
@@ -117,10 +118,19 @@ elseif ($act == 'run')
 
             $response = $jc->getAllGroups($contact);
             break;
+        case 6:
+            if( empty($options['getcount_type']) )
+                $contact->setGroupName($options['mailing_id']);
+            else
+                $contact->setGroupName($options['getcount_type']);
+
+            $response = $jc->getCountSubscribe($contact);
+            $result = $response['result'];
+            break;
     }
 
     // Декодируем код ответа в текст для отладки
-    $answer = $jc->errorCodeToRussian(
+    $answer = errorCodeToRussian(
         $response['error_code']
     );
 
@@ -130,7 +140,8 @@ elseif ($act == 'run')
         'out' => $out, // Обязательно должен быть номер выхода out, отличный от нуля!
         'value' => [ // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'result' => $result, // где N - порядковый номер блока в схеме
-            'response' => $response
+            'response' => $response,
+            'answer' => $answer
         ]
     ];
 
