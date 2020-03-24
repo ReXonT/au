@@ -163,6 +163,9 @@ class JustClick
                 continue;
             }
 
+            if($key == 'created')
+                $value = date('Y-m-d H:i:s',$value);
+
             $russian_key = $this->changeToRussian($key);
             $result .= $russian_key . ": ". $value . "\n";
         }
@@ -326,7 +329,7 @@ class JustClick
             'address' => 'Адрес',
             'region' => 'Регион',
             'postalcode' => 'Почтовый индекс',
-            'created' => 'Создано',
+            'created' => 'Время создания',
             'pay_status' => 'Статус оплаты',
             'paid' => 'Оплачено',
             'type' => 'Тип',
