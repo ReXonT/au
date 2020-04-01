@@ -99,10 +99,32 @@ elseif ($act == 'run')
     }
 
 }
-elseif ($act == '')
+elseif ($act == 'man')
 {
-    // Действие не задано, и что же нам сделать? Станцевать вальс, попрыгать, пойти в гости к Кролику?
+    $responce = [
+        'html' => '##Описание
+        Данная ВРМ работает с аккаунтом JustClick, который Вы указали в интеграции. Подробная инструкция тут - https://vk.com/@rexont-justclick-and-au
 
+        ###Доступные переменные:
+        
+        **{b.{bid}.value.result}** текстовое отображение входящих данных
+        **{b.{bid}.value.vk_uid}** vk id из поля Комментария
+        **{b.{bid}.value.email}** Email
+        **{b.{bid}.value.phone}** Номер телефона
+        **{b.{bid}.value.bill_id}** Номер заказа
+        **{b.{bid}.value.last_payment_sum}** Сумма последней оплаты
+        **{b.{bid}.value.first_name}** Имя
+        **{b.{bid}.value.last_name}** Фамилия
+        **{b.{bid}.value.link}** Ссылка на страницу оплаты
+        **{b.{bid}.value.city}** Город
+        **{b.{bid}.value.address}** Адрес
+        **{b.{bid}.value.items.0.title}** Название первого продукта в заказе
+        **{b.{bid}.value.items.1.title}** Название второго продукта в заказе и тд
+        **{b.{bid}.value.utm.*название*}** Вместо *название* можно вписать: source, medium, campaign, content, term и получить значение соответствуещей utm метки
+        
+        ВРМ декодирует все данные в те же ключи, которые получает из JustClick. Вы можете увидеть ключи в $b0_request, в режиме отладки и на сайте JustClick. Пример https://help.justclick.ru/archives/605
+        '
+    ];
 }
 
 // Отдать JSON, не кодируя кириллические символы в кракозябры

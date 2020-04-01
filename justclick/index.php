@@ -221,15 +221,35 @@ elseif ($act == 'run')
             'response' => $response,
             'payment_link' => $payment_link,
             'bill_id' => $bill_id,
-            'answer' => $answer,
-            //'result_big' => $result_big
+            'answer' => $answer
         ]
     ];
 
 }
-elseif ($act == '')
+elseif ($act == 'man')
 {
-    // Действие не задано, и что же нам сделать? Станцевать вальс, попрыгать, пойти в гости к Кролику?
+    $responce = [
+        'html' => '##Описание
+        Данная ВРМ работает с аккаунтом JustClick, который Вы указали в интеграции. Подробная инструкция тут - https://vk.com/@rexont-justclick-and-au
+
+        ###Доступные переменные:
+        **{b.{bid}.value.payment_link}**
+        ссылка на оплату созданного счета
+        
+        **{b.{bid}.value.bill_id}**
+        id счета
+        
+        **{b.{bid}.value.result}**
+        текстовое отображение результата выполнения
+
+        **{b.{bid}.value.response}**
+        полный массив данных в ответе
+        
+        ####Для отладки
+        **{b.{bid}.value.answer}**
+        текстовый ответ о выполнении запроса от JustClick
+        '
+    ];
 
 }
 
