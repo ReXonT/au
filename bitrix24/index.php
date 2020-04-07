@@ -1,6 +1,10 @@
 <?php
-//require_once('crest.php');
+
+ini_set('display_errors',1);
+
 require_once('functions.php');
+require_once('Bitrix24.php');
+require_once('Entity.php');
 
 $act = $_REQUEST['act'];
 
@@ -21,89 +25,89 @@ if(isset($act))
                 ]
             ],
             'vars' => [                     // переменные, которые можно будет настроить в блоке
-                'methodType' => [
-                    'title' => 'Лиды/Сделки',   // заголовок поля
+                'entity_name' => [
+                    'title' => 'Сущность',   // заголовок поля
                     'values' => [
-                        1 => 'Лиды',
-                        2 => 'Сделки',
-                        3 => 'Контакты'
+                        'lead' => 'Лиды',
+                        'deal' => 'Сделки',
+                        'contact' => 'Контакты'
                     ],
                     'desc' => '',    // описание поля, можно пару строк
                 ],
-                'execType' => [
+                'exec_type' => [
                     'title' => 'Выбор действия',   // заголовок поля
                     'values' => [
-                        1 => 'Добавить',
-                        2 => 'Изменить',
-                        3 => 'Получить',
-                        4 => 'Удалить'
+                        'add' => 'Добавить',
+                        'update' => 'Изменить',
+                        'get' => 'Получить',
+                        'delete' => 'Удалить'
                     ],
                     'desc' => '',    // описание поля, можно пару строк
                 ],
 
                 // поля лида
-                'Title' => [
+                'title' => [
                     'title' => 'Заголовок карточки',
                     'desc' => '',
                     'show' => [
-                        'methodType' => [1,2],
-                        'execType' => [1,2]
+                        'entity_name' => ['lead','deal'],
+                        'exec_type' => ['add','update']
                     ]
                 ],
-                'Name' => [
+                'name' => [
                     'title' => 'Имя',
                     'desc' => '',
                     'show' => [
-                        'execType' => [1,2]
+                        'exec_type' => ['add','update']
                     ]
                 ],
-                'Last_Name' => [
+                'last_name' => [
                     'title' => 'Фамилия',
                     'desc' => '',
                     'show' => [
-                        'execType' => [1,2]
+                        'exec_type' => ['add','update']
                     ]
                 ],
-                'Address' => [
+                'address' => [
                     'title' => 'Адрес',
                     'desc' => '',
                     'show' => [
-                        'methodType' => [1,2],
-                        'execType' => [1,2]
+                        'entity_name' => ['lead','deal'],
+                        'exec_type' => ['add','update']
                     ]
                 ],
-                'Comments' => [
+                'comments' => [
                     'title' => 'Комментарий',
                     'desc' => '',
                     'show' => [
-                        'execType' => [1,2]
+                        'exec_type' => ['add','update']
                     ]
                 ],
-                'Phone' => [
+                'phone' => [
                     'title' => 'Телефон',
                     'desc' => '',
                     'show' => [
-                        'methodType' => [1,3],
-                        'execType' => [1,2]
+                        'entity_name' => ['lead','deal','contact'],
+                        'exec_type' => ['add','update']
                     ]
                 ],
-                'Email' => [
+                'email' => [
                     'title' => 'Email',
                     'desc' => '',
                     'show' => [
-                        'methodType' => [1,3],
-                        'execType' => [1,2]
+                        'entity_name' => ['lead','deal','contact'],
+                        'exec_type' => ['add','update']
                     ]
                 ],
-                'Opportunity' => [
+                'opportunity' => [
                     'title' => 'Сумма заказа',
                     'desc' => '',
                     'show' => [
-                        'methodType' => [1,2],
-                        'execType' => [1,2]
+                        'entity_name' => ['lead','deal'],
+                        'exec_type' => ['add','update']
                     ]
                 ],
-                'Currency' => [
+                'currency' => [
                     'title' => 'Валюта',
                     'desc' => '',
                     'values' => [
@@ -111,54 +115,54 @@ if(isset($act))
                         1 => "USD",
                     ],
                     'show' => [
-                        'methodType' => [1,2],
-                        'execType' => [1,2]
+                        'entity_name' => ['lead','deal'],
+                        'exec_type' => ['add','update']
                     ],
                     'default' => 0
                 ],
-                'Status_Id' => [
+                'status_id' => [
                     'title' => 'Статус заказа',
                     'desc' => '',
                     'values' => [
-                        1 => 'Не обработан',
-                        2 => 'В работе',
-                        3 => 'Обработан'
+                        'NEW' => 'Не обработан',
+                        'IN_PROCESS' => 'В работе',
+                        'PROCESSED' => 'Обработан'
                     ],
                     'show' => [
-                        'methodType' => 1,
-                        'execType' => [1,2]
+                        'entity_name' => 'lead',
+                        'exec_type' => ['add','update']
                     ],
                     'default' => 1
                 ],
 
                 // id лида для разных запросов
-                'inputId' => [
+                'input_id' => [
                     'title' => 'ID лида',
                     'desc' => 'Положительное число',
                     'show' => [
-                        'execType' => [2,3,4]
+                        'exec_type' => ['update','delete','get']
                     ]
                 ],
             ],
             'out' => [                      // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
                 1 => [                      // Номер 0 означает красный выход блока ВРМ, зарезервированный для случаев сбоя
                     'title' => 'Найдено',    // название выхода 1
-                ]        
+                ]
             ]
         ];
 
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     * Режим RUN - в котором ВРМ получает, обрабатывает и возвращает  *
-     * полученные от схемы данные                                   *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+        /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+         * Режим RUN - в котором ВРМ получает, обрабатывает и возвращает  *
+         * полученные от схемы данные                                   *
+         * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     } elseif($act == 'run') {              // Схема прислала данные, обрабатываем
 
         $target = $_REQUEST['target'];  // Пользователь, от имени которого выполняется блок
         $ums    = $_REQUEST['ums'];     // Данные об активности пользователя, массив в котором есть
-                                        // id - номер элемента (комментария, поста, смотря о чём речь в активности)
-                                        // from_id - UID пользователя
-                                        // date - дата в формате timestamp
-                                        // text - текст комментария, сообщения и т.д.
+        // id - номер элемента (комментария, поста, смотря о чём речь в активности)
+        // from_id - UID пользователя
+        // date - дата в формате timestamp
+        // text - текст комментария, сообщения и т.д.
         $out    = 0;                    // Номер выхода по умолчанию. Если дальнейший код не назначит другой выход - значит что-то не так
         $options = $_REQUEST['options'];
 
@@ -168,277 +172,240 @@ if(isset($act))
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
         $ps = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
         // если стоит цель не на инициатора активности
-        if(isset($target)) { $user_id = $target; } 
-        else { $user_id = $ums['from_id']; }
 
-        $clientWebhook = $ps['options']['secret']; // webhook данные
-        $inputUrl = $ps['options']['account']; // ссылка на битрикс
-        if(!(strpos($inputUrl, '//')))
-        {
-            $clientUrl = $inputUrl;
-        }
-        else 
-        {
-            $arUrl = parse_url($inputUrl);
-            $clientUrl = $arUrl['host'];
-        }
+        $input_url = $ps['options']['account']; // ссылка на битрикс
 
-        $queryUrl = 'https://'.$clientUrl.'/rest/1/'.$clientWebhook.'/';    // ссылка на webhook
+        $entity_name = $options['entity_name'];
+        $exec_type = $options['exec_type'];
 
+        // Оставляем только поля с данными. Сервисные убираем
+        unset($options['entity_name']);
+        unset($options['exec_type']);
 
-        $methodType = $options['methodType']; // выбор метода запроса
-        switch ($methodType) {
-            case 1:
-                $nameVar = 'lead';  // часть названия переменной, ответственная за лиды
-                break;
-            case 2:
-                $nameVar = 'deal';  // часть названия переменной, ответственная за сделки
-                break;
-            case 3:
-                $nameVar = 'contact';  // часть названия переменной, ответственная за сделки
-                break;
-        }
+        $entity = new Entity($input_url, $entity_name);
 
-        $arrFieldNames = [
-            'Title',
-            'Name',
-            'Last_Name',
-            'Address',
-            'Comments',
-            'Phone',
-            'Email',
-            'Opportunity',
-            'Currency',
-            'Status_id', 
-            'Address'
+        $bitrix_fields_keys = [
+            'title',
+            'name',
+            'last_name',
+            'address',
+            'comments',
+            'phone',
+            'email',
+            'opportunity',
+            'currency',
+            'stage_id'
         ];
-        
-        // тип запроса
-        $type = $options['execType'];
 
-        $inputId = $options['inputId']; // id лида
-
-        /* Поля */
-
-        foreach ($arrFieldNames as $value) {
-            ${$nameVar.$value} = $options[$value];
+        $bitrix_fields = array();
+        foreach ($bitrix_fields_keys as $value)
+        {
+            $bitrix_fields[$value] = $options[$value];
         }
 
-        /*
-
-        Составятся такие переменные:
-
-        $leadTitle = $options['leadTitle']; // title лида
-        $leadName = $options['leadName']; // имя лида
-        $leadLast_Name = $options['leadLast_Name']; // фамилия лида
-        $leadComments = $options['leadComments']; // комментарии для лида
-        $leadPhone = $options['leadPhone']; // номер телефона лида
-        $leadEmail = $options['leadEmail']; // email лида
-        $leadOpportunity = $options['leadOpportunity']; // сумма заказа лида
-        $leadCurrency = $options['leadCurrency']; // валюта заказа лида
-        $leadStatus = $options['leadStatus_id']; // валюта заказа лида
-        $leadAddress = $options['leadAddress']; // адрес лида 
-
-        */
-
-
-        switch (${$nameVar.'Currency'}) {
+        switch ($options['currency'])
+        {
             case 0:
-                ${$nameVar.'Currency'} = "RUB";
+                $options['currency'] = "RUB";
                 break;
             case 1:
-                ${$nameVar.'Currency'} = "USD";
-                break;
-            default:
-                ${$nameVar.'Currency'} = "RUB";
+                $options['currency'] = "USD";
                 break;
         }
 
-        switch (${$nameVar.'Status'}) {
-            case 1:
-                ${$nameVar.'Status'} = "NEW";
-                break;
-            case 2:
-                ${$nameVar.'Status'} = "IN_PROCESS";
-                break;
-            case 3:
-                ${$nameVar.'Status'} = "PROCESSED";
-                break;
-            default:
-                ${$nameVar.'Status'} = "NEW";
-                break;
-        }
-  
+        switch ($exec_type)
+        {
+            case 'add':
+                $fields = array();
 
-        switch ($type) {
-            
-            // добавить лид
-            case 1:
-
-                $fieldsToAdd = array();
-
-                /*
-                Цикл ниже составит такой fieldsToAdd:
-
-                'fields' => [
-                    "TITLE" => $leadTitle, 
-                    "NAME" => $leadName,
-                    "LAST_NAME" => $leadLast_Name,
-                    "COMMENTS" => $leadComments,
-                    "ADDRESS" => $leadAddress,
-                    "STATUS_ID" => $leadStatus_Id,  
-                    "CURRENCY_ID" => $leadCurrency, 
-                    "OPPORTUNITY" => $leadOpportunity,
-                    "PHONE" => [
-                        "VALUE" => [                            // телефон создается именно так!
-                            "VALUE" => $leadPhone,
-                            "VALUE_TYPE" => "MOBILE"
-                        ]
-                    ],
-                    "EMAIL" => [
-                        "VALUE" => [                            // телефон создается именно так!
-                            "VALUE" => $leadEmail,
-                            "VALUE_TYPE" => "HOME"
-                        ]
-                    ]
-                ]
-                */
-
-                foreach ($arrFieldNames as $value) {
-                    if(${$nameVar.$value} != "")
+                foreach ($bitrix_fields as $key => $value)
+                {
+                    if($value)
                     {
-                        $fieldName = mb_strtoupper($value);
-                        if($fieldName == 'PHONE')
+                        $field_name = mb_strtoupper($key);
+
+                        if($field_name == 'PHONE')
                         {
-                            $fieldsToAdd = 
-                            array_merge(
-                                $fieldsToAdd, 
-                                array(
-                                    "PHONE" => [
-                                        "VALUE" => [                            // добавляем телефон
-                                            "VALUE" => ${$nameVar.'Phone'},
-                                            "VALUE_TYPE" => "MOBILE"
+                            $fields =
+                                array_merge(
+                                    $fields,
+                                    array(
+                                        "PHONE" => [
+                                            "VALUE" => [                            // добавляем телефон
+                                                "VALUE" => $options['phone'],
+                                                "VALUE_TYPE" => "MOBILE"
+                                            ]
                                         ]
-                                    ]
-                                )
-                            );
-                            continue;   
+                                    )
+                                );
+                            continue;
                         }
-                        if($fieldName == 'EMAIL')
+
+                        if($field_name == 'EMAIL')
                         {
-                            $fieldsToAdd = 
-                            array_merge(
-                                $fieldsToAdd, 
-                                array(
-                                    "EMAIL" => [
-                                        "VALUE" => [                            // изменение почты
-                                            "VALUE" => ${$nameVar.'Email'},
-                                            "VALUE_TYPE" => "HOME"
+                            $fields =
+                                array_merge(
+                                    $fields,
+                                    array(
+                                        "EMAIL" => [
+                                            "VALUE" => [                            // изменение почты
+                                                "VALUE" => $options['email'],
+                                                "VALUE_TYPE" => "HOME"
+                                            ]
                                         ]
-                                    ]
-                                )
-                            );
-                            continue;   
+                                    )
+                                );
+                            continue;
                         }
-                        $fieldsToAdd = array_merge($fieldsToAdd, array($fieldName => ${$nameVar.$value}));
+                        $fields = array_merge($fields, array($field_name => $value));
                     }
                 }
 
-                $response = call(
-                    $queryUrl,
-                   'crm.'.$nameVar.'.add',
-                    [
-                      'fields' => $fieldsToAdd
-                    ]);
-                $result = $response['result'];
-                $out = 1;
+                // сделки. Добавляем контакт в карточку. И проверка на товары
+                if($entity_name == 'deal')
+                {
+                    $contact = new Entity($input_url, 'contact');
+
+                    // Ищем такой же email в списках контактов битрикса
+                    $filter = [
+                        "EMAIL" => [
+                            "VALUE" => [                            // изменение почты
+                                "VALUE" => $options['email']
+                            ]
+                        ]
+                    ];
+                    $select = [
+                        'ID'
+                    ];
+
+                    $response = $contact->getList([],$filter,$select);
+
+                    $contact_id = $response['result'][0]['ID'];
+
+                    // Если не нашли email, ищем телефон
+                    if(!$contact_id)
+                    {
+                        // ищем в списке уже имеющийся ТЕЛЕФОН
+                        $filter = [
+                            "PHONE" => [
+                                "VALUE" => [                            // поле телефона
+                                    "VALUE" => $options['phone']
+                                ]
+                            ]
+                        ];
+                        $select = [
+                            'ID'
+                        ];
+
+                        $response = $contact->getList([],$filter,$select);
+                        $contact_id = $response['result'][0]['ID'];
+                    }
+
+                    // Если нет контакта - добавляем
+                    if(!$contact_id)
+                    {
+                        $contact_fields = [
+                            'NAME' => $options['Name'],
+                            'LAST_NAME' => $options['Last_Name'],
+                            "PHONE" => [
+                                "VALUE" => [                            // добавляем телефон
+                                    "VALUE" => $options['phone'],
+                                    "VALUE_TYPE" => "MOBILE"
+                                ]
+                            ],
+                            "EMAIL" => [
+                                "VALUE" => [                            // добавляем email
+                                    "VALUE" => $options['email'],
+                                    "VALUE_TYPE" => "HOME"
+                                ]
+                            ]
+                        ];
+
+                        $response = $contact->add($contact_fields);
+                        $contact_id = $response['result'];
+                    }
+
+                    $fields = array_merge($fields,
+                        array(
+                            'CONTACT_ID' => $contact_id
+                        )
+                    );
+                }
+
+                $response = $entity->add($fields);
                 break;
 
-            // изменить лид
-            case 2:
-                $fieldsToChange = array();
+            // изменить
+            case 'update':
+                $fields = array();
 
-                // процесс добавления описан в первом кейсе
-
-                foreach ($arrFieldNames as $value) {
-                    if(${$nameVar.$value} != "")
+                foreach ($bitrix_fields as $key => $value)
+                {
+                    if($value)
                     {
-                        $fieldName = mb_strtoupper($value);
-                        if($fieldName == 'PHONE')
+                        $field_name = mb_strtoupper($key);
+
+                        if($field_name == 'PHONE')
                         {
-                            $fieldsToChange = 
-                            array_merge(
-                                $fieldsToChange, 
-                                array(
-                                    "PHONE" => [
-                                        "VALUE" => [                            // добавляем телефон
-                                            "VALUE" => ${$nameVar.'Phone'},
-                                            "VALUE_TYPE" => "MOBILE"
+                            $fields =
+                                array_merge(
+                                    $fields,
+                                    array(
+                                        "PHONE" => [
+                                            "VALUE" => [                            // добавляем телефон
+                                                "VALUE" => $options['phone'],
+                                                "VALUE_TYPE" => "MOBILE"
+                                            ]
                                         ]
-                                    ]
-                                )
-                            );
-                            continue;   
+                                    )
+                                );
+                            continue;
                         }
-                        if($fieldName == 'EMAIL')
+
+                        if($field_name == 'EMAIL')
                         {
-                            $fieldsToChange = 
-                            array_merge(
-                                $fieldsToChange, 
-                                array(
-                                    "EMAIL" => [
-                                        "VALUE" => [                            // почта как и телефон
-                                            "VALUE" => ${$nameVar.'Email'},
-                                            "VALUE_TYPE" => "HOME"
+                            $fields =
+                                array_merge(
+                                    $fields,
+                                    array(
+                                        "EMAIL" => [
+                                            "VALUE" => [                            // изменение почты
+                                                "VALUE" => $options['email'],
+                                                "VALUE_TYPE" => "HOME"
+                                            ]
                                         ]
-                                    ]
-                                )
-                            );
-                            continue;   
+                                    )
+                                );
+                            continue;
                         }
-                        $fieldsToChange = array_merge($fieldsToChange, array($fieldName => ${$nameVar.$value}));
+                        $fields = array_merge($fields, array($field_name => $value));
                     }
                 }
 
-                $response = call(
-                    $queryUrl,
-                   'crm.'.$nameVar.'.update',
-                   [
-                      'id' => $inputId,
-                      'fields' => $fieldsToChange
-                    ]);
-                $result = $response['result'];
-                $out = 1;
+                $response = $entity->update($options['input_id'],$fields);
                 break;
 
             // получить лид
-            case 3:
-                $response = call(
-                    $queryUrl,
-                   'crm.'.$nameVar.'.get',
-                   [
-                      'id' => $inputId
-                ]);
+            case 'get':
+                $response = $entity->get($options['input_id']);
+
                 $result = $response['result'];
 
                 $found = "";
-                foreach ($result as $key => $value) {
-                    if($value != "")
+                foreach ($result as $key => $value)
+                {
+                    if($value)
                     {
                         // меняем значение ключа на русское для вывода
                         $russianKey = changeValueToRussian($key);
 
                         // если не нашли русского значения, то пишем англ
-                        if(!($russianKey != ""))
+                        if(!$russianKey)
                         {
                             $russianKey = $key;
                         }
 
-                        if($key == 'PHONE')
-                        {
-                            $found .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
-                        }
-                        else if($key == 'EMAIL')
+                        if($key == 'PHONE' || $key == 'EMAIL')
                         {
                             $found .= $russianKey.": ".$value[0]['VALUE']." Тип: ".$value[0]['VALUE_TYPE'].'<br>';
                         }
@@ -447,7 +414,8 @@ if(isset($act))
                         else
                         {
                             // меняем значение, если Y или N на адекватные русские названия
-                            switch ($value) {
+                            switch ($value)
+                            {
                                 case 'Y':
                                     $value = "Да";
                                     break;
@@ -455,38 +423,29 @@ if(isset($act))
                                     $value = "Нет";
                                     break;
                             }
-
                             $found .= $russianKey.": ".$value.'<br>';
                         }
                     }
                 }
-                $out = 1;
                 break;
 
             // удалить лид
-            case 4:
-                $response = call(
-                    $queryUrl,
-                   'crm.'.$nameVar.'.delete',
-                   [
-                      'id' => $inputId
-                ]);
-                $result = $response['result'];
-                $out = 1;
-                break;
-
-            default:
-                // code...
+            case 'delete':
+                $response = $entity->delete($options['input_id']);
                 break;
         }
-        
+
+        $result = $response['result'];
+
+        $out = 1;
 
         $responce = [
             'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля!
-            
+
             'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
                 'result' => $result,
-                'found' => $found
+                'found' => $found,
+                'response' => $response
             ]
         ];
 
@@ -497,8 +456,8 @@ if(isset($act))
     elseif($act == 'man')
     {
         $responce = [
-            'html' => 
-            '##Описание
+            'html' =>
+                '##Описание
             Данная ВРМ работает с аккаунтом Bitrix24, который Вы указали в интеграции. Подробная инструкция тут - https://vk.com/@rexont-bitrix24-au
 
             **Версия ВРМ: 1.0** в инструкции есть более новая версия (beta)
