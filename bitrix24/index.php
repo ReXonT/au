@@ -15,7 +15,8 @@ $act = $_REQUEST['act'];
 // если запрос с АЮ
 if(isset($act))
 {
-    if($act == 'options') {
+    if($act == 'options') 
+    {
         $responce = [
             'title' => 'ВРМ Bitrix24 Webhook',      // Это заголовок блока, который будет виден на схеме
             'paysys' => [                   // Группа полей, отвечающая за интеграцию с платёжными системами и внешними сервисами.
@@ -155,7 +156,9 @@ if(isset($act))
          * Режим RUN - в котором ВРМ получает, обрабатывает и возвращает  *
          * полученные от схемы данные                                   *
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    } elseif($act == 'run') {              // Схема прислала данные, обрабатываем
+    } 
+    elseif($act == 'run')               // Схема прислала данные, обрабатываем
+    {              
 
         $target = $_REQUEST['target'];  // Пользователь, от имени которого выполняется блок
         $ums    = $_REQUEST['ums'];     // Данные об активности пользователя, массив в котором есть
@@ -215,53 +218,41 @@ if(isset($act))
 
         switch ($exec_type)
         {
+            // Добавляем сущность
             case 'add':
                 $fields = array();
 
                 foreach ($bitrix_fields as $key => $value)
                 {
+                    // Если значение не пустое
                     if($value)
                     {
                         $field_name = mb_strtoupper($key);
 
                         if($field_name == 'PHONE')
                         {
-                            $fields =
-                                array_merge(
-                                    $fields,
-                                    array(
-                                        "PHONE" => [
-                                            "VALUE" => [                            // добавляем телефон
-                                                "VALUE" => $options['phone'],
-                                                "VALUE_TYPE" => "MOBILE"
-                                            ]
-                                        ]
-                                    )
-                                );
+                            $fields = addPhone($options['phone'], $fields);
                             continue;
                         }
 
                         if($field_name == 'EMAIL')
                         {
-                            $fields =
-                                array_merge(
-                                    $fields,
-                                    array(
-                                        "EMAIL" => [
-                                            "VALUE" => [                            // изменение почты
-                                                "VALUE" => $options['email'],
-                                                "VALUE_TYPE" => "HOME"
-                                            ]
-                                        ]
-                                    )
-                                );
+                            $fields = addEmail($options['email'], $fields);
                             continue;
                         }
-                        $fields = array_merge($fields, array($field_name => $value));
+
+                        $fields = array_merge(
+                            $fields, 
+                            array($field_name => $value)
+                        );
                     }
                 }
 
-                // сделки. Добавляем контакт в карточку. И проверка на товары
+                /**
+                 * Сделки
+                 * Добавляем контакт в карточку
+                 * И проверка на товары
+                 */
                 if($entity_name == 'deal')
                 {
                     $contact = new Entity($input_url, 'contact');
@@ -274,11 +265,12 @@ if(isset($act))
                             ]
                         ]
                     ];
+                    // Достаем только ID нужного контакта
                     $select = [
                         'ID'
                     ];
 
-                    $response = $contact->getList([],$filter,$select);
+                    $response = $contact->getList([], $filter, $select);
 
                     $contact_id = $response['result'][0]['ID'];
 
@@ -305,21 +297,12 @@ if(isset($act))
                     if(!$contact_id)
                     {
                         $contact_fields = [
-                            'NAME' => $options['Name'],
-                            'LAST_NAME' => $options['Last_Name'],
-                            "PHONE" => [
-                                "VALUE" => [                            // добавляем телефон
-                                    "VALUE" => $options['phone'],
-                                    "VALUE_TYPE" => "MOBILE"
-                                ]
-                            ],
-                            "EMAIL" => [
-                                "VALUE" => [                            // добавляем email
-                                    "VALUE" => $options['email'],
-                                    "VALUE_TYPE" => "HOME"
-                                ]
-                            ]
+                            'NAME' => $options['name'],
+                            'LAST_NAME' => $options['last_name'],
                         ];
+
+                        $contact_fields = addPhone($options['phone'], $contact_fields);
+                        $contact_fields = addEmail($options['email'], $contact_fields);
 
                         $response = $contact->add($contact_fields);
                         $contact_id = $response['result'];
@@ -347,38 +330,20 @@ if(isset($act))
 
                         if($field_name == 'PHONE')
                         {
-                            $fields =
-                                array_merge(
-                                    $fields,
-                                    array(
-                                        "PHONE" => [
-                                            "VALUE" => [                            // добавляем телефон
-                                                "VALUE" => $options['phone'],
-                                                "VALUE_TYPE" => "MOBILE"
-                                            ]
-                                        ]
-                                    )
-                                );
+                            $fields = addPhone($options['phone'], $fields);
                             continue;
                         }
 
                         if($field_name == 'EMAIL')
                         {
-                            $fields =
-                                array_merge(
-                                    $fields,
-                                    array(
-                                        "EMAIL" => [
-                                            "VALUE" => [                            // изменение почты
-                                                "VALUE" => $options['email'],
-                                                "VALUE_TYPE" => "HOME"
-                                            ]
-                                        ]
-                                    )
-                                );
+                            $fields = addEmail($options['email'], $fields);
                             continue;
                         }
-                        $fields = array_merge($fields, array($field_name => $value));
+
+                        $fields = array_merge(
+                            $fields, 
+                            array($field_name => $value)
+                        );
                     }
                 }
 

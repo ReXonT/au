@@ -63,4 +63,34 @@ function changeValueToRussian($name)
 	return $russianValue[$name];
 }
 
- ?>
+function addPhone($phone, array $fields)
+{
+	$fields = array_merge($fields,
+        array(
+            "PHONE" => [
+                "VALUE" => [                            // добавляем телефон
+                    "VALUE" => $phone,
+                    "VALUE_TYPE" => "MOBILE"
+                ]
+            ]
+        )
+    );
+
+    return $fields;
+}
+
+function addEmail($email, array $fields)
+{
+	$fields =array_merge($fields,
+        array(
+            "EMAIL" => [
+                "VALUE" => [                            // изменение почты
+                    "VALUE" => $email,
+                    "VALUE_TYPE" => "HOME"
+                ]
+            ]
+        )
+    );
+
+    return $fields;
+}
