@@ -11,3 +11,4 @@ AutoWebOffice<br>
 GetCourse<br>
 Bizon365<br>
 Tinkoff (lite)<br>
+JustClick
