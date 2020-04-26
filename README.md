@@ -2,7 +2,7 @@
 Репозиторий для работы с проектом ActiveUsers
 
 <h2>Сделаны интеграции:</h2>
-Senler *optimized*<br>
+Senler <i>optimized</i><br>
 Google Sheets<br>
 Bitrix24<br>
 AmoCRM<br>
