@@ -6,9 +6,9 @@ Senler <i>optimized</i><br>
 Google Sheets<br>
 Bitrix24<br>
 AmoCRM<br>
-SMSC <i>optimized/i><br>
+SMSC <i>optimized</i><br>
 AutoWebOffice<br>
-GetCourse <i>optimized/i><br>
+GetCourse <i>optimized</i><br>
 Bizon365<br>
-Tinkoff (lite) <i>optimized/i><br>
-JustClick <i>optimized/i>
+Tinkoff (lite) <i>optimized</i><br>
+JustClick <i>optimized</i>
