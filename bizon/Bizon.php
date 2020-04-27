@@ -11,9 +11,10 @@ class Bizon
         'limit' => 100      // Поиск в 100 последних вебинаров
     ];
 
-    public function __construct($cookie)
+    public function __construct($cookie, array $user)
     {
         $this->cookie_file = $cookie;
+        $this->auth($user);
     }
 
     public function setParam($name, $value)
@@ -56,7 +57,7 @@ class Bizon
         return $response;
     }
 
-    public function auth($user)
+    private function auth($user)
     {
         $link = $this->url . 'auth/login';
 

@@ -263,11 +263,11 @@ if($act == 'options') {
     $ps      = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
     $cookie  = 'cookies/' . $ps['id'] . 'cookie.txt';  // адрес создания куки файла
 
-    $bizon = new Bizon($cookie);
-    $bizon->auth([
-        'username' => $ps['options']['account'],
-        'password' => $ps['options']['secret']
-    ]); // Авторизация
+    // Авторизация
+    $bizon = new Bizon($cookie, [
+            'username' => $ps['options']['account'],
+            'password' => $ps['options']['secret']
+    ]);
 
     switch ($options['search_type']) // Тип поиска. По умолчанию Auto и Live = 1
     {
