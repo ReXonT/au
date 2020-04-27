@@ -320,27 +320,8 @@ if($act == 'options') {
                 case 'get_all': // Получить весь список зрителей
                     foreach ($viewers as $viewer)
                     {
-                        switch ($options['kind_info']) // Выбираем тип получения информации
-                        {
-                            case 'main': // Получить основную информацию
-                                $result[] = [
-                                    'chat_id' => $viewer['chatUserId'],
-                                    'name' => $viewer['username'],
-                                    'vk_uid' => $viewer['cu1'],
-                                    'add_field' => $viewer['c1'],
-                                    'phone' => $viewer['phone'],
-                                    'email' => $viewer['email']
-                                ];
-                                break;
-
-                            case 'cu1': // Получить свой URL параметр
-                                $result[] = $viewer['cu1'];
-                                break;
-
-                            case 'c1': // Получить своё поле
-                                $result[] = $viewer['c1'];
-                                break;
-                        }
+                        // Получаем данные зрителя, учитывая выбранный вид получения информации
+                        $result[] = changeKindInfo($viewer, $options['kind_info']);
                     }
                     break;
 
@@ -449,7 +430,8 @@ if($act == 'options') {
         'out' => $out,         // Обязательно должен быть номер выхода out, отличный от нуля!
 
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
-            'result' => $result,     // где N - порядковый номер блока в схеме
+            'result' => $result,    // результат выполнения
+            //'text' => $text         // результат выполнения в текстовом виде
         ]
     ];
 
