@@ -1,5 +1,51 @@
 <?php
 
+// Получает webinarId нужного вебинара (позиция вебинара указывается с конца списка)
+function getLastWebId($list_of_webinars, $pos, $room_id = '')
+{
+    if ($room_id)
+    {
+        $i = 0;
+        foreach ($list_of_webinars['list'] as $value)
+        {
+            // Если нашли нужную комнату
+            if($value['name'] == $room_id)
+            {
+                // Перебираем позиции до нужной (с конца)
+                if($i == $pos)
+                    return $value['webinarId'];
+                else $i++;
+            }
+        }
+        return 'Не найдено';
+    }
+
+    return $list_of_webinars['list'][$pos]['webinarId'];
+}
+
+// Создает webinarId из введенных данных и даты проведения
+function createWebIdByDate($room_id, $web_date, $web_time)
+{
+    $tmp = explode('.', $web_date);
+    $web_date = implode('-', $tmp);
+
+    return $room_id . '*' . $web_date . 'T' . $web_time;
+}
+
+// Получает список вебинаров конкретной комнаты
+function getListFromRoom($list_of_webinars, $room_id)
+{
+    foreach ($list_of_webinars as $webinar)
+    {
+        if($webinar['name'] == $room_id)
+        {
+            $web_info[] = $webinar;
+        }
+    }
+
+    return $web_info;
+}
+
 function wordToUniversalFormat ($word)
 {
     $word = trim($word);
@@ -12,14 +58,14 @@ function phoneFormat ($phone)
     if($phone[0] == '+' || $phone[0] == 8 || $phone[0] == 7)
     {
         $phone = mb_substr($phone, 1);
-        if($v[0] == 7)
+        if($phone[0] == 7)
             $phone = mb_substr($phone, 1);
     }
     return $phone;
 }
 
 /* Перевод ключей в понятные названия */
-function russianName($key)
+function russianName ($key)
 {
     $name = [
             'ip' => 'IP',
