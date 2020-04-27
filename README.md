@@ -2,13 +2,13 @@
 Репозиторий для работы с проектом ActiveUsers
 
 <h2>Сделаны интеграции:</h2>
-Senler <br>
+Senler <i>optimized</i><br>
 Google Sheets<br>
-Bitrix24<br>
+Bitrix24 <i>optimized</i><br>
 AmoCRM<br>
-SMSC<br>
+SMSC <i>optimized</i><br>
 AutoWebOffice<br>
-GetCourse<br>
+GetCourse <i>optimized</i><br>
 Bizon365<br>
-Tinkoff (lite)<br>
-JustClick
+Tinkoff (lite) <i>optimized</i><br>
+JustClick <i>optimized</i>
