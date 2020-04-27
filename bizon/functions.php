@@ -46,14 +46,47 @@ function getListFromRoom($list_of_webinars, $room_id)
     return $web_info;
 }
 
-function wordToUniversalFormat ($word)
+function findViewer(array $viewers, array $options)
 {
-    $word = trim($word);
-    $word = mb_strtolower($word);
-    return $word;
+    $options_main = [
+        'username' => Word::toUniversalFormat($options['username']),
+        'cu1' => trim($options['cu1']),
+        'c1' => trim($options['c1']),
+        'phone' => phoneFormat($options['phone']),
+        'email' => Word::toUniversalFormat($options['email']),
+        'referer' => Word::toUniversalFormat($options['referer'])
+    ];
+
+    $options = array_merge($options, $options_main);
+
+    foreach ($viewers as $viewer)
+    {
+        $viewer_main = [
+            'username' => Word::toUniversalFormat($viewer['username']),
+            'cu1' => trim($viewer['cu1']),
+            'c1' => trim($viewer['c1']),
+            'phone' => phoneFormat($viewer['phone']),
+            'email' => Word::toUniversalFormat($viewer['email']),
+            'referer' => Word::toUniversalFormat($viewer['referer'])
+        ];
+
+        $viewer = array_merge($viewer, $viewer_main);
+
+        if( ($options['username'] && $options['username'] === $viewer['username']) ||
+            ($options['email'] && $options['email'] === $viewer['email']) ||
+            ($options['cu1'] && $options['cu1'] === $viewer['cu1']) ||
+            ($options['c1'] && $options['c1'] === $viewer['c1']) ||
+            ($options['phone'] && $options['phone'] === $viewer['phone']) )
+        {
+            return $viewer;
+            break;
+        }
+    }
+
+    return false;
 }
 
-function phoneFormat ($phone)
+function phoneFormat($phone)
 {
     if($phone[0] == '+' || $phone[0] == 8 || $phone[0] == 7)
     {
@@ -65,7 +98,7 @@ function phoneFormat ($phone)
 }
 
 /* Перевод ключей в понятные названия */
-function russianName ($key)
+function russianName($key)
 {
     $name = [
             'ip' => 'IP',
@@ -106,9 +139,8 @@ function russianName ($key)
 }
 
 /* Получаем массив с данными зрителей по нужным значениям */
-function getUsersFromInfo ($users_info, $return_keys)
+function getUsersFromInfo($users_info, $return_keys)
 {
-    
     $i = 0;
     foreach ($users_info['viewers'] as $value) 
     {
@@ -133,7 +165,7 @@ function getUsersFromInfo ($users_info, $return_keys)
     return $users;
 }
 
-function closeScript ($log)
+function closeScript($log)
 {
     $responce = [
         'out' => 2,         // Обязательно должен быть номер выхода out, отличный от нуля!

@@ -1,7 +1,10 @@
 <?php
 
-require_once ('Bizon.php');
+ini_set('display_errors' , 1);
+
 require_once ('functions.php');
+require_once ('Bizon.php');
+require_once ('Word.php');
 
 $act = $_REQUEST['act'];
 
@@ -27,8 +30,31 @@ if($act == 'options') {
                 ],
                 'desc' => '',    // описание поля, можно пару строк
             ],
+            'webinar_method' => [
+                'title' => 'Выбор действия',
+                'values' => [
+                    'get_info' => 'Получить полный отчет',
+                ],
+                'show' => [
+                    'option' => ['webinar']
+                ],
+            ],
+            'viewer_method' => [
+                'title' => 'Выбор действия',   // заголовок поля
+                'values' => [
+                    'get_all' => 'Получить полный список зрителей',
+                    'get_messages' => 'Получить сообщения зрителя с вебинара',
+                    'is_viewer' => 'Проверить присутствие на вебинаре',
+                    'has_keyword' => 'Найти ключевое слово в сообщении у зрителя',
+                    'have_keyword' => 'Найти всех, кто написал ключевое слово'
+                ],
+                'show' => [
+                    'option' => ['viewers']
+                ],
+                'desc' => '',    // описание поля, можно пару строк
+            ],
             'exec_type' => [
-                'title' => 'Что искать',   // заголовок поля
+                'title' => 'В чем искать',   // заголовок поля
                 'values' => [
                     'get_last' => 'Недавний вебинар',
                     'get_date' => 'Вебинаре по дате',
@@ -38,38 +64,34 @@ if($act == 'options') {
                 ],
                 'desc' => '',    // описание поля, можно пару строк
             ],
-            'get_type' => [
-                'title' => 'Что получить',
+
+
+            'kind_info' => [                    // Вид получаемой информации (для зрителей)
+                'title' => 'Какую информацию получить',
                 'values' => [
-                    'get_all' => 'Полный отчет',
-                    'get_viewers' => 'Список зрителей'
+                    'main' => 'Всю основную (телефон, email, имя, доп.поля)',
+                    'cu1' => 'Получить свой URL параметр',
+                    'c1' => 'Получить своё поле',
                 ],
                 'show' => [
-                    'option' => ['webinar']
-                ],
-            ],
-            'kind_info' => [
-                'title' => 'Какую информацию получить',   // заголовок поля
-                'values' => [
-                    'main' => 'Основную (имя, email, телефон, доп. поля)',
-                    'cu1' => 'Свой URL параметр',
-                    'c1' => 'Своё поле'
-                ],
-                'show' => [
-                    'option' => ['webinar'],
-                    'get_type' => ['get_viewers']
+                    'option' => ['viewers'],
+                    'viewer_method' => ['get_all','has_keywords']
                 ],
                 'desc' => '',    // описание поля, можно пару строк
             ],
+
+            /*
+             * Поля поиска по недавним вебинарам
+             */
             'web_pos' => [
-                'title' => 'Какой вебинар получить',   // заголовок поля
+                'title' => 'Номер вебинара',   // заголовок поля
                 'values' => [
-                    0 => '1 с конца (самый недавний)',
-                    1 => '2 с конца',
-                    2 => '3 с конца',
+                    0 => 'Первый с конца (самый недавний)',
+                    1 => 'Второй с конца',
+                    2 => 'Третий с конца',
                 ],
                 'show' => [
-                    'option' => ['webinar'],
+                    'option' => ['webinar','viewers'],
                     'exec_type' => ['get_last']
                 ],
                 'desc' => '',    // описание поля, можно пару строк
@@ -82,10 +104,14 @@ if($act == 'options') {
                     'auto' => 'Только автовебинары'
                 ],
                 'show' => [
-                    'option' => ['webinar'],
+                    'option' => ['webinar','viewers'],
                     'exec_type' => ['get_last']
                 ],
             ],
+
+            /*
+             * Поля поиска вебинара по дате
+             */
             'web_date' => [
                 'title' => 'Дата вебинара',   // заголовок поля
                 'default' => '2020-02-03',
@@ -104,9 +130,113 @@ if($act == 'options') {
                 ],
                 'desc' => 'Формат: час:минута:секунда',    // описание поля, можно пару строк
             ],
+
+            'cu1' => [
+                'title' => 'Данные в доп. url',   // заголовок поля
+                'default' => '',
+                'show' => [
+                    'option' => ['viewers'],
+                    'viewer_method' => ['get_messages','is_viewer','has_keyword']
+
+                ],
+                'desc' => 'Например, укажите здесь id пользователя, которого ищем. Если вы давали ему ссылку с его id (по инструкции)',    // описание поля, можно пару строк
+            ],
+
+            /*
+             * Тип поиска ключевых слов
+             */
+            'keyword_search_type' => [
+                'title' => 'Тип поиска',   // заголовок поля
+                'values' => [
+                    'at_least_one' => 'Есть хотя бы одно',
+                    'all_words' => 'Есть все слова',
+                    'exact_match' => 'Точное соответствие'
+                ],
+                'default' => 'at_least_one',
+                'show' => [
+                    'option' => ['viewers'],
+                    'viewer_method' => ['has_keyword', 'have_keyword']
+                ],
+                'desc' => '',    // описание поля, можно пару строк
+            ],
+            'keywords' => [
+                'title' => 'Ключевое слово',   // заголовок поля
+                'default' => '',
+                'show' => [
+                    'option' => ['viewers'],
+                    'viewer_method' => ['has_keyword', 'have_keyword']
+                ],
+                'desc' => 'Какое слово (слова) ищем. Через запятую',    // описание поля, можно пару строк
+            ],
+
+            /*
+             * Добавить поля поиска
+             */
+            'viewers_add_fields' => [
+                'title' => 'Дополнительные поля поиска',   // заголовок поля
+                'values' => [
+                    'add' => 'Показать ещё поля для поиска',
+                    'none' => 'Не показывать'
+                ],
+                'default' => 'none',
+                'show' => [
+                    'option' => ['viewers'],
+                    'viewer_method' => ['get_messages','is_viewer','has_keyword']
+                ],
+                'desc' => 'На случай, если не было установлено своё url',    // описание поля, можно пару строк
+            ],
+            'c1' => [
+                'title' => 'Данные в доп.поле',   // заголовок поля
+                'default' => '',
+                'show' => [
+                    'option' => ['viewers'],
+                    'viewers_add_fields' => ['add']
+                ],
+                'desc' => 'Например, укажите здесь id пользователя, которого ищем. Если вы давали ему ссылку с его id (по инструкции)',    // описание поля, можно пару строк
+            ],
+            'referer' => [
+                'title' => 'Данные в источнике',   // заголовок поля
+                'default' => '',
+                'show' => [
+                    'option' => ['viewers'],
+                    'viewers_add_fields' => ['add']
+                ],
+                'desc' => 'Значение в ссылке-источнике, с которой зритель пришел на вебинар',    // описание поля, можно пару строк
+            ],
+            'phone' => [
+                'title' => 'Телефон',   // заголовок поля
+                'default' => '',
+                'show' => [
+                    'option' => ['viewers'],
+                    'viewers_add_fields' => ['add']
+                ],
+                'desc' => 'Найдет сходство телефонов вида +79991112233, 79991112233, 89991112233, 9991112233',    // описание поля, можно пару строк
+            ],
+            'email' => [
+                'title' => 'Email',   // заголовок поля
+                'default' => '',
+                'show' => [
+                    'option' => ['viewers'],
+                    'viewers_add_fields' => ['add']
+                ],
+                'desc' => 'Поиск на точное соответствие',    // описание поля, можно пару строк
+            ],
+            'username' => [
+                'title' => 'Имя зрителя',   // заголовок поля
+                'default' => '',
+                'show' => [
+                    'option' => ['viewers'],
+                    'viewers_add_fields' => ['add']
+                ],
+                'desc' => 'Регистр не важен. Совпадения по этому полю минимальные, потому что человек может указать что угодно.',    // описание поля, можно пару строк
+            ],
+
             'room_id' => [
                 'title' => 'ID комнаты',   // заголовок поля
                 'default' => '',
+                'show' => [
+                    'option' => ['webinar', 'viewers']
+                ],
                 'desc' => 'В какой комнате проводить поиск. <br> Пример: 20578:subarenda',    // описание поля, можно пару строк
             ],
         ],
@@ -130,15 +260,13 @@ if($act == 'options') {
     $ps      = $_REQUEST['paysys']['ps'];            // Сюда придут настройки выбранной системы
     $cookie  = 'cookies/' . $ps['id'] . 'cookie.txt';  // адрес создания куки файла
 
-    // Авторизация
     $bizon = new Bizon($cookie);
     $bizon->auth([
         'username' => $ps['options']['account'],
         'password' => $ps['options']['secret']
-    ]);
+    ]); // Авторизация
 
-    // Тип поиска. По умолчанию Auto и Live = 1
-    switch ($options['search_type'])
+    switch ($options['search_type']) // Тип поиска. По умолчанию Auto и Live = 1
     {
         // Только живые
         case 'live':
@@ -151,70 +279,141 @@ if($act == 'options') {
             break;
     }
 
-    // Получаем webinarId
-    switch ($options['exec_type'])
+    /*
+     * Получаем webinarId
+     */
+    switch ($options['exec_type']) // По каким вебинарам ищем
     {
-        // Получаем данные по недавним вебинарам
-        case 'get_last':
+        case 'get_last': // Получаем данные по недавним вебинарам
             $list_of_webinars = $bizon->getList();
             $webinar_id = getLastWebId($list_of_webinars, $options['web_pos'], $options['room_id']);
             break;
 
-        // Получаем вебинар по конкретным датам
-        case 'get_by_date':
-            // перевод в нужный формат даты
-            $webinar_id = createWebIdByDate($options['room_id'], $options['web_date'], $options['web_time']);
+        case 'get_by_date': // Получаем вебинар по конкретным датам
+            $webinar_id = createWebIdByDate($options['room_id'], $options['web_date'], $options['web_time']); // перевод в нужный формат даты
 
             if($_REQUEST['test'])
                 $webinar_id = '20578:prav_rody*2020-02-21T17:02:42';
             break;
     }
 
-    // Получаем информацию по нужному вебинару
-    $webinar_info = $bizon->get($webinar_id);
+    $webinar_info = $bizon->get($webinar_id); // Получаем информацию по нужному вебинару
 
     $result = array(); // Здесь будет результат для юзера
 
-    switch ($options['get_type'])
+    switch ($options['option'])
     {
-        // Получить полную информацию
-        case 'get_all':
-            $result = $webinar_info;
+        case 'webinar': // Работа с вебинарами
+            switch ($options['webinar_method']) // Что будем получать
+            {
+                case 'get_info': // Получить полную информацию
+                    $result = $webinar_info;
+                    break;
+            }
             break;
 
-        // Получить список зрителей
-        case 'get_viewers':
-            $report = json_decode($webinar_info['report']['report'], 1);
-            $viewers = $report['usersMeta'];
+        case 'viewers': // Работа со зрителями
+            $viewers = json_decode($webinar_info['report']['report'], 1)['usersMeta'];
 
-            foreach ($viewers as $viewer)
+            switch ($options['viewer_method']) // Тип выполнения
             {
-                switch ($options['kind_info']) // Выбираем тип получения информации
-                {
-                    // Получить основную информацию
-                    case 'main':
-                        $result[] = [
-                            'name' => $viewer['username'],
-                            'vk_uid' => $viewer['cu1'],
-                            'add_field' => $viewer['c1'],
-                            'phone' => $viewer['phone'],
-                            'email' => $viewer['email']
-                        ];
-                        break;
+                case 'get_all': // Получить весь список зрителей
+                    foreach ($viewers as $viewer)
+                    {
+                        switch ($options['kind_info']) // Выбираем тип получения информации
+                        {
+                            case 'main': // Получить основную информацию
+                                $result[] = [
+                                    'chat_id' => $viewer['chatUserId'],
+                                    'name' => $viewer['username'],
+                                    'vk_uid' => $viewer['cu1'],
+                                    'add_field' => $viewer['c1'],
+                                    'phone' => $viewer['phone'],
+                                    'email' => $viewer['email']
+                                ];
+                                break;
 
-                    // Получить свой URL параметр
-                    case 'cu1':
-                        $result[] = $viewer['cu1'];
-                        break;
+                            case 'cu1': // Получить свой URL параметр
+                                $result[] = $viewer['cu1'];
+                                break;
 
-                    // Получить своё поле
-                    case 'c1':
-                        $result[] = $viewer['c1'];
+                            case 'c1': // Получить своё поле
+                                $result[] = $viewer['c1'];
+                                break;
+                        }
+                    }
+                    break;
+
+                case 'get_messages': // Получить сообщения зрителя
+                    if(!$viewer = findViewer($viewers, $options))       // Находим нужного зрителя
+                    {
+                        $result = 'Не найден зритель';
                         break;
-                }
+                    }
+
+                    $found_chat_user_id = $viewer['chatUserId'];        // и получаем его chatId
+
+                    $viewers_messages = json_decode($webinar_info['report']['messages'], 1); // Получаем все сообщения с вебинара
+                    foreach ($viewers_messages as $viewer_chat_id => $messages)
+                    {
+                        if($viewer_chat_id == $found_chat_user_id)      // Находим сообщения нужного зрителя
+                        {
+                            $result = $messages;
+                            break;
+                        }
+                    }
+                    break;
+
+                case 'is_viewer': // Был ли такой человек на вебинаре
+                    $viewers = json_decode($webinar_info['report']['report'], 1)['usersMeta'];
+
+                    if(!findViewer($viewers, $options)['chatUserId'])
+                    {
+                        $result = 'Нет';
+                        break;
+                    }
+                    $result = 'Да';
+                    break;
+
+                case 'has_keyword': // Есть ли у этого зрителя ключевое слово на вебинаре
+                    if(!$viewer = findViewer($viewers, $options))       // Находим нужного зрителя
+                    {
+                        $result = 'Не найден зритель';
+                        break;
+                    }
+
+                    $found_chat_user_id = $viewer['chatUserId'];        // и получаем его chatId
+
+                    $viewers_messages = json_decode($webinar_info['report']['messages'], 1);
+                    foreach ($viewers_messages as $viewer_chat_id => $messages)
+                    {
+                        if($viewer_chat_id == $found_chat_user_id)
+                        {
+                            switch ($options['keyword_search_type'])
+                            {
+                                case 'at_least_one':
+                                    $result = Word::findAtLeastOne($messages, $options['keywords']);
+                                    break;
+
+                                case 'all_words':
+                                    $result = Word::findAll($messages, $options['keywords']);
+                                    break;
+
+                                case 'exact_match':
+                                    $result = Word::findExactMatch($messages, $options['keywords']);
+                                    break;
+                            }
+                        }
+                    }
+                    break;
+
+                case 'have_keyword': // Найти всех зрителей с ключевым словом
+                    $result = $webinar_info['report'];
+                    break;
             }
             break;
     }
+
 
     $out = 1;
     unlink($cookie);           // удаляем файл куки

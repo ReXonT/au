@@ -5,7 +5,11 @@ class Bizon
     protected $cookie_file;
     protected $url = 'https://online.bizon365.ru/api/v1/';
     protected $useragent = 'activeusers';
-    protected $params;
+    protected $params = [
+        'AutoWebinars' => 1,
+        'LiveWebinars' => 1,
+        'limit' => 100      // Поиск в 100 последних вебинаров
+    ];
 
     public function __construct($cookie)
     {
