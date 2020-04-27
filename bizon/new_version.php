@@ -75,7 +75,7 @@ if($act == 'options') {
                 ],
                 'show' => [
                     'option' => ['viewers'],
-                    'viewer_method' => ['get_all','has_keywords']
+                    'viewer_method' => ['get_all','have_keyword']
                 ],
                 'desc' => '',    // описание поля, можно пару строк
             ],
@@ -408,7 +408,34 @@ if($act == 'options') {
                     break;
 
                 case 'have_keyword': // Найти всех зрителей с ключевым словом
-                    $result = $webinar_info['report'];
+                    $found_viewers_chat_ids = array();
+
+                    $viewers_messages = json_decode($webinar_info['report']['messages'], 1);
+                    foreach ($viewers_messages as $viewer_chat_id => $messages)
+                    {
+                        $found = false; // Флаг успешно найденного соответствия в слове
+
+                        switch ($options['keyword_search_type'])
+                        {
+                            case 'at_least_one':
+                                $found = Word::findAtLeastOne($messages, $options['keywords']);
+                                break;
+
+                            case 'all_words':
+                                $found = Word::findAll($messages, $options['keywords']);
+                                break;
+
+                            case 'exact_match':
+                                $found = Word::findExactMatch($messages, $options['keywords']);
+                                break;
+                        }
+
+                        if($found)                                          // Если успешно нашли нужное слово у зрителя
+                            $found_viewers_chat_ids[] = $viewer_chat_id;    // Добавляем его chatId в общий список
+                    }
+
+                    foreach ($found_viewers_chat_ids as $found_chat_id)     // Получаем нужную информацию по найденным зрителям
+                        $result[] = findViewerByChatId($viewers, $found_chat_id, $options['kind_info']);
                     break;
             }
             break;

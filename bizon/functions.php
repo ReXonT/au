@@ -86,6 +86,40 @@ function findViewer(array $viewers, array $options)
     return false;
 }
 
+function findViewerByChatId(array $viewers, $chat_id, $kind_info = '')
+{
+    foreach ($viewers as $viewer)
+    {
+        if($viewer['chatUserId'] == $chat_id)
+        {
+            if(!$kind_info)
+                return $viewer;
+
+            switch ($kind_info) // Выбираем тип получения информации
+            {
+                case 'main': // Получить основную информацию
+                    return $result = [
+                        'chat_id' => $viewer['chatUserId'],
+                        'name' => $viewer['username'],
+                        'vk_uid' => $viewer['cu1'],
+                        'add_field' => $viewer['c1'],
+                        'phone' => $viewer['phone'],
+                        'email' => $viewer['email']
+                    ];
+                    break;
+
+                case 'cu1': // Получить свой URL параметр
+                    return $result = $viewer['cu1'];
+                    break;
+
+                case 'c1': // Получить своё поле
+                    return $result = $viewer['c1'];
+                    break;
+            }
+        }
+    }
+}
+
 function phoneFormat($phone)
 {
     if($phone[0] == '+' || $phone[0] == 8 || $phone[0] == 7)
