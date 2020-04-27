@@ -48,38 +48,39 @@ function getListFromRoom($list_of_webinars, $room_id)
 
 function findViewer(array $viewers, array $options)
 {
-    $options_main = [
-        'username' => Word::toUniversalFormat($options['username']),
-        'cu1' => trim($options['cu1']),
-        'c1' => trim($options['c1']),
-        'phone' => phoneFormat($options['phone']),
-        'email' => Word::toUniversalFormat($options['email']),
-        'referer' => Word::toUniversalFormat($options['referer'])
-    ];
+    $options['cu1'] = trim($options['cu1']);
+    if($options['viewers_add_fields'] == 'add') // Если также выбран поиск по доп. полям
+    {
+        $options_main = [
+            'username' => Word::toUniversalFormat($options['username']),
+            'c1' => trim($options['c1']),
+            'phone' => phoneFormat($options['phone']),
+            'email' => Word::toUniversalFormat($options['email']),
+            'referer' => Word::toUniversalFormat($options['referer'])
+        ];
 
-    $options = array_merge($options, $options_main);
+        $options = array_merge($options, $options_main);
+    }
 
     foreach ($viewers as $viewer)
     {
-        $viewer_main = [
-            'username' => Word::toUniversalFormat($viewer['username']),
-            'cu1' => trim($viewer['cu1']),
-            'c1' => trim($viewer['c1']),
-            'phone' => phoneFormat($viewer['phone']),
-            'email' => Word::toUniversalFormat($viewer['email']),
-            'referer' => Word::toUniversalFormat($viewer['referer'])
-        ];
-
-        $viewer = array_merge($viewer, $viewer_main);
-
-        if( ($options['username'] && $options['username'] === $viewer['username']) ||
-            ($options['email'] && $options['email'] === $viewer['email']) ||
-            ($options['cu1'] && $options['cu1'] === $viewer['cu1']) ||
-            ($options['c1'] && $options['c1'] === $viewer['c1']) ||
-            ($options['phone'] && $options['phone'] === $viewer['phone']) )
-        {
+        $viewer['cu1'] = trim($viewer['cu1']);
+        if($options['cu1'] && $options['cu1'] === $viewer['cu1'])
             return $viewer;
-            break;
+
+        if($options['viewers_add_fields'] == 'add') // Если также выбран поиск по доп. полям
+        {
+            $viewer_main = [
+                'username' => Word::toUniversalFormat($viewer['username']),
+                'c1' => trim($viewer['c1']),
+                'phone' => phoneFormat($viewer['phone']),
+                'email' => Word::toUniversalFormat($viewer['email']),
+                'referer' => Word::toUniversalFormat($viewer['referer'])
+            ];
+
+            foreach ($viewer_main as $key)
+                if($options[$key] && $options[$key] === $viewer[$key])
+                    return $viewer;
         }
     }
 
@@ -174,45 +175,4 @@ function russianName($key)
     ];
     return $name[$key];
 
-}
-
-/* Получаем массив с данными зрителей по нужным значениям */
-function getUsersFromInfo($users_info, $return_keys)
-{
-    $i = 0;
-    foreach ($users_info['viewers'] as $value) 
-    {
-        foreach ($value as $k => $v) 
-        {
-            // Если есть значение в поле
-            if($v != "")
-            {
-                // Ищем только те, что нам нужны
-                foreach ($return_keys as $r_k) 
-                {
-                    if($k == $r_k)
-                    {
-                        $users[$i][$k] = $v;
-                    }
-                }
-            }
-        }
-        $i++;
-    }
-
-    return $users;
-}
-
-function closeScript($log)
-{
-    $responce = [
-        'out' => 2,         // Обязательно должен быть номер выхода out, отличный от нуля!
-        
-        'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
-            'log' => $log
-        ]
-    ];
-
-    // Отдать JSON, не кодируя кириллические символы в кракозябры
-    echo json_encode($responce, JSON_UNESCAPED_UNICODE);
 }

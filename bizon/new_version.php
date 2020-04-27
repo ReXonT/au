@@ -243,6 +243,9 @@ if($act == 'options') {
         'out' => [                              // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
             1 => [                              // Номер 0 означает красный выход блока ВРМ, зарезервированный для случаев сбоя
                 'title' => 'Найдено',           // название выхода 1
+            ],
+            2 => [                              // Номер 0 означает красный выход блока ВРМ, зарезервированный для случаев сбоя
+                'title' => 'Не найдено',           // название выхода 1
             ]
         ]
     ];
@@ -328,7 +331,8 @@ if($act == 'options') {
                 case 'get_messages': // Получить сообщения зрителя
                     if(!$viewer = findViewer($viewers, $options))       // Находим нужного зрителя
                     {
-                        $result = 'Не найден зритель';
+                        $result = false;
+                        $log = 'Не найден зритель';
                         break;
                     }
 
@@ -350,16 +354,20 @@ if($act == 'options') {
 
                     if(!findViewer($viewers, $options)['chatUserId'])
                     {
-                        $result = 'Нет';
+                        $result = false;
+                        $log = 'Не найден зритель';
                         break;
                     }
-                    $result = 'Да';
+
+                    $result = true;
                     break;
 
                 case 'has_keyword': // Есть ли у этого зрителя ключевое слово на вебинаре
-                    if(!$viewer = findViewer($viewers, $options))       // Находим нужного зрителя
+                    $viewer = findViewer($viewers, $options); // Находим нужного зрителя
+                    if(!$viewer)
                     {
-                        $result = 'Не найден зритель';
+                        $result = false;
+                        $log = 'Не найден зритель';
                         break;
                     }
 
@@ -389,8 +397,6 @@ if($act == 'options') {
                     break;
 
                 case 'have_keyword': // Найти всех зрителей с ключевым словом
-                    $found_viewers_chat_ids = array();
-
                     $viewers_messages = json_decode($webinar_info['report']['messages'], 1);
                     foreach ($viewers_messages as $viewer_chat_id => $messages)
                     {
@@ -415,15 +421,27 @@ if($act == 'options') {
                             $found_viewers_chat_ids[] = $viewer_chat_id;    // Добавляем его chatId в общий список
                     }
 
-                    foreach ($found_viewers_chat_ids as $found_chat_id)     // Получаем нужную информацию по найденным зрителям
-                        $result[] = findViewerByChatId($viewers, $found_chat_id, $options['kind_info']);
+                    if($found_viewers_chat_ids)
+                    {
+                        foreach ($found_viewers_chat_ids as $found_chat_id)     // Получаем нужную информацию по найденным зрителям
+                            $result[] = findViewerByChatId($viewers, $found_chat_id, $options['kind_info']);
+                    }
+                    else
+                    {
+                        $result = false;
+                        $log = 'Не найдены зрители';
+                    }
                     break;
             }
             break;
     }
 
 
-    $out = 1;
+    if($result)
+        $out = 1;
+    else
+        $out = 2;
+
     unlink($cookie);           // удаляем файл куки
 
     $responce = [
@@ -431,7 +449,7 @@ if($act == 'options') {
 
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'result' => $result,    // результат выполнения
-            //'text' => $text         // результат выполнения в текстовом виде
+            'log' => $log           // log ошибок
         ]
     ];
 
@@ -447,6 +465,10 @@ elseif($act == 'man')
         
             **{b.{bid}.value.result}** - результат выполнения
             **{b.{bid}.value.text}** - результат выполнения в текстовом виде
+            
+            ###Логи:
+        
+            **{b.{bid}.value.log}** - текстовое описание неудачи
             '
     ];
 }
