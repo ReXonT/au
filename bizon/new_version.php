@@ -239,6 +239,14 @@ if($act == 'options') {
                 ],
                 'desc' => 'В какой комнате проводить поиск. <br> Пример: 20578:subarenda',    // описание поля, можно пару строк
             ],
+
+            // Доп поле
+            'need_text' => [
+                'title' => 'Вывести результат текстом',   // заголовок поля
+                'format' => 'checkbox',
+                'more' => '1',
+                'desc' => 'Результат придет в переменную text (подробнее во вкладке "Помощь")'
+            ],
         ],
         'out' => [                              // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
             1 => [                              // Номер 0 означает красный выход блока ВРМ, зарезервированный для случаев сбоя
@@ -271,13 +279,11 @@ if($act == 'options') {
 
     switch ($options['search_type']) // Тип поиска. По умолчанию Auto и Live = 1
     {
-        // Только живые
-        case 'live':
+        case 'live': // Только живые
             $bizon->setParam('AutoWebinars', 0);
             break;
 
-        // Только авто
-        case 'auto':
+        case 'auto': // Только авто
             $bizon->setParam('LiveWebinars', 0);
             break;
     }
@@ -350,9 +356,8 @@ if($act == 'options') {
                     break;
 
                 case 'is_viewer': // Был ли такой человек на вебинаре
-                    $viewers = json_decode($webinar_info['report']['report'], 1)['usersMeta'];
-
-                    if(!findViewer($viewers, $options)['chatUserId'])
+                    $viewer = findViewer($viewers, $options);           // Находим нужного зрителя
+                    if(!$viewer)
                     {
                         $result = false;
                         $log = 'Не найден зритель';
@@ -363,7 +368,7 @@ if($act == 'options') {
                     break;
 
                 case 'has_keyword': // Есть ли у этого зрителя ключевое слово на вебинаре
-                    $viewer = findViewer($viewers, $options); // Находим нужного зрителя
+                    $viewer = findViewer($viewers, $options);           // Находим нужного зрителя
                     if(!$viewer)
                     {
                         $result = false;
@@ -398,11 +403,12 @@ if($act == 'options') {
 
                 case 'have_keyword': // Найти всех зрителей с ключевым словом
                     $viewers_messages = json_decode($webinar_info['report']['messages'], 1);
+
                     foreach ($viewers_messages as $viewer_chat_id => $messages)
                     {
                         $found = false; // Флаг успешно найденного соответствия в слове
 
-                        switch ($options['keyword_search_type'])
+                        switch ($options['keyword_search_type'])    // Как искать вхождения ключевых слов
                         {
                             case 'at_least_one':
                                 $found = Word::findAtLeastOne($messages, $options['keywords']);
@@ -436,9 +442,24 @@ if($act == 'options') {
             break;
     }
 
-
     if($result)
+    {
         $out = 1;
+
+        if($options['need_text'])
+        {
+            if($options['option'] == 'webinar')
+            {
+                if($result['report']['report'])
+                    unset($result['report']['report']);
+                if($result['report']['messages'])
+                    unset($result['report']['messages']);
+                if($result['report']['messagesTS'])
+                    unset($result['report']['messagesTS']);
+            }
+            $text = dataToText($result);
+        }
+    }
     else
         $out = 2;
 
@@ -449,6 +470,7 @@ if($act == 'options') {
 
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'result' => $result,    // результат выполнения
+            'text' => $text,
             'log' => $log           // log ошибок
         ]
     ];

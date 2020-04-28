@@ -107,7 +107,7 @@ function changeKindInfo($viewer, $kind_info)
         case 'main': // Получить основную информацию
             return $result = [
                 'chat_id' => $viewer['chatUserId'],
-                'name' => $viewer['username'],
+                'username' => $viewer['username'],
                 'vk_uid' => $viewer['cu1'],
                 'add_field' => $viewer['c1'],
                 'phone' => $viewer['phone'],
@@ -125,6 +125,28 @@ function changeKindInfo($viewer, $kind_info)
     }
 }
 
+function dataToText($data)
+{
+    $text = "";
+    if(!is_array($data))
+        $text = $data;
+    else
+    {
+        foreach ($data as $item_key => $item)
+        {
+            if(!is_array($item))
+                $text .= $item . ',';
+            else
+                foreach ($item as $key_value => $value)
+                    if($value)
+                        $text .= russianName($key_value) . ": " . $value . "\n";
+                $text .= "\n";
+        }
+    }
+
+    return trim($text,",\n");
+}
+
 function phoneFormat($phone)
 {
     if($phone[0] == '+' || $phone[0] == 8 || $phone[0] == 7)
@@ -140,38 +162,45 @@ function phoneFormat($phone)
 function russianName($key)
 {
     $name = [
-            'ip' => 'IP',
-            'city' => 'Город',
-            'country' => 'Страна', 
-            'email' => 'Email',
-            'username' => 'Имя',
-            'phone' =>  'Телефон',
-            'finished' =>  'Дошел до конца',
-            'view' =>  'Время входа UNIX',
-            'viewTill' =>  'Время выхода UNIX',
-            'page' => 'Страница регистрации',
-            'partner' =>  'Refid партнера',
-            'ban' =>  'Забанен?',
-            'ignore' => 'В игнор?',
-            'referer' =>  'Источник',
-            'mob' => 'С мобильного?',
-            'clickBanner' =>  'Клик по баннеру',
-            'clickFile' => ' Клик по кнопке',
-            'vizitForm' =>  'Открыта форма заказа',
-            'newOrder' =>   'Номер оформленного заказа',
-            'orderDetails' => 'Название товара в оформленном заказе', 
-            'utm_source' => 'utm_source', 
-            'utm_medium' => 'utm_medium', 
-            'utm_campaign' => 'utm_campaign', 
-            'utm_term' => 'utm_term',
-            'utm_content' =>  'utm_content',
-            'uid' => 'Идентификатор подписчика',
-            'playVideo' => 'Запустил просмотр',
-            'total' => 'Общее число зрителей',
-            'viewers' => 'Зрители',
-            'chatUserId' => 'ID в чате',
-            'c1' => 'Доп. поле (vk id)',
-            'cu1' => 'Свой url (vk id)'
+        'ip' => 'IP',
+        'city' => 'Город',
+        'country' => 'Страна',
+        'email' => 'Email',
+        'username' => 'Имя',
+        'phone' =>  'Телефон',
+        'finished' =>  'Дошел до конца',
+        'view' =>  'Время входа UNIX',
+        'viewTill' =>  'Время выхода UNIX',
+        'page' => 'Страница регистрации',
+        'partner' =>  'Refid партнера',
+        'ban' =>  'Забанен?',
+        'ignore' => 'В игнор?',
+        'referer' =>  'Источник',
+        'mob' => 'С мобильного?',
+        'clickBanner' =>  'Клик по баннеру',
+        'clickFile' => ' Клик по кнопке',
+        'vizitForm' =>  'Открыта форма заказа',
+        'newOrder' =>   'Номер оформленного заказа',
+        'orderDetails' => 'Название товара в оформленном заказе',
+        'utm_source' => 'utm_source',
+        'utm_medium' => 'utm_medium',
+        'utm_campaign' => 'utm_campaign',
+        'utm_term' => 'utm_term',
+        'utm_content' =>  'utm_content',
+        'uid' => 'Идентификатор подписчика',
+        'playVideo' => 'Запустил просмотр',
+        'total' => 'Общее число зрителей',
+        'viewers' => 'Зрители',
+        'chatUserId' => 'ID в чате', 'chat_id' => 'ID в чате',
+        'c1' => 'Доп. поле (vk id)', 'add_field' => 'Доп. поле (vk id)',
+        'cu1' => 'Свой url (vk id)', 'vk_uid' => 'Свой url (vk id)',
+        '_id' => 'ID вебинара',
+        'group' => 'Группа',
+        'roomid' => 'ID комнаты',
+        'webinarId' => 'ID вебинара',
+        'ver' => 'Версия',
+        'created' => 'Создан',
+        'room_title' => 'Заголовок комнаты'
     ];
     return $name[$key];
 
