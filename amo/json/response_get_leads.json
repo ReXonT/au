@@ -1,0 +1,99 @@
+{
+  "_links": {
+    "self": {
+      "href": "/api/v2/leads?entity=leads",
+      "method": "get"
+    }
+  },
+  "_embedded": {
+    "items": [
+      {
+        "id": 899833,
+        "name": "Илья",
+        "responsible_user_id": 6035176,
+        "created_by": 6035176,
+        "created_at": 1589295396,
+        "updated_at": 1589295396,
+        "account_id": 28894324,
+        "pipeline_id": 3266950,
+        "status_id": 33011188,
+        "updated_by": 6035176,
+        "is_deleted": false,
+        "main_contact": [],
+        "group_id": 0,
+        "company": [],
+        "closed_at": 0,
+        "closest_task_at": 0,
+        "tags": [],
+        "custom_fields": [],
+        "sale": 100,
+        "loss_reason_id": 0,
+        "contacts": [],
+        "pipeline": {
+          "id": 3266950,
+          "_links": {
+            "self": {
+              "href": "/api/v2/pipelines?id=3266950",
+              "method": "get"
+            }
+          }
+        },
+        "_links": {
+          "self": {
+            "href": "/api/v2/leads?id=899833",
+            "method": "get"
+          }
+        }
+      },
+      {
+        "id": 899849,
+        "name": "Илья",
+        "responsible_user_id": 6035176,
+        "created_by": 6035176,
+        "created_at": 1589295456,
+        "updated_at": 1589295456,
+        "account_id": 28894324,
+        "pipeline_id": 3266950,
+        "status_id": 33011188,
+        "updated_by": 6035176,
+        "is_deleted": false,
+        "main_contact": [],
+        "group_id": 0,
+        "company": [],
+        "closed_at": 0,
+        "closest_task_at": 0,
+        "tags": [],
+        "custom_fields": [
+          {
+            "id": 37883,
+            "name": "vk_uid",
+            "values": [
+              {
+                "value": "au102036383"
+              }
+            ],
+            "is_system": false
+          }
+        ],
+        "sale": 100,
+        "loss_reason_id": 0,
+        "contacts": [],
+        "pipeline": {
+          "id": 3266950,
+          "_links": {
+            "self": {
+              "href": "/api/v2/pipelines?id=3266950",
+              "method": "get"
+            }
+          }
+        },
+        "_links": {
+          "self": {
+            "href": "/api/v2/leads?id=899849",
+            "method": "get"
+          }
+        }
+      }
+    ]
+  }
+}

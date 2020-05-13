@@ -1,0 +1,185 @@
+{
+    "_links": {
+        "self": {
+            "href": "/api/v2/account?with=custom_fields",
+            "method": "get"
+        }
+    },
+    "id": 28894324,
+    "name": "name",
+    "subdomain": "subdomain",
+    "currency": "RUB",
+    "timezone": "Europe/Moscow",
+    "timezone_offset": "+03:00",
+    "language": "ru",
+    "date_pattern": {
+        "date": "d.m.Y",
+        "time": "H:i",
+        "date_time": "d.m.Y H:i",
+        "time_full": "H:i:s"
+    },
+    "current_user": 6035176,
+    "_embedded": {
+        "custom_fields": {
+            "contacts": {
+                "37863": {
+                    "id": 37863,
+                    "name": "Должность",
+                    "field_type": 1,
+                    "sort": 2,
+                    "code": "POSITION",
+                    "is_multiple": false,
+                    "is_system": true,
+                    "is_editable": true,
+                    "is_required": false,
+                    "is_deletable": true,
+                    "is_visible": true,
+                    "params": []
+                },
+                "37865": {
+                    "id": 37865,
+                    "name": "Телефон",
+                    "field_type": 8,
+                    "sort": 4,
+                    "code": "PHONE",
+                    "is_multiple": true,
+                    "is_system": true,
+                    "is_editable": true,
+                    "is_required": false,
+                    "is_deletable": true,
+                    "is_visible": true,
+                    "params": [],
+                    "enums": {
+                        "58753": "WORK",
+                        "58755": "WORKDD",
+                        "58757": "MOB",
+                        "58759": "FAX",
+                        "58761": "HOME",
+                        "58763": "OTHER"
+                    }
+                },
+                "37867": {
+                    "id": 37867,
+                    "name": "Email",
+                    "field_type": 8,
+                    "sort": 6,
+                    "code": "EMAIL",
+                    "is_multiple": true,
+                    "is_system": true,
+                    "is_editable": true,
+                    "is_required": false,
+                    "is_deletable": true,
+                    "is_visible": true,
+                    "params": [],
+                    "enums": {
+                        "58765": "WORK",
+                        "58767": "PRIV",
+                        "58769": "OTHER"
+                    }
+                },
+                "37881": {
+                    "id": 37881,
+                    "name": "vk_uid",
+                    "field_type": 1,
+                    "sort": 500,
+                    "code": "",
+                    "is_multiple": false,
+                    "is_system": false,
+                    "is_editable": true,
+                    "is_required": false,
+                    "is_deletable": true,
+                    "is_visible": true,
+                    "params": []
+                }
+            },
+            "leads": {
+                "37883": {
+                    "id": 37883,
+                    "name": "vk_uid",
+                    "field_type": 1,
+                    "sort": 500,
+                    "code": "",
+                    "is_multiple": false,
+                    "is_system": false,
+                    "is_editable": true,
+                    "is_required": false,
+                    "is_deletable": true,
+                    "is_visible": true,
+                    "params": []
+                }
+            },
+            "companies": {
+                "37865": {
+                    "id": 37865,
+                    "name": "Телефон",
+                    "field_type": 8,
+                    "sort": 4,
+                    "code": "PHONE",
+                    "is_multiple": true,
+                    "is_system": true,
+                    "is_editable": true,
+                    "is_required": false,
+                    "is_deletable": true,
+                    "is_visible": true,
+                    "params": [],
+                    "enums": {
+                        "58753": "WORK",
+                        "58755": "WORKDD",
+                        "58757": "MOB",
+                        "58759": "FAX",
+                        "58761": "HOME",
+                        "58763": "OTHER"
+                    }
+                },
+                "37867": {
+                    "id": 37867,
+                    "name": "Email",
+                    "field_type": 8,
+                    "sort": 6,
+                    "code": "EMAIL",
+                    "is_multiple": true,
+                    "is_system": true,
+                    "is_editable": true,
+                    "is_required": false,
+                    "is_deletable": true,
+                    "is_visible": true,
+                    "params": [],
+                    "enums": {
+                        "58765": "WORK",
+                        "58767": "PRIV",
+                        "58769": "OTHER"
+                    }
+                },
+                "37869": {
+                    "id": 37869,
+                    "name": "Web",
+                    "field_type": 7,
+                    "sort": 8,
+                    "code": "WEB",
+                    "is_multiple": false,
+                    "is_system": true,
+                    "is_editable": true,
+                    "is_required": false,
+                    "is_deletable": true,
+                    "is_visible": true,
+                    "params": []
+                },
+                "37871": {
+                    "id": 37871,
+                    "name": "Адрес",
+                    "field_type": 9,
+                    "sort": 10,
+                    "code": "ADDRESS",
+                    "is_multiple": false,
+                    "is_system": true,
+                    "is_editable": true,
+                    "is_required": false,
+                    "is_deletable": true,
+                    "is_visible": true,
+                    "params": []
+                }
+            },
+            "customers": []
+        }
+    }
+}
