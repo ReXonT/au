@@ -448,14 +448,15 @@ elseif($act == 'run')
             
             break;
     }
-    $success = $answer['success'];
     
-    if(!$success)
+    if(!$answer['success'])
     {
         $error_name = $answer['error_message'];
+        $message = 'Ошибка: ' . $answer['error_message'];
+        $error_message = $senler->getErrorMessage($answer['error_code']);
     }
-    $error_message = $senler->getErrorMessage($answer['error_code']);
-/* Сформировать массив данных на отдачу */
+
+    /* Сформировать массив данных на отдачу */
     $responce = [
         'out' => $out,                          // Обязательно должен быть номер выхода out, отличный от нуля!
         'value' => [                            // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через 

@@ -16,11 +16,35 @@ if($act == 'options') {
                 'default' => '$b0_input',
                 'desc' => 'Не меняйте, если всё работает',    // описание поля, можно пару строк
             ],
+            'senler_group_id1' => [
+                'title' => 'ID группы подписки #1',   // заголовок поля
+                'default' => '',
+                'desc' => 'Из Senler. Какую группу проверяем (не обязательно)',    // описание поля, можно пару строк
+            ],
+            'senler_group_id2' => [
+                'title' => 'ID группы подписки #2',   // заголовок поля
+                'default' => '',
+                'desc' => 'Из Senler. Какую группу проверяем (не обязательно)',    // описание поля, можно пару строк
+            ],
+            'senler_group_id3' => [
+                'title' => 'ID группы подписки #3',   // заголовок поля
+                'default' => '',
+                'desc' => 'Из Senler. Какую группу проверяем (не обязательно)',    // описание поля, можно пару строк
+            ],
         ],
         'out' => [                      // Это блоки выходов, мы задаём им номера и подписи (будут видны на схеме)
             1 => [                      // Номер 0 означает красный выход блока ВРМ, зарезервированный для случаев сбоя
-                'title' => 'Найдено',    // название выхода 1
-            ]        
+                'title' => 'Другая группа',    // название выхода 1
+            ],
+            2 => [
+            	'title' => 'Группа #1'
+            ],
+            3 => [
+            	'title' => 'Группа #2'
+            ], 
+            4 => [
+            	'title' => 'Группа #3'
+            ],         
         ]
     ];
 
@@ -40,9 +64,15 @@ if($act == 'options') {
     $options = $_REQUEST['options'];
     $b0_request = $options['b0_request'];
 
+    // id групп подписок
+    for( $i = 1 ; $i<4 ; $i++ )
+    {
+    	${'senler_group_id'.$i} = $options['senler_group_id'.$i];
+    }
+    
     $request_keys = array_keys($b0_request['object']);
 
-    $responce['value']['type'] = $b0_request['type'];
+    $array['type'] = $b0_request['type'];
 
     foreach ($request_keys as $value) {
     	$array[$value] = $b0_request['object'][$value];
@@ -50,17 +80,36 @@ if($act == 'options') {
 
     $array['uid'] = $array['vk_user_id'];
 
-    if( $array['type'] == 'subscribe' )
+    if( $array['type'] == "subscribe" )
     {
     	$array['type'] = 'подписка';
     }
-    else if ( $array['type'] == 'unsubscribe' )
+    else if ( $array['type'] == "unsubscribe" )
     {
     	$array['type'] = 'отписка';
     }
 
+    switch ($array['subscription_id']) {
+    	// подписка/отписка из 1 группы
+    	case $senler_group_id1:
+    		$out = 2;
+    		break;
+
+    	// подписка/отписка из 2 группы	
+    	case $senler_group_id2:
+    		$out = 3;
+    		break;
+
+    	// подписка/отписка из 3 группы
+    	case $senler_group_id3:
+    		$out = 4;
+    		break;
+    	
+    	default:
+    		$out = 1;
+    		break;
+    }
     
-    $out = 1;
     
     $responce['out'] = $out;
 
@@ -75,7 +124,7 @@ if($act == 'options') {
     	'html' => 
     	"Доступные переменные
 
-    	{b.{bid}.value.type} - Тип запроса (подписка или отписка)
+    	{b.{bid}.value.type} - Тип запроса. (либо 'подписка', либо 'отписка')
     	{b.{bid}.value.vk_group_id} - ID группы VK, в котором произошло действие
 		{b.{bid}.value.uid} - VK ID пользователя
 		или также можно использовать
