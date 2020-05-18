@@ -57,9 +57,17 @@ if($act == 'options') {
                     'exec_type' => [1,2]
                 ]
             ],
+            'offer_code' => [
+                'title' => 'Уникальный код предложения',   // заголовок поля
+                'desc' => '',    // описание поля, можно пару строк
+                'default' => '',
+                'show' => [
+                    'exec_type' => 2
+                ]
+            ],
             'product_title' => [
                 'title' => 'Название продукта',   // заголовок поля
-                'desc' => '',    // описание поля, можно пару строк
+                'desc' => 'Если указан "Уникальный код предложения", то это поле можно оставить пустым',    // описание поля, можно пару строк
                 'default' => '',
                 'show' => [
                     'exec_type' => 2
@@ -315,6 +323,7 @@ if($act == 'options') {
                     ->setUserAddField('vk_uid', $target)
                     ->setOverwrite()
                     ->setSessionReferer('http://activeusers.ru')
+                    ->setOfferCode($options['offer_code'])
                     ->setProductTitle($options['product_title'])
                     //->setDealNumber($options['deal_number'])
                     ->setDealCost($options['deal_cost'])
