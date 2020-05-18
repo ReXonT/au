@@ -170,9 +170,14 @@ if(isset($act))
         if(isset($target)) { $user_id = $target; } 
         else { $user_id = $ums['from_id']; }
 
-        $clientWebhook = $ps['options']['secret']; // webhook данные
+        //$clientWebhook = $ps['options']['secret']; // webhook данные
         $inputUrl = $ps['options']['account']; // ссылка на битрикс
-        if(!(strpos($inputUrl, '//')))
+
+        $temp = explode('/', $inputUrl);
+        unset($temp[count($temp)-2]);
+        $queryUrl = implode($temp, '/');
+        
+        /*if(!(strpos($inputUrl, '//')))
         {
             $clientUrl = $inputUrl;
         }
@@ -182,7 +187,7 @@ if(isset($act))
             $clientUrl = $arUrl['host'];
         }
 
-        $queryUrl = 'https://'.$clientUrl.'/rest/1/'.$clientWebhook.'/';    // ссылка на webhook
+        $queryUrl = 'https://'.$clientUrl.'/rest/1/'.$clientWebhook.'/';    // ссылка на webhook*/
 
 
         $methodType = $options['methodType']; // выбор метода запроса
@@ -220,7 +225,8 @@ if(isset($act))
 
         /* Поля */
 
-        foreach ($arrFieldNames as $value) {
+        foreach ($arrFieldNames as $value) 
+        {
             ${$nameVar.$value} = $options[$value];
         }
 
@@ -242,7 +248,8 @@ if(isset($act))
         */
 
 
-        switch (${$nameVar.'Currency'}) {
+        switch (${$nameVar.'Currency'}) 
+        {
             case 0:
                 ${$nameVar.'Currency'} = "RUB";
                 break;
@@ -254,7 +261,8 @@ if(isset($act))
                 break;
         }
 
-        switch (${$nameVar.'Status'}) {
+        switch (${$nameVar.'Status'}) 
+        {
             case 1:
                 ${$nameVar.'Status'} = "NEW";
                 break;
@@ -269,15 +277,18 @@ if(isset($act))
                 break;
         }
 
+        /* Получить поля аккаунта */
         $response = call(
             $queryUrl,
            'crm.'.$nameVar.'.fields',
-           [
-              
-        ]);
+           []
+        );
+
         $fieldsBitrix = $response['result'];
 
-        foreach ($fieldsBitrix as $value) {
+        // Находим поле vk_uid
+        foreach ($fieldsBitrix as $value) 
+        {
         	if( $value['filterLabel'] == 'vk_uid' )
         	{
         		$vk_uid_field = $value['title'];
@@ -285,13 +296,14 @@ if(isset($act))
         	}
         }
 
-        if( empty($vk_uid_field))
+        if(!$vk_uid_field)
         {
-        	$message = 'Не найдено поле vk_uid';
+        	$message = 'Не найдено поле vk_uid ';
         } 
   
 
-        switch ($type) {
+        switch ($type) 
+        {
             
             // добавить/изменить лид
             case 1:
@@ -301,85 +313,95 @@ if(isset($act))
             	// ищем в списке уже имеющийся VK_UID
                 $response = call(
                     $queryUrl,
-                   'crm.'.$nameVar.'.list',
-                   [
-                      'filter' => [
-                      		$vk_uid_field => $target
-                      ],
-                      'select' => [
-			            'ID'
-			        ]
-                ]);
+                    'crm.'.$nameVar.'.list',
+                    [
+                        'filter' => [
+                        		$vk_uid_field => $target
+                        ],
+                        'select' => [
+                            'ID'
+                        ]
+                    ]
+                );
 
                 $foundId = $response['result'][0]['ID'];
 
-                if(empty($foundId))
+                if(!$foundId)
                 {
                 	// ищем в списке уже имеющийся EMAIL
 	                $response = call(
-	                    $queryUrl,
-	                   'crm.'.$nameVar.'.list',
-	                   [
-	                      'filter' => [
-	                      		"EMAIL" => [
-                                        "VALUE" => [                            // изменение почты
-                                            "VALUE" => ${$nameVar.'Email'}
-                                        ]
+                        $queryUrl,
+                        'crm.'.$nameVar.'.list',
+                        [
+                            'filter' => [
+                        		"EMAIL" => [
+                                    "VALUE" => [                            // изменение почты
+                                        "VALUE" => ${$nameVar.'Email'}
                                     ]
-	                      ],
-	                      'select' => [
-				            'ID'
-				        ]
-	                ]);
+                                ]
+                            ],
+                            'select' => [
+                                'ID'
+                            ]
+                        ]
+                    );
 	                $foundId = $response['result']['ID'];
 
-	                if(empty($foundId))
+	                if(!$foundId)
 	                {
 	                	// ищем в списке уже имеющийся ТЕЛЕФОН
 		                $response = call(
-		                    $queryUrl,
-		                   'crm.'.$nameVar.'.list',
-		                   [
-		                      'filter' => [
-		                      		"PHONE" => [
-	                                        "VALUE" => [                            // изменение почты
-	                                            "VALUE" => ${$nameVar.'Phone'}
-	                                        ]
-	                                    ]
-		                      ],
-		                      'select' => [
-					            'ID'
-					        ]
-		                ]);
+                            $queryUrl,
+                            'crm.'.$nameVar.'.list',
+                            [
+                                'filter' => [
+                            		"PHONE" => [
+                                        "VALUE" => [                            // изменение почты
+                                            "VALUE" => ${$nameVar.'Phone'}
+                                        ]
+                                    ]
+                                ],
+                                'select' => [
+                                    'ID'
+                                ]
+                            ]
+                        );
+
 		                $foundId = $response['result']['ID'];
-		                if( !empty($foundId) )
-		                {
-		                	$message = 'Найден телефон';
-		                }
+		                
+                        if($foundId)
+                        {
+                            $message = 'Найден телефон';
+                            $phone_duplicate = 1;
+                        }
 	                }
 	                else
 	                {
-	                	$message = 'Найден email';
-	                }
+                        $message = 'Найден email';
+                        $email_duplicate = 1;
+                    }
                 }
                 else
                 {
                 	$message = 'Найден vk_uid';
                 }
 
-                // проверяем совпадения телефона и email
+                //проверяем совпадения телефона и email
 
-                if( !empty($foundId) )
+                /*if($foundId)
                 {
                 	$response = call(
-	                    $queryUrl,
-	                   'crm.'.$nameVar.'.get',
-	                   [
-	                      'id' => $foundId
-	                ]);
+                        $queryUrl,
+                        'crm.'.$nameVar.'.get',
+                        [
+                            'id' => $foundId
+                        ]
+                    );
+
 	                $result = $response['result'];
 
-	                foreach ($result['EMAIL'] as $value) {
+	                foreach ($result['EMAIL'] as $value) 
+                    {
 	                	if( $value['VALUE'] == ${$nameVar.'Email'} )
 	                	{
 	                		$email_duplicate = 1;
@@ -387,14 +409,15 @@ if(isset($act))
 	                	}
 	                }
 
-	                foreach ($result['PHONE'] as $value) {
+	                foreach ($result['PHONE'] as $value) 
+                    {
 	                	if( $value['VALUE'] == ${$nameVar.'Phone'} )
 	                	{
 	                		$phone_duplicate = 1;
 	                		break;
 	                	}
 	                }
-                }
+                }*/
                
                 $fieldsToAdd = array();
 
@@ -425,12 +448,13 @@ if(isset($act))
                 ]
                 */
 
-                foreach ($arrFieldNames as $value) {
+                foreach ($arrFieldNames as $value) 
+                {
                     if(${$nameVar.$value} != "")
                     {
                         $fieldName = mb_strtoupper($value);
 
-                        if( !empty($foundId) )
+                        if($foundId)
                         {
                             if($fieldName == 'TITLE')
                                 continue;
@@ -475,16 +499,16 @@ if(isset($act))
 	                        }
                         }
 
-                        $fieldsToAdd = array_merge( $fieldsToAdd, array( $fieldName => ${$nameVar.$value} ) );
+                        $fieldsToAdd = array_merge( $fieldsToAdd, array($fieldName => ${$nameVar.$value}) );
                     }
                 }
 
-                if( !empty($vk_uid_field) )
+                if($vk_uid_field)
                 {
                 	$fieldsToAdd = array_merge($fieldsToAdd, array($vk_uid_field => $target));
                 }
 
-                if( !empty($foundId) )
+                if($foundId)
                 {  
 
                 	$response = call(
@@ -525,14 +549,15 @@ if(isset($act))
                 $vk_uid = $result[$vk_uid_field];
 
                 $found = "";
-                foreach ($result as $key => $value) {
-                    if($value != "")
+                foreach ($result as $key => $value) 
+                {
+                    if($value)
                     {
                         // меняем значение ключа на русское для вывода
                         $russianKey = changeValueToRussian($key);
 
                         // если не нашли русского значения, то пишем англ
-                        if(!($russianKey != ""))
+                        if($russianKey)
                         {
                             $russianKey = $key;
                         }
@@ -550,7 +575,8 @@ if(isset($act))
                         else
                         {
                             // меняем значение, если Y или N на адекватные русские названия
-                            switch ($value) {
+                            switch ($value) 
+                            {
                                 case 'Y':
                                     $value = "Да";
                                     break;
