@@ -215,12 +215,14 @@ class Amo
         $end = 0;
         $result = [];
         $limit_offset = 0;
+        
         while(!$end)
         {
             $response = $this->apiGetRequest($entity, [
                 'limit_rows' => 500,
                 'limit_offset' => $limit_offset
             ]);
+
             if($limit_offset == 0)
                 $result = $response;
             else
