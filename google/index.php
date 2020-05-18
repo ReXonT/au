@@ -1,5 +1,9 @@
 <?php
+
+ini_set('display_errors', 1);
+
 require_once ('vendor/autoload.php');
+require_once ('global.php');
 
 $act = $_REQUEST['act'];
 
@@ -86,7 +90,7 @@ if($act == 'options')
             	'desc' => "Например A1:C1",
             	'default' => '',
             	'show' => [
-            		'option' => 5
+            		'option' => [5]
             	]
             ],
 
@@ -342,380 +346,292 @@ if($act == 'options')
      * полученные от схемы данные                                   *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 } 
-elseif($act == 'run') 
-{                                               // Схема прислала данные, обрабатываем
-    $target = $_REQUEST['target'];  // Пользователь, от имени которого выполняется блок
-    $ums = $_REQUEST['ums'];        // Данные об активности пользователя, массив в котором есть:
-                                    // id - номер элемента (комментария, поста, смотря о чём речь в активности)
-                                    // from_id - UID пользователя
-                                    // date - дата в формате timestamp
-                                    // text - текст комментария, сообщения и т.д.
-    $options = $_REQUEST['options'];
+elseif($act == 'run')  // Схема прислала данные, обрабатываем
+{
+    $target                  = $_REQUEST['target'];         // Пользователь, от имени которого выполняется блок
+    $ums                    = $_REQUEST['ums'];             // Данные об активности пользователя
+    $options                = $_REQUEST['options'];         // Данные из полей, введенные пользователем
+    $ps                     = $_REQUEST['paysys']['ps'];    // Сюда придут настройки выбранной системы
+    $field_count            = $options['field_count'];      // Количество полей
+    $work_spreadsheet_id    = $options['spreadsheet_id'];   // ID таблицы
+    $work_sheet_title       = $options['work_sheet_title']; // Название рабочего листа
+    $out                    = 0;                            // Выход ВРМ в 0
+    $message                = "";                           // Сообщение о результате
 
-    /* Настройки Google Sheets API V4 */
-    $ps = $_REQUEST['paysys']['ps']; // Сюда придут настройки выбранной системы
-    $token = $ps['options']['credentials'];
-    $php_token = json_decode($token, true);
+    $col_array = [  // Массив букв для колонок
+        "A", "B", "C", "D", "E", "F", "G", "H", "I",
+        "J", "K", "L", "M", "N", "O", "P", "Q", "R",
+        "S", "T", "U", "V", "W", "X", "Y", "Z"
+    ];
 
-    // Путь к файлу ключа сервисного аккаунта
-    /*$googleAccountKeyFilePath = 'my_key.json';
-     putenv('GOOGLE_APPLICATION_CREDENTIALS='.$googleAccountKeyFilePath);*/
+    /*
+     * Определяет как введенные данные будут интерпретированы:
+     * RAW - Данные от юзера не будут парситься и будут записаны как есть
+     * USER_ENTERED     Значения будут так, как юзер их типизировал в UI.
+     * Числа останутся числами, но строки могут конвертироваться в числа, даты и тд.
+     */
+    $params = ["valueInputOption" => "RAW"];
 
-    // Документация https://developers.google.com/sheets/api/
+    /*
+     * Определяет как будут изменяться существующие данные после ввода новых
+     * OVERWRITE    Новые данные перезапишут старые в тех ячейках, где они записаны
+     * INSERT_ROWS    Строки вставляются для новых данных.
+     *
+     */
+    $insert = ["InsertDataOption" => 'INSERT_ROWS'];
+
+    /*
+     * Варианты отображения возвращаемых данных ValueRenderOption
+     * https://developers.google.com/sheets/api/reference/rest/v4/ValueRenderOption
+     * FORMATTED_VALUE | UNFORMATTED_VALUE | FORMULA
+     * $render = ['ValueRenderOption' => 'FORMATTED_VALUE'];
+     */
+
+
+    $token = json_decode($ps['options']['credentials'], true);  // Декодируем токен
+
+    /*
+     * Настройки Google Sheets API V4
+     * Документация https://developers.google.com/sheets/api/
+     */
     $client = new Google_Client();
-    $client->setAuthConfig($php_token);
-
-    //$client->useApplicationDefaultCredentials();
-
-    // Области, к которым будет доступ
-    $client->addScope('https://www.googleapis.com/auth/spreadsheets');
+    $client->setAuthConfig($token); // Данные для подключения
+    $client->addScope('https://www.googleapis.com/auth/spreadsheets'); // Области, к которым будет доступ
     $service = new Google_Service_Sheets($client);
 
     /* =============================== */
 
-    // массив букв для колонок
-    $col_array = [
-        "A", "B", "C", "D", "E", "F", "G", "H", "I", 
-        "J", "K", "L", "M", "N", "O", "P", "Q", "R", 
-        "S", "T", "U", "V", "W", "Z", "Y", "Z"
-    ];
-
-    // диапазон ячеек таблицы
-    $range = $options['range'];
-
-    // выбранный метод выполнения
-    $option = $options['option'];
-
-    // поля
-    $value0 = $options['value0']; // значение для добавления
-    $field_count = $options['field_count'];
-    for ($i = 1;$i <= $field_count;$i++) 
+    if (strpos($work_spreadsheet_id, '/d/') !== FALSE)  // Если вставлена ссылка
     {
-        ${'value'.$i} = $options['value'.$i];
-    }
-
-    // поля для найти и заменить
-    $value_to_find = $options['value_to_find'];
-    $replacement = $options['replacement'];
-
-    // ID таблицы
-    $work_spreadsheet_id = $options['spreadsheet_id'];
-
-    // название рабочего листа
-    $work_sheet_title = $options['work_sheet_title'];
-
-    // если вставлена ссылка
-    if (strpos($work_spreadsheet_id, '/d/') !== FALSE) 
-    {
-        $start = strpos($work_spreadsheet_id, '/d/') + 3; // запишет стартовую позицию. 3 - количество символов в /d/
+        $start = strpos($work_spreadsheet_id, '/d/') + 3; // Запишет стартовую позицию. 3 - количество символов в /d/
         $end = strpos($work_spreadsheet_id, '/edit');
-        $spreadsheetId = substr($work_spreadsheet_id, $start, $end - $start); // получаем id таблицы из ссылки   
+        $spreadsheet_id = substr($work_spreadsheet_id, $start, $end - $start); // Получаем id таблицы из ссылки
     } 
-    else 
+    else
+        $spreadsheet_id = $work_spreadsheet_id;
+
+
+    switch ($options['option'])  // Выбранный метод выполнения
     {
-        $spreadsheetId = $work_spreadsheet_id;
-    }
+        case 1: // Добавить строчку в конец
 
-    // получаем инфо по таблице
-    $response = $service->spreadsheets->get($spreadsheetId);
-
-    // Свойства таблицы
-    $spreadsheetProperties = $response->getProperties();
-    $work_spreadsheet_name = $spreadsheetProperties->title; // Название таблицы
-    foreach ($response->getSheets() as $sheet) 
-    {
-        // Свойства листа
-        $sheetProperties = $sheet->getProperties();
-        if ($sheetProperties->title == $work_sheet_title) // Название листа
-        {
-            $range = $work_sheet_title . "!" . $range; // A1 notation для диапазона
-            $gridProperties = $sheetProperties->getGridProperties();
-            $sheetColumnCount = $gridProperties->columnCount; // Количество колонок
-            $sheetRowCount = $gridProperties->rowCount; // Количество строк
-            $work_sheet_id = $sheetProperties->sheetId; // id рабочего листа
-            
-        }
-    }
-
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     * Определяет как введенные данные будут интерпретированы:                      *
-     * RAW - Данные от юзера не будут парситься и будут записаны как есть           *
-     * USER_ENTERED     Значения будут так, как юзер их типизировал в UI.           *
-     * Числа останутся числами, но строки могут конвертироваться в числа, даты и тд.*
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    $params = ["valueInputOption" => "RAW"];
-
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     * Определяет как будут изменяться существующие данные после ввода новых        *
-     * OVERWRITE    Новые данные перезапишут старые в тех ячейках, где они записаны  *
-     * INSERT_ROWS    Строки вставляются для новых данных.                          *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    $insert = ["InsertDataOption" => 'INSERT_ROWS'];
-
-    // Варианты отображения возвращаемых данных ValueRenderOption
-    // https://developers.google.com/sheets/api/reference/rest/v4/ValueRenderOption
-    // FORMATTED_VALUE | UNFORMATTED_VALUE | FORMULA
-    $render = ['ValueRenderOption' => 'FORMATTED_VALUE'];
-
-    $out = 0; // выход в ноль
-    $message = ""; // сообщение о результате
-    $return_row = ""; // инициализация
-
-    switch ($option) 
-    {
-        // добавить строчку в конец     
-        case 1:
-            $parse_cols = $options['parse_cols']; // парсить по спец. символу по колонкам?
-            if ($parse_cols) 
+            if ($options['parse_cols']) // Парсить по спец. символу по колонкам?
             {
-                $v = "";
-                for ($i = 1;$i <= $field_count;$i++) 
-                {
-                    $v .= $ {'value'.$i}.';';
-                }
-                $v = rtrim($v, ';');
-                $values[] = explode(';', $v); // массив values    
+                $str_values = "";
+                for ($i = 1; $i <= $field_count; $i++) // Перебираем все значения и приводим их в 1 строку через ;
+                    $str_values .= $options['value' . $i] . ';';
+
+                $str_values = rtrim($str_values, ';');
+                $values[0] = explode(';', $str_values);
             } 
             else 
             {
-                for ($i = 1;$i <= $field_count;$i++) 
-                {
-                    $values[0][] = ${'value'.$i};
-                }
+                for ($i = 1; $i <= $field_count; $i++)
+                    $values[0][] = $options['value' . $i];
             }
 
-            $body = new Google_Service_Sheets_ValueRange([ // по api google
+            $request_body = new Google_Service_Sheets_ValueRange([ // По api google
                 'values' => $values
             ]);
 
-            // range обязателен
-            $result = $service->spreadsheets_values->append($spreadsheetId, $work_sheet_title, $body, $params, $insert); // добавить в конец
+            $result = $service->spreadsheets_values->append(  // Добавить в конец
+                $spreadsheet_id,
+                $work_sheet_title,
+                $request_body,
+                $params,
+                $insert
+            );
+
             $message = 'Данные добавлены в конец таблицы';
             $out = 1;
         break;
-        
-        // добавить ячейку    
-        case 2:
-            $add_type = $options['add_type']; // тип добавления
-            $add_range = $work_sheet_title . "!" . $options['add_range']; // формируем диапазон для добавления
-            if ($add_type == 2) 
+
+        case 2: // Добавить ячейку
+
+            if ($options['add_type'] == 2) // Тип добавления по конкретным значениям
             {
-                $find_col = $options['find_col']; // колонка для поиска
-                $find_row = $options['find_row']; // строка для поиска
+                $json_table_values = $service->spreadsheets_values->get($spreadsheet_id, $work_sheet_title);
+                $table_values = $json_table_values->getValues();
 
-                // достать данные из листа рабочего
-                $json_text = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
-                $php_text = $json_text->getValues();    // функция получения значений. Чтобы её узнать потратил 2 дня.
-                                                        // json_decode не работает
-                                                        // поиск нужного столбца
-                
-                for ($i = 0;$i <= $sheetRowCount;$i++) 
-                {
-                    for ($j = 0;$j <= $sheetColumnCount;$j++) 
-                    {
-                        if ($php_text[$i][$j] == $find_col) 
-                        {
-                            $found_col = $j + 1; // найденный индекс колонки
-                        }
-                    }
-                }
+                $found_value = findCoordsInTable($table_values, $options['find_row'], $options['find_col']);
 
-                // поиск нужной строки
-                for ($i = 0;$i <= $sheetRowCount;$i++) 
-                {
-                    for ($j = 0;$j <= $sheetColumnCount;$j++) 
-                    {
-                        if ($php_text[$i][$j] == $find_row) 
-                        {
-                            $found_row = $i + 1; // найденный индекс строки
-                        }
-                    }
-                }
-                $add_range = $work_sheet_title . "!" . $col_array[$found_col - 1] . $found_row; // найденная ячейка под замену
+                // Найденная ячейка под замену
+                $add_range = $work_sheet_title . "!" . $col_array[$found_value['found_col'] - 1] . $found_value['found_row'];
             }
+            else
+                $add_range = $work_sheet_title . "!" . $options['add_range']; // формируем диапазон для добавления
 
-            $json_request = '
-                {
-                    "data": [
-                        {
-                            "range": "' . $add_range . '",
-                            "values": [
-                                [
-                                    "' . $value0 . '"
-                                ]
-                            ]
-                        }
-                    ],
-                    "valueInputOption": "RAW"
-                }
-            ';
+            $request = [
+                'data' => [
+                    [
+                        'range' => $add_range,
+                        'values' => [ [ $options['value0'] ] ]
+                    ]
+                ]
+            ];
 
-            $php_request = json_decode($json_request, true); // json to php
+            $request = array_merge($request, $params); // Добавляем параметр valueInputOption
 
-            $batchUpdateRequest = new Google_Service_Sheets_BatchUpdateValuesRequest($php_request); // создаем batch clear request
-            $response = $service->spreadsheets_values->batchUpdate($spreadsheetId, $batchUpdateRequest); // вызываем batch clear
+            $batch_update_request = new Google_Service_Sheets_BatchUpdateValuesRequest(
+                $request
+            ); // Создаем batch clear request
+
+            $result = $service->spreadsheets_values->batchUpdate(
+                $spreadsheet_id,
+                $batch_update_request
+            ); // Вызываем изменение
+
             $message = 'Данные добавлены';
             $out = 1;
         break;
-        
-        // найти и заменить    
-        case 3:
-            // вызываем findReplace по google api
+
+        case 3: // Найти и заменить
+
+            $table_info = getTableInfo(  // Получаем инфо по таблице
+                $service,
+                $spreadsheet_id,
+                $work_sheet_title,
+                $options['range'] // Диапазон ячеек таблицы
+            );
+
             $requests = [
                 new Google_Service_Sheets_Request([
                     'findReplace' => [
-                        "find" => $value_to_find, 
-                        "replacement" => $replacement, 
-                        "sheetId" => $work_sheet_id
+                        "find" => $options['value_to_find'],
+                        "replacement" => $options['replacement'],
+                        "sheetId" => $table_info['work_sheet_id']
                     ]
                 ]) 
             ];
 
-            $batchUpdateRequest = new Google_Service_Sheets_BatchUpdateSpreadsheetRequest([
+            $batch_update_request = new Google_Service_Sheets_BatchUpdateSpreadsheetRequest([
                 'requests' => $requests
             ]);
 
-            $response = $service->spreadsheets->batchUpdate($spreadsheetId, $batchUpdateRequest);
+            $result = $service->spreadsheets->batchUpdate(
+                $spreadsheet_id,
+                $batch_update_request
+            );
+
             $message = 'Заменено значение';
             $out = 1;
         break;
-            // получить строку
-            
-        case 4:
-            $value_to_find = $options['value_to_find'];
-            $s = 0;
-            // запросить данные по листу
-            $response = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
-            $php_text = $response->getValues(); // получить значения листа
-            
-            foreach ($php_text as $key => $value) 
+
+        case 4: // Получить строку
+            $return_row = "";
+
+            $response = $service->spreadsheets_values->get($spreadsheet_id, $work_sheet_title);
+            $table_values = $response->getValues();
+
+            // Если надо вернуть конкретный диапазон
+            if(!$options['value_to_find'] && strpos($work_sheet_title, '!') !== FALSE)
             {
-                $return_row = $value; // задаем полную строку на возращение
-                foreach ($value as $key => $val) 
-                {
-                    if ($val == $value_to_find) // если нашли внутри строки нужное сообщение, то выходим из цикла полностью
-                    {
-                        $s = 1;
-                        $message = 'Строка найдена и возвращена';
-                    }
-                }
-                if ($s) break;
+                $return_row = $table_values;
+                $out = 1;
+                break;
             }
-            if (!$s) 
+            else
             {
-                $return_row = "false";
-                $message = 'Строка не найдена';
+                $return_row = getRowFromTable($table_values, $options['value_to_find']);
+
+                if($return_row)
+                    $message = 'Строка найдена и возвращена';
+                else
+                    $message = 'Строка не найдена';
             }
             $out = 1;
             break;
 
-        // удалить диапазон значений       
-        case 5:
-            // создаем json строку запроса по api документации
-            $json_request = '
-                {
-                    "ranges": ["' . $range . '"]
-                }
-            ';
-            $php_request = json_decode($json_request, true); // переводим json в php
-            $batchUpdateRequest = new Google_Service_Sheets_BatchClearValuesRequest($php_request); // создаем batch clear request
-            $response = $service->spreadsheets_values->batchClear($spreadsheetId, $batchUpdateRequest); // вызываем batch clear
+        case 5: // Удалить диапазон значений
+
+            $request = [
+                'ranges' => [ $options['range'] ]
+            ];
+
+            $batch_clear_request = new Google_Service_Sheets_BatchClearValuesRequest($request);
+            $response = $service->spreadsheets_values->batchClear(
+                $spreadsheet_id,
+                $batch_clear_request
+            );
+
             $message = 'Данные удалены';
             $out = 1;
             break;
 
-        // полностью удалить
-        case 6:
-            $shift_dimension = $options['shift_dimension']; // что удалить
-            
-            // достать данные из листа рабочего
-            $json_text = $service->spreadsheets_values->get($spreadsheetId, $work_sheet_title);
-            $php_text = $json_text->getValues();    // функция получения значений
-                                                    // json_decode не работает
-            // если удаляем строку
-            if ($shift_dimension == 1) 
+        case 6: // Полностью удалить
+
+            $table_info = getTableInfo(  // Получаем инфо по таблице
+                $service,
+                $spreadsheet_id,
+                $work_sheet_title,
+                $options['range'] // Диапазон ячеек таблицы
+            );
+
+            $json_table_values = $service->spreadsheets_values->get($spreadsheet_id, $work_sheet_title);
+            $table_values = $json_table_values->getValues();
+
+            if ($options['shift_dimension'] == 1)  // Если удаляем строку
             {
-                $find_row = $options['value_to_find']; // строка для поиска
-                for ($j = 0;$j <= $sheetRowCount;$j++) 
-                {
-                    for ($i = 0;$i <= $sheetColumnCount;$i++) 
-                    {
-                        if ($php_text[$i][$j] == $find_row) 
-                        {
-                            $found_row = $i + 1; // найденный индекс строки
-                        }
-                    }
-                }
-                // запрос по удалению строки
-                $requests = [
-                    new Google_Service_Sheets_Request([
-                        'deleteRange' => [
-                            "shiftDimension" => "ROWS", 
-                            "range" => [
-                                "startRowIndex" => $found_row - 1, 
-                                "endRowIndex" => $found_row, 
-                                "sheetId" => $work_sheet_id
-                            ]
-                        ]
-                    ]) 
+                $found_row = findRowCoordsInTable($table_values, $options['value_to_find']);
+
+                $shift_dimension = "ROWS";
+                $range_values = [
+                    "startRowIndex" => $found_row,
+                    "endRowIndex" => $found_row + 1,
                 ];
             } 
             else 
             {
-                $find_col = $options['value_to_find']; // столбец для поиска
+                $found_col = findColCoordsInTable($table_values, $options['value_to_find']);
 
-                for ($j = 0;$j <= $sheetRowCount;$j++) 
-                {
-                    for ($i = 0;$i <= $sheetColumnCount;$i++) 
-                    {
-                        if ($php_text[$j][$i] == $find_col) 
-                        {
-                            $found_col = $i + 1; // найденный индекс колонки
-                        }
-                    }
-                }
-                // запрос по удалению столбца
-                $requests = [
-                    new Google_Service_Sheets_Request(
-                        ['deleteRange' => [
-                            "shiftDimension" => "COLUMNS", 
-                            "range" => [
-                                "startColumnIndex" => $found_col - 1,
-                                "endColumnIndex" => $found_col, 
-                                "sheetId" => $work_sheet_id
-                            ]
-                        ]
-                    ]) 
+                $shift_dimension = "COLUMNS";
+                $range_values = [
+                    "startColumnIndex" => $found_col,
+                    "endColumnIndex" => $found_col + 1,
                 ];
             }
-            $batchUpdateRequest = new Google_Service_Sheets_BatchUpdateSpreadsheetRequest([
+
+            $request_array = [
+                'deleteRange' => [
+                    "shiftDimension" => $shift_dimension,
+                    "range" => [
+                        "sheetId" => $table_info['work_sheet_id']
+                    ]
+                ]
+            ];
+
+            foreach($range_values as $key => $value)    // Добавляем данные по range
+                $request_array['deleteRange']['range'][$key] = $value;
+
+            $requests = [ // Запрос по удаление
+                new Google_Service_Sheets_Request($request_array)
+            ];
+            
+            $batch_update_request = new Google_Service_Sheets_BatchUpdateSpreadsheetRequest([
                 'requests' => $requests
             ]);
-            $response = $service->spreadsheets->batchUpdate($spreadsheetId, $batchUpdateRequest);
+
+            $result = $service->spreadsheets->batchUpdate(
+                $spreadsheet_id,
+                $batch_update_request
+            );
+
             $message = 'Удалено';
             $out = 1;
             break;
-
-        default:
-            // code...
-            break;
     }
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     * Сформировать массив на отдачу                              *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+
     $responce = [
         'out' => $out, // Обязательно должен быть номер выхода out, отличный от нуля!
         'value' => [
-            'message' => $message, 
-            'range' => $range, 
+            'message' => $message,
             'return_row' => $return_row
         ]
     ];
-} 
-elseif($act == '') {
-    /* Действие не задано, и что же нам сделать? Станцевать вальс, попрыгать, пойти в гости к Кролику? */
 }
-elseif($act == 'man') {
+elseif($act == 'man')
+{
     $responce = [
         'html' => 
         "##Описание
