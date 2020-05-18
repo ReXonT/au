@@ -106,7 +106,7 @@ function changeKindInfo($viewer, $kind_info)
     {
         case 'main': // Получить основную информацию
             return $result = [
-                'chat_id' => $viewer['chatUserId'],
+                'chat_id' => $viewer['chat_id'],
                 'username' => $viewer['username'],
                 'vk_uid' => $viewer['cu1'],
                 'add_field' => $viewer['c1'],
@@ -116,11 +116,11 @@ function changeKindInfo($viewer, $kind_info)
             break;
 
         case 'cu1': // Получить свой URL параметр
-            return $result = $viewer['cu1'];
+            return $viewer['cu1'];
             break;
 
         case 'c1': // Получить своё поле
-            return $result = $viewer['c1'];
+            return $viewer['c1'];
             break;
     }
 }
@@ -134,17 +134,20 @@ function dataToText($data)
     {
         foreach ($data as $item_key => $item)
         {
-            if(!is_array($item))
-                $text .= $item . ',';
-            else
-                foreach ($item as $key_value => $value)
-                    if($value)
-                        $text .= russianName($key_value) . ": " . $value . "\n";
-                $text .= "\n";
+            if($item)
+            {
+                if(!is_array($item))
+                    $text .= $item;
+                else
+                    foreach ($item as $key_value => $value)
+                        if($value)
+                            $text .= russianName($key_value) . ": " . $value . "<br>";
+                $text .= "<br>";
+            }
         }
     }
 
-    return trim($text,",\n");
+    return $text;
 }
 
 function phoneFormat($phone)
@@ -155,6 +158,7 @@ function phoneFormat($phone)
         if($phone[0] == 7)
             $phone = mb_substr($phone, 1);
     }
+
     return $phone;
 }
 
@@ -202,6 +206,6 @@ function russianName($key)
         'created' => 'Создан',
         'room_title' => 'Заголовок комнаты'
     ];
-    return $name[$key];
 
+    return $name[$key];
 }

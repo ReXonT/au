@@ -1,6 +1,6 @@
 <?php
 
-ini_set('display_errors' , 1);
+//ini_set('display_errors' , 1);
 
 require_once ('functions.php');
 require_once ('Bizon.php');
@@ -190,6 +190,7 @@ if($act == 'options') {
                 'default' => '',
                 'show' => [
                     'option' => ['viewers'],
+                    'viewer_method' => ['get_messages','is_viewer','has_keyword'],
                     'viewers_add_fields' => ['add']
                 ],
                 'desc' => 'Например, укажите здесь id пользователя, которого ищем. Если вы давали ему ссылку с его id (по инструкции)',    // описание поля, можно пару строк
@@ -199,6 +200,7 @@ if($act == 'options') {
                 'default' => '',
                 'show' => [
                     'option' => ['viewers'],
+                    'viewer_method' => ['get_messages','is_viewer','has_keyword'],
                     'viewers_add_fields' => ['add']
                 ],
                 'desc' => 'Значение в ссылке-источнике, с которой зритель пришел на вебинар',    // описание поля, можно пару строк
@@ -208,6 +210,7 @@ if($act == 'options') {
                 'default' => '',
                 'show' => [
                     'option' => ['viewers'],
+                    'viewer_method' => ['get_messages','is_viewer','has_keyword'],
                     'viewers_add_fields' => ['add']
                 ],
                 'desc' => 'Найдет сходство телефонов вида +79991112233, 79991112233, 89991112233, 9991112233',    // описание поля, можно пару строк
@@ -217,6 +220,7 @@ if($act == 'options') {
                 'default' => '',
                 'show' => [
                     'option' => ['viewers'],
+                    'viewer_method' => ['get_messages','is_viewer','has_keyword'],
                     'viewers_add_fields' => ['add']
                 ],
                 'desc' => 'Поиск на точное соответствие',    // описание поля, можно пару строк
@@ -226,6 +230,7 @@ if($act == 'options') {
                 'default' => '',
                 'show' => [
                     'option' => ['viewers'],
+                    'viewer_method' => ['get_messages','is_viewer','has_keyword'],
                     'viewers_add_fields' => ['add']
                 ],
                 'desc' => 'Регистр не важен. Совпадения по этому полю минимальные, потому что человек может указать что угодно.',    // описание поля, можно пару строк
@@ -471,6 +476,7 @@ if($act == 'options') {
         'value' => [           // Ещё можно отдать ключ value и переменные в нём будут доступны в схеме через $bN_value.ваши_ключи_массива
             'result' => $result,    // результат выполнения
             'text' => $text,
+            'textlen' => strlen($text),
             'log' => $log           // log ошибок
         ]
     ];
@@ -487,6 +493,7 @@ elseif($act == 'man')
         
             **{b.{bid}.value.result}** - результат выполнения
             **{b.{bid}.value.text}** - результат выполнения в текстовом виде
+            **{b.{bid}.value.textlen}** - длина (количество символов) в text
             
             ###Логи:
         
